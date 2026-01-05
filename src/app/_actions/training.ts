@@ -66,7 +66,15 @@ export async function getActiveSessionAction() {
     if (!user) return null;
 
     const sessionRepository = new SupabaseSessionRepository();
-    return sessionRepository.getActiveSession(user.id);
+    const activeSession = await sessionRepository.getActiveSession(user.id);
+
+    if (!activeSession) return null;
+
+    // Fetch exercises to show names
+    const exerciseRepository = new SupabaseExerciseRepository();
+    const exercises = await exerciseRepository.getAllByUserId(user.id);
+
+    return { session: activeSession, exercises };
 }
 
 export async function createRoutineAction(name: string, description: string, exerciseIds: string[]) {
@@ -154,4 +162,37 @@ export async function addSetAction(setData: Omit<ExerciseSet, 'id' | 'createdAt'
     } catch (error) {
         return { error: "Error al añadir la serie" };
     }
+}
+
+export async function getProgressionDataAction(exerciseId?: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return [];
+
+    const sessionRepository = new SupabaseSessionRepository();
+    const sessions = await sessionRepository.getAllByUserId(user.id);
+
+    // Simple aggregation for volume/progress
+    const data = sessions.map(session => {
+        let volume = 0;
+        let max1RM = 0;
+
+        session.sets.forEach(set => {
+            const vol = set.weight * set.reps;
+            volume += vol;
+
+            if (!exerciseId || set.exerciseId === exerciseId) {
+                const est1RM = set.weight * (1 + 0.0333 * set.reps);
+                if (est1RM > max1RM) max1RM = est1RM;
+            }
+        });
+
+        return {
+            date: session.startTime.toISOString().split('T')[0],
+            volume,
+            max1RM: Math.round(max1RM * 10) / 10
+        };
+    }).reverse();
+
+    return data;
 }

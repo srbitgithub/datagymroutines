@@ -1,10 +1,15 @@
-import { getExercisesAction, getRoutinesAction } from "@/app/_actions/training";
-import { ListChecks, Plus, Play, History, Dumbbell } from "lucide-react";
+import { getExercisesAction, getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
+import { ListChecks, Plus, Play, History, Dumbbell, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { MiniChart } from "@/modules/training/infrastructure/components/MiniChart";
 
 export default async function DashboardPage() {
     const routines = await getRoutinesAction();
     const exercises = await getExercisesAction();
+    const progression = await getProgressionDataAction();
+
+    const volumeData = progression.map(p => ({ date: p.date, value: p.volume }));
+    const strengthData = progression.map(p => ({ date: p.date, value: p.max1RM }));
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -15,7 +20,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Link
-                        href="/dashboard/session/new"
+                        href="/dashboard/session/start"
                         className="flex-1 md:flex-none inline-flex h-11 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-primary/90 active:scale-95"
                     >
                         <Play className="mr-2 h-4 w-4 fill-current" />
@@ -23,6 +28,19 @@ export default async function DashboardPage() {
                     </Link>
                 </div>
             </header>
+
+            <div className="grid gap-4 md:grid-cols-2">
+                <MiniChart
+                    data={volumeData}
+                    label="Volumen Total"
+                    color="#3b82f6"
+                />
+                <MiniChart
+                    data={strengthData}
+                    label="Fuerza Estimada (1RM)"
+                    color="#ef4444"
+                />
+            </div>
 
             <div className="grid gap-6 md:grid-cols-3">
                 {/* Quick Stats Placeholder */}

@@ -1,18 +1,36 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TrainingSession, ExerciseSet } from '../../domain/Session';
-import { Dumbbell, Plus, Check, Clock, Save, X, Trash2 } from 'lucide-react';
+import { Exercise } from '../../domain/Exercise';
+import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { addSetAction, finishSessionAction } from '@/app/_actions/training';
 
 interface SessionLoggerProps {
     session: TrainingSession;
+    exercises: Exercise[];
 }
 
-export function SessionLogger({ session }: SessionLoggerProps) {
+export function SessionLogger({ session, exercises }: SessionLoggerProps) {
     const router = useRouter();
     const [sets, setSets] = useState<ExerciseSet[]>(session.sets || []);
     const [elapsed, setElapsed] = useState(0);
+    const [isFinishing, setIsFinishing] = useState(false);
+    const [isAddingSet, setIsAddingSet] = useState<string | null>(null);
+
+    // Map to get exercise names easily
+    const exerciseMap = exercises.reduce((acc, ex) => {
+        acc[ex.id] = ex;
+        return acc;
+    }, {} as Record<string, Exercise>);
+
+    // Group sets by exercise
+    const groupedSets = sets.reduce((acc, set) => {
+        if (!acc[set.exerciseId]) acc[set.exerciseId] = [];
+        acc[set.exerciseId].push(set);
+        return acc;
+    }, {} as Record<string, ExerciseSet[]>);
 
     // Simple Timer
     useEffect(() => {
@@ -31,19 +49,25 @@ export function SessionLogger({ session }: SessionLoggerProps) {
         return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const addSet = (exerciseId: string) => {
-        const newSet: ExerciseSet = {
-            id: crypto.randomUUID(),
+    const addSet = async (exerciseId: string) => {
+        setIsAddingSet(exerciseId);
+        const orderIndex = (groupedSets[exerciseId]?.length || 0);
+
+        const result = await addSetAction({
             sessionId: session.id,
             exerciseId,
             weight: 0,
             reps: 0,
             type: 'normal',
-            orderIndex: sets.filter(s => s.exerciseId === exerciseId).length,
-            createdAt: new Date(),
-        };
-        setSets([...sets, newSet]);
-        // In a real app, we would call an action here to save to the DB immediately
+            orderIndex,
+        });
+
+        if (result.success) {
+            // In a real app, we'd probably re-fetch or use the ID from result
+            // For now, let's just refresh the router to get the new data
+            router.refresh();
+        }
+        setIsAddingSet(null);
     };
 
     const updateSet = (id: string, field: keyof ExerciseSet, value: any) => {
@@ -52,6 +76,16 @@ export function SessionLogger({ session }: SessionLoggerProps) {
 
     const removeSet = (id: string) => {
         setSets(sets.filter(s => s.id !== id));
+    };
+
+    const handleFinish = async () => {
+        setIsFinishing(true);
+        const result = await finishSessionAction(session.id);
+        if (result.success) {
+            router.push('/dashboard');
+            router.refresh();
+        }
+        setIsFinishing(false);
     };
 
     return (
@@ -67,75 +101,88 @@ export function SessionLogger({ session }: SessionLoggerProps) {
                     </div>
                 </div>
                 <button
-                    className="inline-flex h-10 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-bold text-white shadow-lg transition-transform active:scale-95"
-                    onClick={() => router.push('/dashboard')}
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                    onClick={handleFinish}
+                    disabled={isFinishing}
                 >
-                    <Check className="mr-2 h-4 w-4" />
+                    {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
                     Finalizar
                 </button>
             </header>
 
-            {/* Mocking exercises for now or getting them from session.routine */}
-            {/* Since we don't have the full join here, let's assume session has routine exercises */}
-            <div className="space-y-8">
-                <p className="text-muted-foreground text-sm italic">
-                    (Interfaz de registro de series en desarrollo...)
-                </p>
+            <div className="space-y-6">
+                {Object.entries(groupedSets).map(([exerciseId, exerciseSets]) => {
+                    const exercise = exerciseMap[exerciseId];
+                    return (
+                        <div key={exerciseId} className="rounded-2xl border bg-card overflow-hidden shadow-sm">
+                            <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
+                                <h3 className="font-bold flex items-center gap-2">
+                                    <Dumbbell className="h-4 w-4 text-brand-primary" />
+                                    {exercise?.name || "Ejercicio"}
+                                </h3>
+                                <button
+                                    onClick={() => addSet(exerciseId)}
+                                    disabled={isAddingSet === exerciseId}
+                                    className="text-xs font-bold uppercase text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded transition-colors flex items-center gap-1"
+                                >
+                                    {isAddingSet === exerciseId ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                                    Añadir Serie
+                                </button>
+                            </div>
 
-                {/* Example Exercise block */}
-                <div className="rounded-2xl border bg-card overflow-hidden shadow-sm">
-                    <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
-                        <h3 className="font-bold flex items-center gap-2">
-                            <Dumbbell className="h-4 w-4 text-brand-primary" />
-                            Press de Banca
-                        </h3>
-                        <button
-                            onClick={() => addSet('placeholder-id')}
-                            className="text-xs font-bold uppercase text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded transition-colors"
-                        >
-                            + Añadir Serie
-                        </button>
-                    </div>
+                            <div className="p-0">
+                                <table className="w-full text-center border-collapse">
+                                    <thead>
+                                        <tr className="text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30">
+                                            <th className="w-12 p-2">SET</th>
+                                            <th className="p-2">PESO (KG)</th>
+                                            <th className="p-2">REPS</th>
+                                            <th className="w-12 p-2"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => (
+                                            <tr key={set.id} className="border-b last:border-0 hover:bg-accent/5 transition-colors">
+                                                <td className="p-3 text-xs font-bold text-muted-foreground">{idx + 1}</td>
+                                                <td className="p-3">
+                                                    <input
+                                                        type="number"
+                                                        defaultValue={set.weight || ''}
+                                                        onBlur={(e) => {
+                                                            // Add logic to update set weight
+                                                        }}
+                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                    />
+                                                </td>
+                                                <td className="p-3">
+                                                    <input
+                                                        type="number"
+                                                        defaultValue={set.reps || ''}
+                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                    />
+                                                </td>
+                                                <td className="p-3">
+                                                    <div className={`flex items-center justify-center h-8 w-8 rounded-full ${set.weight > 0 ? 'bg-brand-primary text-white shadow-sm' : 'bg-muted/50 text-muted-foreground'}`}>
+                                                        <Check className="h-4 w-4" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })}
 
-                    <div className="p-0">
-                        <table className="w-full text-center border-collapse">
-                            <thead>
-                                <tr className="text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30">
-                                    <hr className="w-8 p-2">SET</hr>
-                                    <th className="p-2">PESO (KG)</th>
-                                    <th className="p-2">REPS</th>
-                                    <th className="w-10"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[1, 2, 3].map((setNum) => (
-                                    <tr key={setNum} className="border-b last:border-0 hover:bg-accent/5 transition-colors">
-                                        <td className="p-3 text-xs font-bold text-muted-foreground">{setNum}</td>
-                                        <td className="p-3">
-                                            <input
-                                                type="number"
-                                                placeholder="0"
-                                                className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                            />
-                                        </td>
-                                        <td className="p-3">
-                                            <input
-                                                type="number"
-                                                placeholder="0"
-                                                className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                            />
-                                        </td>
-                                        <td className="p-3">
-                                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted/50 text-muted-foreground">
-                                                <Check className="h-4 w-4" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                {/* Add more exercises button */}
+                <button
+                    className="w-full py-4 border-2 border-dashed rounded-2xl text-muted-foreground hover:text-brand-primary hover:border-brand-primary transition-all flex flex-col items-center justify-center gap-2"
+                    onClick={() => {/* Open exercise selector */ }}
+                >
+                    <Plus className="h-6 w-6" />
+                    <span className="text-sm font-bold uppercase tracking-widest">Añadir Ejercicio</span>
+                </button>
             </div>
         </div>
     );

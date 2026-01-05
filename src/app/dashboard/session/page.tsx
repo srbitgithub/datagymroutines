@@ -7,13 +7,13 @@ import { SessionLogger } from "@/modules/training/infrastructure/components/Sess
 export const dynamic = 'force-dynamic';
 
 export default async function SessionPage({ searchParams }: { searchParams: { routineId?: string } }) {
-    const activeSession = await getActiveSessionAction();
+    const data = await getActiveSessionAction();
 
     // If there's an active session, show the logger
-    if (activeSession) {
+    if (data?.session) {
         return (
             <div className="max-w-4xl mx-auto">
-                <SessionLogger session={activeSession} />
+                <SessionLogger session={data.session} exercises={data.exercises} />
             </div>
         );
     }

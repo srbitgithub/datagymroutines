@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { Dumbbell, LayoutDashboard, Settings, LogOut, MapPin } from "lucide-react";
+import { Dumbbell, LayoutDashboard, Settings, LogOut, MapPin, Wrench } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
@@ -25,6 +25,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         <Link href="/dashboard/exercises" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
                             <Dumbbell className="h-4 w-4" />
                             <span className="hidden md:inline">Ejercicios</span>
+                        </Link>
+                        <Link href="/dashboard/tools" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                            <Wrench className="h-4 w-4" />
+                            <span className="hidden md:inline">Herramientas</span>
                         </Link>
                         <Link href="/dashboard/settings" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
                             <Settings className="h-4 w-4" />
