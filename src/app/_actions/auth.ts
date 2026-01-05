@@ -24,11 +24,13 @@ export async function loginAction(prevState: any, formData: FormData) {
 
     try {
         await loginUseCase.execute(email, password);
-    } catch (error) {
+        console.log("Login exitoso para:", email);
+    } catch (error: any) {
+        console.error("Error en loginAction para", email, ":", error);
         if (error instanceof AuthError) {
             return { error: error.message };
         }
-        return { error: "Ocurrió un error inesperado" };
+        return { error: "Ocurrió un error inesperado al iniciar sesión" };
     }
 
     redirect("/dashboard");
@@ -46,13 +48,15 @@ export async function registerAction(prevState: any, formData: FormData) {
     const registerUseCase = new RegisterUseCase(authRepository);
 
     try {
-        await registerUseCase.execute(email, password);
+        const user = await registerUseCase.execute(email, password);
+        console.log("Usuario registrado con éxito en el servidor:", user.id);
         return { success: true };
     } catch (error) {
+        console.error("Error en registerAction:", error);
         if (error instanceof AuthError) {
             return { error: error.message };
         }
-        return { error: "Ocurrió un error inesperado" };
+        return { error: "Ocurrió un error inesperado al registrar el usuario" };
     }
 }
 

@@ -1,18 +1,31 @@
 import { AuthRepository } from "../../domain/AuthRepository";
 import { AuthUser } from "../../domain/AuthUser";
-import { supabase } from "./SupabaseClient";
+import { supabase as staticClient } from "./SupabaseClient";
+import { createServerSideClient } from "./SupabaseServerClient";
 import { AuthMapper } from "../mappers/AuthMapper";
 import { InvalidCredentialsError, UserAlreadyExistsError, AuthError } from "@/core/errors/DomainErrors";
 
 export class SupabaseAuthRepository implements AuthRepository {
+    private async getClient() {
+        // If we are on the server (Next.js context), we use the SSR client
+        if (typeof window === 'undefined') {
+            return await createServerSideClient();
+        }
+        return staticClient;
+    }
+
     async login(email: string, password: string): Promise<AuthUser> {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const client = await this.getClient();
+        const { data, error } = await client.auth.signInWithPassword({
             email,
             password,
         });
 
         if (error) {
-            if (error.status === 400) throw new InvalidCredentialsError();
+            console.error("Supabase login error:", error);
+            if (error.status === 400 || error.message.includes("Invalid login credentials")) {
+                throw new InvalidCredentialsError();
+            }
             throw new AuthError(error.message);
         }
 
@@ -22,7 +35,8 @@ export class SupabaseAuthRepository implements AuthRepository {
     }
 
     async register(email: string, password: string): Promise<AuthUser> {
-        const { data, error } = await supabase.auth.signUp({
+        const client = await this.getClient();
+        const { data, error } = await client.auth.signUp({
             email,
             password,
         });
@@ -38,17 +52,20 @@ export class SupabaseAuthRepository implements AuthRepository {
     }
 
     async forgotPassword(email: string): Promise<void> {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const client = await this.getClient();
+        const { error } = await client.auth.resetPasswordForEmail(email);
         if (error) throw new AuthError(error.message);
     }
 
     async logout(): Promise<void> {
-        const { error } = await supabase.auth.signOut();
+        const client = await this.getClient();
+        const { error } = await client.auth.signOut();
         if (error) throw new AuthError(error.message);
     }
 
     async getSession(): Promise<AuthUser | null> {
-        const { data, error } = await supabase.auth.getUser();
+        const client = await this.getClient();
+        const { data, error } = await client.auth.getUser();
 
         if (error || !data.user) return null;
 
