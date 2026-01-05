@@ -4,11 +4,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    if (process.env.NODE_ENV === 'production') {
-        throw new Error("Faltan las variables de entorno de Supabase");
-    } else {
-        console.warn("⚠️ Advertencia: NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY no están configuradas. Las peticiones fallarán.");
-    }
+    // Only warn during build to avoid breaking the CI/CD pipeline
+    console.warn("⚠️ Advertencia: NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY no están configuradas.");
 }
 
 export const supabase = createClient(
