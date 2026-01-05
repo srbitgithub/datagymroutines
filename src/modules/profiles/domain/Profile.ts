@@ -1,0 +1,14 @@
+export interface Profile {
+    id: string; // Linked to User ID
+    username: string;
+    fullName?: string;
+    avatarUrl?: string;
+    weightUnit: 'kg' | 'lbs';
+    updatedAt: Date;
+}
+
+export interface ProfileRepository {
+    getById(id: string): Promise<Profile | null>;
+    save(profile: Profile): Promise<void>;
+    update(id: string, profile: Partial<Profile>): Promise<void>;
+}

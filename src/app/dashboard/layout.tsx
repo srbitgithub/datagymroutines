@@ -1,0 +1,45 @@
+import { ReactNode } from "react";
+import Link from "next/link";
+import { Dumbbell, LayoutDashboard, Settings, LogOut, MapPin } from "lucide-react";
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+    return (
+        <div className="flex min-h-screen bg-background">
+            {/* Sidebar Mobile (bottom) / Desktop (left) */}
+            <aside className="fixed bottom-0 left-0 z-50 w-full border-t bg-background md:static md:w-64 md:border-r md:border-t-0">
+                <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
+                    <div className="hidden items-center gap-2 md:flex mb-8">
+                        <Dumbbell className="h-6 w-6 text-brand-primary" />
+                        <span className="font-bold text-xl tracking-tight">DataGym</span>
+                    </div>
+
+                    <nav className="flex w-full flex-row justify-around gap-2 md:flex-col md:justify-start">
+                        <Link href="/dashboard" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                            <LayoutDashboard className="h-4 w-4" />
+                            <span className="hidden md:inline">Panel principal</span>
+                        </Link>
+                        <Link href="/dashboard/gyms" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                            <MapPin className="h-4 w-4" />
+                            <span className="hidden md:inline">Mis Gimnasios</span>
+                        </Link>
+                        <Link href="/dashboard/settings" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                            <Settings className="h-4 w-4" />
+                            <span className="hidden md:inline">Configuración</span>
+                        </Link>
+                    </nav>
+
+                    <div className="mt-auto hidden w-full md:block">
+                        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10">
+                            <LogOut className="h-4 w-4" />
+                            <span>Cerrar sesión</span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <main className="flex-1 p-6 pb-24 md:pb-6 overflow-y-auto">
+                {children}
+            </main>
+        </div>
+    );
+}
