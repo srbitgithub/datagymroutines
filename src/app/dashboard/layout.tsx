@@ -22,6 +22,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                             <MapPin className="h-4 w-4" />
                             <span className="hidden md:inline">Mis Gimnasios</span>
                         </Link>
+                        <Link href="/dashboard/exercises" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
+                            <Dumbbell className="h-4 w-4" />
+                            <span className="hidden md:inline">Ejercicios</span>
+                        </Link>
                         <Link href="/dashboard/settings" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
                             <Settings className="h-4 w-4" />
                             <span className="hidden md:inline">Configuración</span>

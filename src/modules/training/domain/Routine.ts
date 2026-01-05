@@ -1,0 +1,26 @@
+import { Exercise } from "./Exercise";
+
+export interface Routine {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    exercises: RoutineExercise[];
+    createdAt: Date;
+}
+
+export interface RoutineExercise {
+    id: string;
+    exerciseId: string;
+    orderIndex: number;
+    notes?: string;
+    exercise?: Exercise; // Populated from join
+}
+
+export interface RoutineRepository {
+    getById(id: string): Promise<Routine | null>;
+    getAllByUserId(userId: string): Promise<Routine[]>;
+    save(routine: Routine): Promise<void>;
+    update(id: string, routine: Partial<Routine>): Promise<void>;
+    delete(id: string): Promise<void>;
+}
