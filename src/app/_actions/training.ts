@@ -72,7 +72,7 @@ export async function getActiveSessionAction() {
 
     // Fetch exercises to show names
     const exerciseRepository = new SupabaseExerciseRepository();
-    const exercises = await exerciseRepository.getAllByUserId(user.id);
+    const exercises = await exerciseRepository.getAll(user.id);
 
     return { session: activeSession, exercises };
 }
