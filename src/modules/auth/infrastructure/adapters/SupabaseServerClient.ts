@@ -12,12 +12,11 @@ export async function createServerSideClient() {
 
         const errorMessage = `Faltan variables de entorno de Supabase: ${missing.join(', ')}. Verifica la configuración de tu servidor.`
 
-        // If we're not inside the Next.js build process, we throw a loud error
-        if (process.env.NEXT_PHASE !== 'phase-production-build') {
-            throw new Error(errorMessage)
+        if (process.env.NEXT_PHASE === 'phase-production-build') {
+            console.warn(`[SupabaseServerClient] Advertencia durante el build: ${errorMessage}`);
+        } else {
+            console.error(`[SupabaseServerClient] ERROR EN RUNTIME: ${errorMessage}`);
         }
-
-        console.error(`[SupabaseServerClient] Ocurrió un error en el build (prerendering): ${errorMessage}`);
     }
 
     const cookieStore = await cookies()
