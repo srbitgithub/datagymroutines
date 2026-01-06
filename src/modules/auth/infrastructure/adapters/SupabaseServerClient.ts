@@ -9,7 +9,15 @@ export async function createServerSideClient() {
         const missing = []
         if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
         if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-        console.error(`[SupabaseServerClient] Faltan variables de entorno: ${missing.join(', ')}. El build continuará pero la app fallará en runtime si no se configuran.`);
+
+        const errorMessage = `Faltan variables de entorno de Supabase: ${missing.join(', ')}. Verifica la configuración de tu servidor.`
+
+        // If we're not inside the Next.js build process, we throw a loud error
+        if (process.env.NEXT_PHASE !== 'phase-production-build') {
+            throw new Error(errorMessage)
+        }
+
+        console.error(`[SupabaseServerClient] Ocurrió un error en el build (prerendering): ${errorMessage}`);
     }
 
     const cookieStore = await cookies()

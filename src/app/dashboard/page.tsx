@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getExercisesAction, getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
 import { ListChecks, Plus, Play, History, Dumbbell, TrendingUp } from "lucide-react";
 import Link from "next/link";
