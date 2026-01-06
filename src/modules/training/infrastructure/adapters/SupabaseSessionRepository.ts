@@ -1,10 +1,11 @@
 import { TrainingSession, SessionRepository, ExerciseSet } from "../../domain/Session";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 import { SessionMapper } from "../mappers/SessionMapper";
+import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseSessionRepository implements SessionRepository {
+export class SupabaseSessionRepository extends SupabaseRepository implements SessionRepository {
     async getById(id: string): Promise<TrainingSession | null> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("training_sessions")
             .select("*, exercise_sets(*)")
             .eq("id", id)
@@ -16,7 +17,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async getAllByUserId(userId: string): Promise<TrainingSession[]> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("training_sessions")
             .select("*, exercise_sets(*)")
             .eq("user_id", userId)
@@ -28,7 +30,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async getActiveSession(userId: string): Promise<TrainingSession | null> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("training_sessions")
             .select("*, exercise_sets(*)")
             .eq("user_id", userId)
@@ -41,7 +44,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async save(session: TrainingSession): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("training_sessions")
             .insert(SessionMapper.toPersistence(session));
 
@@ -49,7 +53,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async update(id: string, sessionData: Partial<TrainingSession>): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("training_sessions")
             .update(SessionMapper.toPersistence(sessionData as TrainingSession))
             .eq("id", id);
@@ -58,7 +63,8 @@ export class SupabaseSessionRepository implements SessionRepository {
     }
 
     async addSet(set: ExerciseSet): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("exercise_sets")
             .insert(SessionMapper.setToPersistence(set));
 

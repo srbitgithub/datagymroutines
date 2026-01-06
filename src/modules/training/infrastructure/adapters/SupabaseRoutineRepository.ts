@@ -1,10 +1,11 @@
 import { Routine, RoutineRepository } from "../../domain/Routine";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 import { RoutineMapper } from "../mappers/RoutineMapper";
+import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseRoutineRepository implements RoutineRepository {
+export class SupabaseRoutineRepository extends SupabaseRepository implements RoutineRepository {
     async getById(id: string): Promise<Routine | null> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("routines")
             .select("*, routine_exercises(*, exercises(*))")
             .eq("id", id)
@@ -16,7 +17,8 @@ export class SupabaseRoutineRepository implements RoutineRepository {
     }
 
     async getAllByUserId(userId: string): Promise<Routine[]> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("routines")
             .select("*, routine_exercises(*, exercises(*))")
             .eq("user_id", userId)
@@ -28,7 +30,8 @@ export class SupabaseRoutineRepository implements RoutineRepository {
     }
 
     async save(routine: Routine): Promise<void> {
-        const { error: routineError } = await supabase
+        const client = await this.getClient();
+        const { error: routineError } = await client
             .from("routines")
             .insert(RoutineMapper.toPersistence(routine));
 
@@ -36,7 +39,7 @@ export class SupabaseRoutineRepository implements RoutineRepository {
 
         // Insert routine exercises
         if (routine.exercises.length > 0) {
-            const { error: exercisesError } = await supabase
+            const { error: exercisesError } = await client
                 .from("routine_exercises")
                 .insert(
                     routine.exercises.map((re) => ({
@@ -52,7 +55,8 @@ export class SupabaseRoutineRepository implements RoutineRepository {
     }
 
     async update(id: string, routineData: Partial<Routine>): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("routines")
             .update(RoutineMapper.toPersistence(routineData as Routine))
             .eq("id", id);
@@ -61,7 +65,8 @@ export class SupabaseRoutineRepository implements RoutineRepository {
     }
 
     async delete(id: string): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("routines")
             .delete()
             .eq("id", id);

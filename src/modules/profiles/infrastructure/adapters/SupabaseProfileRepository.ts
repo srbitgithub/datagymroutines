@@ -1,10 +1,11 @@
 import { Profile, ProfileRepository } from "../../domain/Profile";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 import { ProfileMapper } from "../mappers/ProfileMapper";
+import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseProfileRepository implements ProfileRepository {
+export class SupabaseProfileRepository extends SupabaseRepository implements ProfileRepository {
     async getById(id: string): Promise<Profile | null> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("profiles")
             .select("*")
             .eq("id", id)
@@ -16,7 +17,8 @@ export class SupabaseProfileRepository implements ProfileRepository {
     }
 
     async save(profile: Profile): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("profiles")
             .insert(ProfileMapper.toPersistence(profile));
 
@@ -24,7 +26,8 @@ export class SupabaseProfileRepository implements ProfileRepository {
     }
 
     async update(id: string, profile: Partial<Profile>): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("profiles")
             .update(profile)
             .eq("id", id);

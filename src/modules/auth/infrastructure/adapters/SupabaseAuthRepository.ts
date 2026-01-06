@@ -1,18 +1,10 @@
 import { AuthRepository } from "../../domain/AuthRepository";
 import { AuthUser } from "../../domain/AuthUser";
-import { supabase as staticClient } from "./SupabaseClient";
-import { createServerSideClient } from "./SupabaseServerClient";
 import { AuthMapper } from "../mappers/AuthMapper";
 import { InvalidCredentialsError, UserAlreadyExistsError, AuthError } from "@/core/errors/DomainErrors";
+import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseAuthRepository implements AuthRepository {
-    private async getClient() {
-        // If we are on the server (Next.js context), we use the SSR client
-        if (typeof window === 'undefined') {
-            return await createServerSideClient();
-        }
-        return staticClient;
-    }
+export class SupabaseAuthRepository extends SupabaseRepository implements AuthRepository {
 
     async login(email: string, password: string): Promise<AuthUser> {
         const client = await this.getClient();

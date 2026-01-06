@@ -1,10 +1,11 @@
 import { Exercise, ExerciseRepository } from "../../domain/Exercise";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 import { ExerciseMapper } from "../mappers/ExerciseMapper";
+import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseExerciseRepository implements ExerciseRepository {
+export class SupabaseExerciseRepository extends SupabaseRepository implements ExerciseRepository {
     async getById(id: string): Promise<Exercise | null> {
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("exercises")
             .select("*")
             .eq("id", id)
@@ -17,7 +18,8 @@ export class SupabaseExerciseRepository implements ExerciseRepository {
 
     async getAll(userId: string): Promise<Exercise[]> {
         // Get global exercises (user_id is null) AND user's own exercises
-        const { data, error } = await supabase
+        const client = await this.getClient();
+        const { data, error } = await client
             .from("exercises")
             .select("*")
             .or(`user_id.is.null,user_id.eq.${userId}`)
@@ -29,7 +31,8 @@ export class SupabaseExerciseRepository implements ExerciseRepository {
     }
 
     async save(exercise: Exercise): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("exercises")
             .insert(ExerciseMapper.toPersistence(exercise));
 
@@ -37,7 +40,8 @@ export class SupabaseExerciseRepository implements ExerciseRepository {
     }
 
     async update(id: string, exerciseData: Partial<Exercise>): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("exercises")
             .update(exerciseData)
             .eq("id", id);
@@ -46,7 +50,8 @@ export class SupabaseExerciseRepository implements ExerciseRepository {
     }
 
     async delete(id: string): Promise<void> {
-        const { error } = await supabase
+        const client = await this.getClient();
+        const { error } = await client
             .from("exercises")
             .delete()
             .eq("id", id);
