@@ -1,12 +1,25 @@
 import { AuthRepository } from "../../domain/AuthRepository";
 import { AuthUser } from "../../domain/AuthUser";
+import { supabase as staticClient } from "./SupabaseClient";
+import { createServerSideClient } from "./SupabaseServerClient";
 import { AuthMapper } from "../mappers/AuthMapper";
 import { InvalidCredentialsError, UserAlreadyExistsError, AuthError } from "@/core/errors/DomainErrors";
-import { SupabaseRepository } from "@/core/infrastructure/SupabaseRepository";
 
-export class SupabaseAuthRepository extends SupabaseRepository implements AuthRepository {
+export class SupabaseAuthRepository implements AuthRepository {
+    private async getClient() {
+        if (typeof window === 'undefined') {
+            return await createServerSideClient();
+        }
+        return staticClient;
+    }
 
     async login(email: string, password: string): Promise<AuthUser> {
+        console.log("[SupabaseAuthRepository] Intentando login para", email);
+        console.log("[SupabaseAuthRepository] ENV check:", {
+            hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+            hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        });
+
         const client = await this.getClient();
         const { data, error } = await client.auth.signInWithPassword({
             email,
