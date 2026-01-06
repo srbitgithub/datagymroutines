@@ -1,21 +1,18 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function createServerSideClient() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+export async function createServerSideClient() {
     if (!supabaseUrl || !supabaseAnonKey) {
         const missing = []
         if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
         if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+        const errorMessage = `Faltan variables de entorno: ${missing.join(', ')}`
 
-        const errorMessage = `Faltan variables de entorno de Supabase: ${missing.join(', ')}. Verifica la configuración de tu servidor.`
-
-        if (process.env.NEXT_PHASE === 'phase-production-build') {
-            console.warn(`[SupabaseServerClient] Advertencia durante el build: ${errorMessage}`);
-        } else {
-            console.error(`[SupabaseServerClient] ERROR EN RUNTIME: ${errorMessage}`);
+        if (process.env.NEXT_PHASE !== 'phase-production-build') {
+            console.error(`[SupabaseServerClient] RUNTIME ERROR: ${errorMessage}`);
         }
     }
 
