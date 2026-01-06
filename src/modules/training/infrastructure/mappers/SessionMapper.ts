@@ -7,10 +7,10 @@ export class SessionMapper {
             userId: raw.user_id,
             routineId: raw.routine_id,
             gymId: raw.gym_id,
-            startTime: new Date(raw.start_time),
+            startTime: raw.start_time ? new Date(raw.start_time) : new Date(),
             endTime: raw.end_time ? new Date(raw.end_time) : undefined,
             notes: raw.notes,
-            sets: raw.exercise_sets?.map(this.toSetDomain) || [],
+            sets: (raw.exercise_sets || []).map((set: any) => this.toSetDomain(set)),
         };
     }
 
@@ -19,11 +19,11 @@ export class SessionMapper {
             id: raw.id,
             sessionId: raw.session_id,
             exerciseId: raw.exercise_id,
-            weight: Number(raw.weight),
-            reps: raw.reps,
-            type: raw.type,
-            orderIndex: raw.order_index,
-            createdAt: new Date(raw.created_at),
+            weight: Number(raw.weight || 0),
+            reps: Number(raw.reps || 0),
+            type: raw.type || 'normal',
+            orderIndex: raw.order_index || 0,
+            createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
         };
     }
 

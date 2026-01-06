@@ -6,20 +6,25 @@ export class RoutineMapper {
         return {
             id: raw.id,
             userId: raw.user_id,
-            name: raw.name,
+            name: raw.name || "Sin nombre",
             description: raw.description,
-            exercises: raw.routine_exercises?.map(this.toExerciseDomain) || [],
-            createdAt: new Date(raw.created_at),
+            exercises: (raw.routine_exercises || []).map((re: any) => this.toExerciseDomain(re)),
+            createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
         };
     }
 
     private static toExerciseDomain(raw: any): RoutineExercise {
+        // PostgREST might return the joined object as 'exercises' or 'exercise' 
+        // and sometimes as an array if the relationship is ambiguous
+        const exerciseRaw = raw.exercises || raw.exercise;
+        const normalizedExercise = Array.isArray(exerciseRaw) ? exerciseRaw[0] : exerciseRaw;
+
         return {
             id: raw.id,
             exerciseId: raw.exercise_id,
-            orderIndex: raw.order_index,
+            orderIndex: raw.order_index || 0,
             notes: raw.notes,
-            exercise: raw.exercises ? ExerciseMapper.toDomain(raw.exercises) : undefined,
+            exercise: normalizedExercise ? ExerciseMapper.toDomain(normalizedExercise) : undefined,
         };
     }
 

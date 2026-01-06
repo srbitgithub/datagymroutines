@@ -10,15 +10,20 @@ import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/ada
 import { SupabaseSessionRepository } from "@/modules/training/infrastructure/adapters/SupabaseSessionRepository";
 
 export async function getExercisesAction() {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
 
-    if (!user) return [];
+        if (!user) return [];
 
-    const exerciseRepository = new SupabaseExerciseRepository();
-    const getExercisesUseCase = new GetExercisesUseCase(exerciseRepository);
+        const exerciseRepository = new SupabaseExerciseRepository();
+        const getExercisesUseCase = new GetExercisesUseCase(exerciseRepository);
 
-    return getExercisesUseCase.execute(user.id);
+        return await getExercisesUseCase.execute(user.id);
+    } catch (error) {
+        console.error("Error en getExercisesAction:", error);
+        return [];
+    }
 }
 
 export async function createExerciseAction(prevState: any, formData: FormData) {
@@ -52,13 +57,18 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
 }
 
 export async function getRoutinesAction() {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-    if (!user) return [];
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return [];
 
-    const routineRepository = new SupabaseRoutineRepository();
-    const getRoutinesUseCase = new GetRoutinesUseCase(routineRepository);
-    return getRoutinesUseCase.execute(user.id);
+        const routineRepository = new SupabaseRoutineRepository();
+        const getRoutinesUseCase = new GetRoutinesUseCase(routineRepository);
+        return await getRoutinesUseCase.execute(user.id);
+    } catch (error) {
+        console.error("Error en getRoutinesAction:", error);
+        return [];
+    }
 }
 
 export async function getActiveSessionAction() {
@@ -166,34 +176,56 @@ export async function addSetAction(setData: Omit<ExerciseSet, 'id' | 'createdAt'
 }
 
 export async function getProgressionDataAction(exerciseId?: string) {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-    if (!user) return [];
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return [];
 
-    const sessionRepository = new SupabaseSessionRepository();
-    const sessions = await sessionRepository.getAllByUserId(user.id);
+        const sessionRepository = new SupabaseSessionRepository();
+        const sessions = await sessionRepository.getAllByUserId(user.id);
 
-    // Simple aggregation for volume/progress
-    const data = sessions.map(session => {
-        let volume = 0;
-        let max1RM = 0;
+        if (!Array.isArray(sessions)) {
+            console.error("getProgressionDataAction: sessions is not an array", sessions);
+            return [];
+        }
 
-        session.sets.forEach(set => {
-            const vol = set.weight * set.reps;
-            volume += vol;
+        // Simple aggregation for volume/progress
+        const data = sessions.map(session => {
+            let volume = 0;
+            let max1RM = 0;
 
-            if (!exerciseId || set.exerciseId === exerciseId) {
-                const est1RM = set.weight * (1 + 0.0333 * set.reps);
-                if (est1RM > max1RM) max1RM = est1RM;
+            const sets = session.sets || [];
+            sets.forEach(set => {
+                const weight = Number(set.weight || 0);
+                const reps = Number(set.reps || 0);
+                const vol = weight * reps;
+                volume += vol;
+
+                if (!exerciseId || set.exerciseId === exerciseId) {
+                    const est1RM = weight * (1 + 0.0333 * reps);
+                    if (est1RM > max1RM) max1RM = est1RM;
+                }
+            });
+
+            let dateStr = new Date().toISOString().split('T')[0];
+            try {
+                if (session.startTime instanceof Date && !isNaN(session.startTime.getTime())) {
+                    dateStr = session.startTime.toISOString().split('T')[0];
+                }
+            } catch (e) {
+                console.error("Error formatting date in getProgressionDataAction:", e);
             }
-        });
 
-        return {
-            date: session.startTime.toISOString().split('T')[0],
-            volume,
-            max1RM: Math.round(max1RM * 10) / 10
-        };
-    }).reverse();
+            return {
+                date: dateStr,
+                volume: Math.round(volume * 10) / 10,
+                max1RM: Math.round(max1RM * 10) / 10
+            };
+        }).reverse();
 
-    return data;
+        return data;
+    } catch (error) {
+        console.error("Error in getProgressionDataAction:", error);
+        return [];
+    }
 }
