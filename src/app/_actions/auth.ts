@@ -133,3 +133,13 @@ export async function createGymAction(prevState: any, formData: FormData) {
         return { error: "Error al crear el gimnasio" };
     }
 }
+
+export async function logoutAction() {
+    const authRepository = new SupabaseAuthRepository();
+    try {
+        await authRepository.logout();
+    } catch (error) {
+        console.error("Error en logoutAction:", error);
+    }
+    redirect("/login");
+}
