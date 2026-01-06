@@ -45,8 +45,9 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
             createdAt: new Date(),
         });
         return { success: true };
-    } catch (error) {
-        return { error: "Error al crear el ejercicio" };
+    } catch (error: any) {
+        console.error("Error en createExerciseAction:", error);
+        return { error: `Error al crear el ejercicio: ${error.message || "Error desconocido"}` };
     }
 }
 
