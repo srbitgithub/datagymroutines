@@ -27,10 +27,11 @@ export async function loginAction(prevState: any, formData: FormData) {
         console.log("Login exitoso para:", email);
     } catch (error: any) {
         console.error("Error en loginAction para", email, ":", error);
+        const envInfo = `(URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Y' : 'N'}, KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Y' : 'N'})`;
         if (error instanceof AuthError) {
-            return { error: error.message };
+            return { error: `${error.message} ${envInfo}` };
         }
-        return { error: `Ocurrió un error inesperado al iniciar sesión: ${error.message || "Error desconocido"}` };
+        return { error: `Error: ${error.message || "desconocido"} ${envInfo}` };
     }
 
     redirect("/dashboard");
