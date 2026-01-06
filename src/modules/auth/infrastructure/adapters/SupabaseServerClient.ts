@@ -9,14 +9,14 @@ export async function createServerSideClient() {
         const missing = []
         if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
         if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-        throw new Error(`Faltan variables de entorno de Supabase: ${missing.join(', ')}. Verifica la configuración de tu servidor.`)
+        console.error(`[SupabaseServerClient] Faltan variables de entorno: ${missing.join(', ')}. El build continuará pero la app fallará en runtime si no se configuran.`);
     }
 
     const cookieStore = await cookies()
 
     return createServerClient(
-        supabaseUrl,
-        supabaseAnonKey,
+        supabaseUrl || 'https://placeholder.supabase.co',
+        supabaseAnonKey || 'placeholder',
         {
             cookies: {
                 get(name: string) {
