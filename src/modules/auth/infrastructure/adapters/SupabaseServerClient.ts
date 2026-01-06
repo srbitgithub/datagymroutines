@@ -6,13 +6,9 @@ export async function createServerSideClient() {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseAnonKey) {
-        const missing = []
-        if (!supabaseUrl) missing.push('NEXT_PUBLIC_SUPABASE_URL')
-        if (!supabaseAnonKey) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-        const errorMessage = `Faltan variables de entorno: ${missing.join(', ')}`
-
         if (process.env.NEXT_PHASE !== 'phase-production-build') {
-            console.error(`[SupabaseServerClient] RUNTIME ERROR: ${errorMessage}`);
+            const missing = [!supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL', !supabaseAnonKey && 'NEXT_PUBLIC_SUPABASE_ANON_KEY'].filter(Boolean);
+            console.error(`[SupabaseServerClient] RUNTIME ERROR: Faltan variables de entorno: ${missing.join(', ')}`);
         }
     }
 
