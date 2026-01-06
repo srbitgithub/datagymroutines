@@ -30,7 +30,7 @@ export async function loginAction(prevState: any, formData: FormData) {
         if (error instanceof AuthError) {
             return { error: error.message };
         }
-        return { error: "Ocurrió un error inesperado al iniciar sesión" };
+        return { error: `Ocurrió un error inesperado al iniciar sesión: ${error.message || "Error desconocido"}` };
     }
 
     redirect("/dashboard");
@@ -51,12 +51,12 @@ export async function registerAction(prevState: any, formData: FormData) {
         const user = await registerUseCase.execute(email, password);
         console.log("Usuario registrado con éxito en el servidor:", user.id);
         return { success: true };
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error en registerAction:", error);
         if (error instanceof AuthError) {
             return { error: error.message };
         }
-        return { error: "Ocurrió un error inesperado al registrar el usuario" };
+        return { error: `Ocurrió un error inesperado al registrar el usuario: ${error.message || "Error desconocido"}` };
     }
 }
 
