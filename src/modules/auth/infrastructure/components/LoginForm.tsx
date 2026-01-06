@@ -6,9 +6,15 @@ import { Mail, Lock, Loader2 } from 'lucide-react';
 
 export function LoginForm() {
   const [state, action, isPending] = useActionState(loginAction, null);
+  const isEnvMissing = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   return (
     <form action={action} className="w-full max-w-sm space-y-6">
+      {isEnvMissing && (
+        <div className="rounded-md bg-amber-500/10 p-3 text-xs text-amber-600 border border-amber-500/20">
+          ⚠️ <strong>Configuración incompleta:</strong> Faltan variables de entorno de Supabase en Vercel. Verifica el Dashboard de Vercel.
+        </div>
+      )}
       <div className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
