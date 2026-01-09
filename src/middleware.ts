@@ -41,21 +41,13 @@ export async function middleware(request: NextRequest) {
                     })
                 },
                 remove(name: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
+                    request.cookies.delete(name)
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
                         },
                     })
-                    response.cookies.set({
-                        name,
-                        value: '',
-                        ...options,
-                    })
+                    response.cookies.delete(name)
                 },
             },
         }
@@ -68,6 +60,12 @@ export async function middleware(request: NextRequest) {
 
     if (isDashboard || isAuthRoute) {
         const { data: { user } } = await supabase.auth.getUser()
+
+        if (user) {
+            console.log(`[Middleware] Usuario detectado: ${user.id} en ${request.nextUrl.pathname}`);
+        } else {
+            console.warn(`[Middleware] No se detectó usuario en ruta protegida: ${request.nextUrl.pathname}`);
+        }
 
         if (!user && isDashboard) {
             return NextResponse.redirect(new URL('/login', request.url))

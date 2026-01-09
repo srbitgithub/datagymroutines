@@ -13,6 +13,7 @@ export async function createServerSideClient() {
     }
 
     const cookieStore = await cookies()
+    console.log(`[SupabaseServerClient] Solicitando cliente. Cookies presentes: ${cookieStore.getAll().length}`);
 
     return createServerClient(
         supabaseUrl || 'https://placeholder.supabase.co',
@@ -33,7 +34,7 @@ export async function createServerSideClient() {
                 },
                 remove(name: string, options: CookieOptions) {
                     try {
-                        cookieStore.set({ name, value: '', ...options })
+                        cookieStore.delete(name)
                     } catch (error) {
                         // The `remove` method was called from a Server Component.
                         // This can be ignored if you have middleware refreshing

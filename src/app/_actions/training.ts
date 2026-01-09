@@ -63,12 +63,17 @@ export async function getRoutinesAction() {
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
-        if (!user) return [];
 
+        if (!user) {
+            console.warn("getRoutinesAction: No hay sesión activa");
+            return [];
+        }
+
+        console.log(`getRoutinesAction: Obteniendo rutinas para el usuario ${user.id}`);
         const routineRepository = new SupabaseRoutineRepository();
         const getRoutinesUseCase = new GetRoutinesUseCase(routineRepository);
         const routines = await getRoutinesUseCase.execute(user.id);
-        console.log(`getRoutinesAction: Fetched ${routines.length} routines for user ${user.id}`);
+        console.log(`getRoutinesAction: Supabase devolvió ${routines.length} rutinas`);
         return routines;
     } catch (error) {
         console.error("Error en getRoutinesAction:", error);
