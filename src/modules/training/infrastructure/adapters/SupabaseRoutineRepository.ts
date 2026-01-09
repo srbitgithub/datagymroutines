@@ -33,12 +33,24 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
 
         console.log(`SupabaseRoutineRepository.getAllByUserId: raw data count = ${data.length}`);
 
-        try {
-            return data.map(RoutineMapper.toDomain);
-        } catch (mapError) {
-            console.error(`SupabaseRoutineRepository mapping error:`, mapError);
-            return [];
+        // LOG CRÍTICO: Ver la estructura del primer elemento para debug
+        if (data.length > 0) {
+            console.log("SupabaseRoutineRepository: Estructura del primer elemento (RAW):", JSON.stringify(data[0], null, 2));
         }
+
+        const validRoutines: Routine[] = [];
+
+        for (const rawRoutine of data) {
+            try {
+                const domainRoutine = RoutineMapper.toDomain(rawRoutine);
+                validRoutines.push(domainRoutine);
+            } catch (mapError) {
+                console.error(`SupabaseRoutineRepository: Error al mapear rutina ID ${rawRoutine?.id}:`, mapError);
+                // Continuamos con la siguiente rutina, no fallamos todo el bloque
+            }
+        }
+
+        return validRoutines;
     }
 
     async save(routine: Routine): Promise<void> {
