@@ -59,7 +59,10 @@ export class SupabaseAuthRepository extends SupabaseRepository implements AuthRe
         const client = await this.getClient();
         const { data, error } = await client.auth.getUser();
 
-        if (error || !data.user) return null;
+        if (error || !data.user) {
+            console.log("[SupabaseAuthRepository] getSession: No user found", error?.message);
+            return null;
+        }
 
         return AuthMapper.toDomain(data.user);
     }
