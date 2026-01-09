@@ -1,60 +1,38 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({
-        request: {
-            headers: request.headers,
-        },
+    let supabaseResponse = NextResponse.next({
+        request,
     })
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-        return response
-    }
+    if (!supabaseUrl || !supabaseAnonKey) return supabaseResponse
 
     const supabase = createServerClient(
         supabaseUrl,
         supabaseAnonKey,
         {
             cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value
+                getAll() {
+                    return request.cookies.getAll()
                 },
-                set(name: string, value: string, options: CookieOptions) {
-                    request.cookies.set({
-                        name,
-                        value,
-                        ...options,
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+                    supabaseResponse = NextResponse.next({
+                        request,
                     })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.set({
-                        name,
-                        value,
-                        ...options,
-                    })
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.delete(name)
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.delete(name)
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        supabaseResponse.cookies.set(name, value, options)
+                    )
                 },
             },
         }
     )
 
     // IMPORTANT: Avoid calling getUser() if we don't need auth check for specific routes
-    // to improve performance and avoid unnecessary Edge Runtime calls.
     const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
     const isAuthRoute = ['/login', '/register', '/forgot-password'].includes(request.nextUrl.pathname)
 
@@ -62,9 +40,9 @@ export async function middleware(request: NextRequest) {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (user) {
-            console.log(`[Middleware] Usuario detectado: ${user.id} en ${request.nextUrl.pathname}`);
+            console.info(`[Middleware] Usuario detectado: ${user.id} en ${request.nextUrl.pathname}`);
         } else {
-            console.warn(`[Middleware] No se detectó usuario en ruta protegida: ${request.nextUrl.pathname}`);
+            console.warn(`[Middleware] No se detectó usuario en: ${request.nextUrl.pathname}`);
         }
 
         if (!user && isDashboard) {
@@ -76,7 +54,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    return response
+    return supabaseResponse
 }
 
 export const config = {

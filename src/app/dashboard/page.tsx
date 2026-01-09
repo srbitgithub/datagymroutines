@@ -19,31 +19,36 @@ export default async function DashboardPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            {/* PANEL DE DIAGNÓSTICO TEMPORAL */}
-            <div className="rounded-xl border-2 border-brand-primary/20 bg-brand-primary/5 p-4 space-y-2 animate-pulse">
-                <div className="flex items-center gap-2 text-brand-primary">
-                    <AlertCircle className="h-5 w-5" />
-                    <h2 className="font-black uppercase tracking-wider text-sm">Panel de Diagnóstico</h2>
+            {/* PANEL DE DIAGNÓSTICO ULTRA-VISIBLE */}
+            <div className="rounded-2xl border-4 border-amber-500 bg-amber-50 p-6 shadow-2xl space-y-4">
+                <div className="flex items-center gap-3 text-amber-700">
+                    <AlertCircle className="h-6 w-6" />
+                    <h2 className="font-extrabold uppercase tracking-tighter text-lg">Panel de Control de Emergencia</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-[10px] font-mono">
-                    <div>
-                        <p className="text-muted-foreground">SESIÓN ACTIVA:</p>
-                        <p className={authUser ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-                            {authUser ? "SÍ (AUTENTICADO)" : "NO (NULO)"}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs font-mono">
+                    <div className="bg-white p-3 rounded-lg border shadow-sm">
+                        <p className="text-muted-foreground mb-1">SESIÓN ACTIVA:</p>
+                        <p className={authUser ? "text-green-600 font-bold text-base" : "text-red-600 font-bold text-base"}>
+                            {authUser ? "SÍ ✅" : "NO ❌"}
                         </p>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground">USER ID:</p>
-                        <p className="truncate" title={authUser?.id || "N/A"}>{authUser?.id || "N/A"}</p>
+                    <div className="bg-white p-3 rounded-lg border shadow-sm">
+                        <p className="text-muted-foreground mb-1">USER ID (DEBUG):</p>
+                        <p className="truncate text-brand-primary font-bold" title={authUser?.id || "N/A"}>
+                            {authUser?.id ? authUser.id.substring(0, 12) + "..." : "NADIE"}
+                        </p>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground">RUTINAS CARGADAS:</p>
-                        <p className="font-bold">{routines.length}</p>
+                    <div className="bg-white p-3 rounded-lg border shadow-sm">
+                        <p className="text-muted-foreground mb-1">RUTINAS DB:</p>
+                        <p className="text-2xl font-black">{routines.length}</p>
                     </div>
-                    <div>
-                        <p className="text-muted-foreground">NEXT.JS VERSION:</p>
-                        <p>16.1.1</p>
+                    <div className="bg-white p-3 rounded-lg border shadow-sm">
+                        <p className="text-muted-foreground mb-1">APP BUILD TIME:</p>
+                        <p className="font-bold text-blue-600">{new Date().toISOString().substring(11, 19)} (UTC)</p>
                     </div>
+                </div>
+                <div className="text-[10px] text-amber-600 font-medium">
+                    Si el "BUILD TIME" no se actualiza al recargar, la página está cacheada.
                 </div>
             </div>
 
