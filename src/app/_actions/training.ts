@@ -103,7 +103,29 @@ export async function getActiveSessionAction() {
     const exerciseRepository = new SupabaseExerciseRepository();
     const exercises = await exerciseRepository.getAll(user.id);
 
-    return { session: activeSession, exercises };
+    // Fetch routine details if it exists
+    let routine = null;
+    if (activeSession.routineId) {
+        const routineRepository = new SupabaseRoutineRepository();
+        routine = await routineRepository.getById(activeSession.routineId);
+    }
+
+    return { session: activeSession, exercises, routine };
+}
+
+export async function updateSetAction(setId: string, setData: Partial<ExerciseSet>) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const sessionRepository = new SupabaseSessionRepository();
+    try {
+        await sessionRepository.updateSet(setId, setData);
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en updateSetAction:", error);
+        return { error: error.message };
+    }
 }
 
 export async function getSessionByIdAction(sessionId: string) {

@@ -5,14 +5,17 @@ import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
 import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { addSetAction, finishSessionAction } from '@/app/_actions/training';
+import { addSetAction, finishSessionAction, updateSetAction } from '@/app/_actions/training';
+
+import { Routine } from '../../domain/Routine';
 
 interface SessionLoggerProps {
     session: TrainingSession;
     exercises: Exercise[];
+    routine: Routine | null;
 }
 
-export function SessionLogger({ session, exercises }: SessionLoggerProps) {
+export function SessionLogger({ session, exercises, routine }: SessionLoggerProps) {
     const router = useRouter();
     const [sets, setSets] = useState<ExerciseSet[]>(session.sets || []);
     const [elapsed, setElapsed] = useState(0);
@@ -32,15 +35,6 @@ export function SessionLogger({ session, exercises }: SessionLoggerProps) {
         return acc;
     }, {} as Record<string, ExerciseSet[]>);
 
-    // Simple Timer
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const start = new Date(session.startTime).getTime();
-            const now = new Date().getTime();
-            setElapsed(Math.floor((now - start) / 1000));
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [session.startTime]);
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
@@ -63,30 +57,50 @@ export function SessionLogger({ session, exercises }: SessionLoggerProps) {
         });
 
         if (result.success) {
-            // In a real app, we'd probably re-fetch or use the ID from result
-            // For now, let's just refresh the router to get the new data
             router.refresh();
         }
         setIsAddingSet(null);
     };
 
-    const updateSet = (id: string, field: keyof ExerciseSet, value: any) => {
-        setSets(sets.map(s => s.id === id ? { ...s, [field]: value } : s));
-    };
+    const updateSetData = async (setId: string, field: 'weight' | 'reps', value: string) => {
+        const numValue = parseFloat(value);
+        if (isNaN(numValue)) return;
 
-    const removeSet = (id: string) => {
-        setSets(sets.filter(s => s.id !== id));
+        // Optimistic update
+        setSets(prev => prev.map(s => s.id === setId ? { ...s, [field]: numValue } : s));
+
+        await updateSetAction(setId, { [field]: numValue });
     };
 
     const handleFinish = async () => {
+        if (isFinishing) return;
         setIsFinishing(true);
         const result = await finishSessionAction(session.id);
         if (result.success) {
-            router.push('/dashboard');
+            router.replace('/dashboard');
             router.refresh();
+        } else {
+            setIsFinishing(false);
         }
-        setIsFinishing(false);
     };
+
+    // Combine routine exercises with actual sets
+    // We want to show every exercise from the routine, plus any extra ones the user added
+    const routineExerciseIds = routine?.exercises.map((re: any) => re.exerciseId) || [];
+    const exerciseIdsWithSets = Object.keys(groupedSets);
+    const allUniqueExerciseIds = Array.from(new Set([...routineExerciseIds, ...exerciseIdsWithSets]));
+
+    // Timer logic
+    useEffect(() => {
+        if (isFinishing) return;
+
+        const timer = setInterval(() => {
+            const start = new Date(session.startTime).getTime();
+            const now = new Date().getTime();
+            setElapsed(Math.floor((now - start) / 1000));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [session.startTime, isFinishing]);
 
     return (
         <div className="space-y-6 pb-40">
@@ -111,8 +125,9 @@ export function SessionLogger({ session, exercises }: SessionLoggerProps) {
             </header>
 
             <div className="space-y-6">
-                {Object.entries(groupedSets).map(([exerciseId, exerciseSets]) => {
+                {allUniqueExerciseIds.map((exerciseId) => {
                     const exercise = exerciseMap[exerciseId];
+                    const exerciseSets = groupedSets[exerciseId] || [];
                     return (
                         <div key={exerciseId} className="rounded-2xl border bg-card overflow-hidden shadow-sm">
                             <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
@@ -147,10 +162,9 @@ export function SessionLogger({ session, exercises }: SessionLoggerProps) {
                                                 <td className="p-3">
                                                     <input
                                                         type="number"
+                                                        step="0.5"
                                                         defaultValue={set.weight || ''}
-                                                        onBlur={(e) => {
-                                                            // Add logic to update set weight
-                                                        }}
+                                                        onBlur={(e) => updateSetData(set.id, 'weight', e.target.value)}
                                                         className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                                                     />
                                                 </td>
@@ -158,6 +172,7 @@ export function SessionLogger({ session, exercises }: SessionLoggerProps) {
                                                     <input
                                                         type="number"
                                                         defaultValue={set.reps || ''}
+                                                        onBlur={(e) => updateSetData(set.id, 'reps', e.target.value)}
                                                         className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                                                     />
                                                 </td>

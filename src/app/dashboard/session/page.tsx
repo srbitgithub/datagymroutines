@@ -14,7 +14,11 @@ export default async function SessionPage({ searchParams }: { searchParams: Prom
     if (data?.session) {
         return (
             <div className="max-w-4xl mx-auto">
-                <SessionLogger session={data.session} exercises={data.exercises} />
+                <SessionLogger
+                    session={data.session}
+                    exercises={data.exercises}
+                    routine={data.routine}
+                />
             </div>
         );
     }

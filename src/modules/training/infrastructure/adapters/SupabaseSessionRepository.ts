@@ -89,4 +89,22 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
 
         if (error) throw new Error(error.message);
     }
+
+    async updateSet(id: string, setData: Partial<ExerciseSet>): Promise<void> {
+        const client = await this.getClient();
+
+        // Map domain partial to persistence partial
+        const persistenceData: any = {};
+        if (setData.weight !== undefined) persistenceData.weight = setData.weight;
+        if (setData.reps !== undefined) persistenceData.reps = setData.reps;
+        if (setData.type !== undefined) persistenceData.type = setData.type;
+        if (setData.orderIndex !== undefined) persistenceData.order_index = setData.orderIndex;
+
+        const { error } = await client
+            .from("exercise_sets")
+            .update(persistenceData)
+            .eq("id", id);
+
+        if (error) throw new Error(error.message);
+    }
 }
