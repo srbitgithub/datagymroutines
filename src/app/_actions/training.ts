@@ -87,7 +87,15 @@ export async function getActiveSessionAction() {
     if (!user) return null;
 
     const sessionRepository = new SupabaseSessionRepository();
+    console.log(`[getActiveSessionAction] Consultando repositorio para UserID: ${user.id}`);
     const activeSession = await sessionRepository.getActiveSession(user.id);
+
+    if (!activeSession) {
+        console.warn(`[getActiveSessionAction] Repositorio devolvió null para ${user.id}`);
+        return null;
+    }
+
+    console.log(`[getActiveSessionAction] Sesión recuperada: ${activeSession.id}`);
 
     if (!activeSession) return null;
 

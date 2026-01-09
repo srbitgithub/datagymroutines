@@ -30,6 +30,8 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
     }
 
     async getActiveSession(userId: string): Promise<TrainingSession | null> {
+        console.log(`[SupabaseSessionRepository] Buscando sesión activa para UserID: ${userId}`);
+
         const client = await this.getClient();
         const { data, error } = await client
             .from("training_sessions")
@@ -38,12 +40,27 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
             .is("end_time", null)
             .single();
 
-        if (error || !data) return null;
+        if (error) {
+            // Error code for "no rows found" is PGRST116
+            if (error.code !== 'PGRST116') {
+                console.error(`[SupabaseSessionRepository] Error DB al buscar sesión activa:`, error);
+            } else {
+                console.log(`[SupabaseSessionRepository] No se encontró ninguna sesión activa (PGRST116) para ${userId}`);
+            }
+            return null;
+        }
 
+        if (!data) {
+            console.log(`[SupabaseSessionRepository] Data es null para sesión activa`);
+            return null;
+        }
+
+        console.log(`[SupabaseSessionRepository] Sesión activa encontrada: ${data.id}`);
         return SessionMapper.toDomain(data);
     }
 
     async save(session: TrainingSession): Promise<void> {
+        console.log(`[SupabaseSessionRepository] Guardando nueva sesión: ${session.id} para UserID: ${session.userId}`);
         const client = await this.getClient();
         const { error } = await client
             .from("training_sessions")
