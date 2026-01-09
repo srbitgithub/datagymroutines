@@ -38,7 +38,9 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
             .select("*, exercise_sets(*)")
             .eq("user_id", userId)
             .is("end_time", null)
-            .single();
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         if (error) {
             // Error code for "no rows found" is PGRST116
