@@ -106,6 +106,16 @@ export async function getActiveSessionAction() {
     return { session: activeSession, exercises };
 }
 
+export async function getSessionByIdAction(sessionId: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return null;
+
+    const sessionRepository = new SupabaseSessionRepository();
+    const session = await sessionRepository.getById(sessionId);
+    return session;
+}
+
 export async function createRoutineAction(name: string, description: string, exerciseIds: string[]) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();

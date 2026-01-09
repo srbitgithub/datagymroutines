@@ -18,8 +18,8 @@ function StartSessionContent() {
                 if (result.success) {
                     // Forzar actualización de cache antes de navegar
                     router.refresh();
-                    // Pequeño timeout para dar margen a la propagación (opcional pero seguro)
-                    setTimeout(() => router.replace("/dashboard/session"), 100);
+                    // Pasar el ID para depuración
+                    setTimeout(() => router.replace(`/dashboard/session?debugSessionId=${result.sessionId}`), 100);
                 } else {
                     const errorMessage = result.error || "Error desconocido al iniciar sesión";
                     router.replace(`/dashboard?error=${encodeURIComponent(errorMessage)}`);
