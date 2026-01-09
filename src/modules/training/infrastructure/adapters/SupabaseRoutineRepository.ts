@@ -24,9 +24,21 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
 
-        if (error || !data) return [];
+        if (error) {
+            console.error(`SupabaseRoutineRepository.getAllByUserId error:`, error);
+            return [];
+        }
 
-        return data.map(RoutineMapper.toDomain);
+        if (!data) return [];
+
+        console.log(`SupabaseRoutineRepository.getAllByUserId: raw data count = ${data.length}`);
+
+        try {
+            return data.map(RoutineMapper.toDomain);
+        } catch (mapError) {
+            console.error(`SupabaseRoutineRepository mapping error:`, mapError);
+            return [];
+        }
     }
 
     async save(routine: Routine): Promise<void> {

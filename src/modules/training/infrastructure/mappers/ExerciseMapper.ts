@@ -8,7 +8,7 @@ export class ExerciseMapper {
             name: raw.name,
             muscleGroup: raw.muscle_group,
             description: raw.description,
-            createdAt: new Date(raw.created_at),
+            createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
         };
     }
 

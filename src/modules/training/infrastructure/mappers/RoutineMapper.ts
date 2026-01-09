@@ -3,14 +3,19 @@ import { ExerciseMapper } from "./ExerciseMapper";
 
 export class RoutineMapper {
     static toDomain(raw: any): Routine {
-        return {
-            id: raw.id,
-            userId: raw.user_id,
-            name: raw.name || "Sin nombre",
-            description: raw.description,
-            exercises: (raw.routine_exercises || []).map((re: any) => this.toExerciseDomain(re)),
-            createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
-        };
+        try {
+            return {
+                id: raw.id,
+                userId: raw.user_id,
+                name: raw.name || "Sin nombre",
+                description: raw.description,
+                exercises: (raw.routine_exercises || []).map((re: any) => this.toExerciseDomain(re)),
+                createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
+            };
+        } catch (error) {
+            console.error(`Error mapping routine ID ${raw.id}:`, error);
+            throw error;
+        }
     }
 
     private static toExerciseDomain(raw: any): RoutineExercise {

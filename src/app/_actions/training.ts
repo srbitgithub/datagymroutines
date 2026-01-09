@@ -8,6 +8,7 @@ import { StartSessionUseCase, AddSetUseCase, EndSessionUseCase } from "@/modules
 import { ExerciseSet } from "@/modules/training/domain/Session";
 import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/adapters/SupabaseRoutineRepository";
 import { SupabaseSessionRepository } from "@/modules/training/infrastructure/adapters/SupabaseSessionRepository";
+import { revalidatePath } from "next/cache";
 
 export async function getExercisesAction() {
     try {
@@ -49,6 +50,8 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
             description,
             createdAt: new Date(),
         });
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/exercises");
         return { success: true };
     } catch (error: any) {
         console.error("Error en createExerciseAction:", error);
@@ -64,7 +67,9 @@ export async function getRoutinesAction() {
 
         const routineRepository = new SupabaseRoutineRepository();
         const getRoutinesUseCase = new GetRoutinesUseCase(routineRepository);
-        return await getRoutinesUseCase.execute(user.id);
+        const routines = await getRoutinesUseCase.execute(user.id);
+        console.log(`getRoutinesAction: Fetched ${routines.length} routines for user ${user.id}`);
+        return routines;
     } catch (error) {
         console.error("Error en getRoutinesAction:", error);
         return [];
@@ -110,9 +115,12 @@ export async function createRoutineAction(name: string, description: string, exe
                 orderIndex: index,
             })),
         });
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/routines");
         return { success: true };
-    } catch (error) {
-        return { error: "Error al crear la rutina" };
+    } catch (error: any) {
+        console.error("Error en createRoutineAction:", error);
+        return { error: `Error al crear la rutina: ${error.message}` };
     }
 }
 
