@@ -149,8 +149,9 @@ export async function startSessionAction(routineId?: string) {
         revalidatePath("/dashboard/session");
         revalidatePath("/dashboard");
         return { success: true, sessionId };
-    } catch (error) {
-        return { error: "Error al iniciar sesión" };
+    } catch (error: any) {
+        console.error("Error crítico en startSessionAction:", error);
+        return { error: error.message || "Error desconocido al iniciar sesión" };
     }
 }
 

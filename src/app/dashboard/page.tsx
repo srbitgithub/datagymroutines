@@ -1,12 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import { getExercisesAction, getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
-import { ListChecks, Plus, Play, History, Dumbbell } from "lucide-react";
+import { ListChecks, Plus, Play, History, Dumbbell, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { MiniChart } from "@/modules/training/infrastructure/components/MiniChart";
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+    const { error } = await searchParams;
     const routines = await getRoutinesAction();
     const exercises = await getExercisesAction();
     const progression = await getProgressionDataAction();
@@ -18,6 +19,18 @@ export default async function DashboardPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
+            {error && (
+                <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <div>
+                            <h3 className="font-bold text-red-900">No se pudo iniciar la sesión</h3>
+                            <p className="text-sm text-red-700">{decodeURIComponent(error)}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">DataGym</h1>

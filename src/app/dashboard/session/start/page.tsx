@@ -10,6 +10,7 @@ export default async function StartSessionPage({ searchParams }: { searchParams:
         redirect("/dashboard/session");
     }
 
-    // Handle error (maybe redirect back with error param)
-    redirect("/dashboard");
+    // Handle error by redirecting back with error param
+    const errorMessage = result.error || "Error desconocido";
+    redirect(`/dashboard?error=${encodeURIComponent(errorMessage)}`);
 }
