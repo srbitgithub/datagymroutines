@@ -22,6 +22,11 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     const [isFinishing, setIsFinishing] = useState(false);
     const [isAddingSet, setIsAddingSet] = useState<string | null>(null);
 
+    // Sync state when props change (after router.refresh)
+    useEffect(() => {
+        setSets(session.sets || []);
+    }, [session.sets]);
+
     // Map to get exercise names easily
     const exerciseMap = exercises.reduce((acc, ex) => {
         acc[ex.id] = ex;
@@ -47,16 +52,28 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         setIsAddingSet(exerciseId);
         const orderIndex = (groupedSets[exerciseId]?.length || 0);
 
-        const result = await addSetAction({
+        const result = (await addSetAction({
             sessionId: session.id,
             exerciseId,
             weight: 0,
             reps: 0,
             type: 'normal',
             orderIndex,
-        });
+        })) as any;
 
-        if (result.success) {
+        if (result.success && result.setId) {
+            // Optimistic/Local update to show immediately
+            const newSet: ExerciseSet = {
+                id: result.setId,
+                sessionId: session.id,
+                exerciseId,
+                weight: 0,
+                reps: 0,
+                type: 'normal',
+                orderIndex,
+                createdAt: new Date()
+            };
+            setSets(prev => [...prev, newSet]);
             router.refresh();
         }
         setIsAddingSet(null);
