@@ -1,8 +1,8 @@
 import { startSessionAction } from "@/app/_actions/training";
 import { redirect } from "next/navigation";
 
-export default async function StartSessionPage({ searchParams }: { searchParams: { routineId?: string } }) {
-    const routineId = searchParams.routineId;
+export default async function StartSessionPage({ searchParams }: { searchParams: Promise<{ routineId?: string }> }) {
+    const { routineId } = await searchParams;
 
     const result = await startSessionAction(routineId);
 

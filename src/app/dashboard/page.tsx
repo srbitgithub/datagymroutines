@@ -1,11 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import { getExercisesAction, getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
-import { ListChecks, Plus, Play, History, Dumbbell, TrendingUp } from "lucide-react";
+import { ListChecks, Plus, Play, History, Dumbbell } from "lucide-react";
 import Link from "next/link";
 import { MiniChart } from "@/modules/training/infrastructure/components/MiniChart";
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
-import { AlertCircle } from "lucide-react";
 
 export default async function DashboardPage() {
     const routines = await getRoutinesAction();
@@ -19,39 +18,6 @@ export default async function DashboardPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            {/* PANEL DE DIAGNÓSTICO ULTRA-VISIBLE */}
-            <div className="rounded-2xl border-4 border-amber-500 bg-amber-50 p-6 shadow-2xl space-y-4">
-                <div className="flex items-center gap-3 text-amber-700">
-                    <AlertCircle className="h-6 w-6" />
-                    <h2 className="font-extrabold uppercase tracking-tighter text-lg">Panel de Control de Emergencia</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-xs font-mono">
-                    <div className="bg-white p-3 rounded-lg border shadow-sm">
-                        <p className="text-muted-foreground mb-1">SESIÓN ACTIVA:</p>
-                        <p className={authUser ? "text-green-600 font-bold text-base" : "text-red-600 font-bold text-base"}>
-                            {authUser ? "SÍ ✅" : "NO ❌"}
-                        </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg border shadow-sm">
-                        <p className="text-muted-foreground mb-1">USER ID (DEBUG):</p>
-                        <p className="truncate text-brand-primary font-bold" title={authUser?.id || "N/A"}>
-                            {authUser?.id ? authUser.id.substring(0, 12) + "..." : "NADIE"}
-                        </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg border shadow-sm">
-                        <p className="text-muted-foreground mb-1">RUTINAS DB:</p>
-                        <p className="text-2xl font-black">{routines.length}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-lg border shadow-sm">
-                        <p className="text-muted-foreground mb-1">APP BUILD TIME:</p>
-                        <p className="font-bold text-blue-600">{new Date().toISOString().substring(11, 19)} (UTC)</p>
-                    </div>
-                </div>
-                <div className="text-[10px] text-amber-600 font-medium">
-                    Si el "BUILD TIME" no se actualiza al recargar, la página está cacheada.
-                </div>
-            </div>
-
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">DataGym</h1>

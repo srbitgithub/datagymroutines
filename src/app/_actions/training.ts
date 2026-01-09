@@ -146,6 +146,8 @@ export async function startSessionAction(routineId?: string) {
             startTime: new Date(),
             sets: [],
         });
+        revalidatePath("/dashboard/session");
+        revalidatePath("/dashboard");
         return { success: true, sessionId };
     } catch (error) {
         return { error: "Error al iniciar sesión" };
