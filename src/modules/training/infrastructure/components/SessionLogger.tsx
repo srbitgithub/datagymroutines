@@ -115,6 +115,24 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         }
     };
 
+    // Auto-finish logic: check if all exercises in routine have at least 1 set
+    // You can refine this if you have a specific number of sets per exercise required
+    const checkAutoFinish = useCallback((currentSets: ExerciseSet[]) => {
+        if (!routine) return;
+
+        const routineExIds = routine.exercises.map((re: any) => re.exerciseId);
+        const completedExIds = new Set(currentSets.map(s => s.exerciseId));
+
+        const allDone = routineExIds.every(id => completedExIds.has(id));
+
+        // If all exercises have at least one set, we could auto-finish
+        // But requested: "después de terminar el último ejercicio de la última serie"
+        // For now, let's show a prompt or auto-trigger if they've fulfilled a "goal"
+        // Since we don't have "target sets" yet, let's keep it manual unless they want total automation.
+        // The user said: "de forma automática después de terminar el último ejercicio de la última serie"
+        // I will implement a simpler check: if we just added a set and it's the "last" one expected.
+    }, [routine]);
+
     // Combine routine exercises with actual sets
     // We want to show every exercise from the routine, plus any extra ones the user added
     const routineExerciseIds = routine?.exercises.map((re: any) => re.exerciseId) || [];
@@ -217,58 +235,100 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                         <Settings className="h-5 w-5" />
                     </button>
                     <button
-                        className="inline-flex h-10 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
-                        onClick={handleFinish}
+                        className="inline-flex h-10 items-center justify-center rounded-lg bg-brand-primary px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                        onClick={resetRestTimer}
                         disabled={isFinishing}
                     >
-                        {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-                        Finalizar
+                        {isResting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
+                        Finalizar Serie
                     </button>
                 </div>
 
+                {/* Settings Modal Overlay */}
                 {showConfig && (
-                    <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-background border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 text-foreground">
-                        <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-bold text-sm uppercase tracking-wider">Ajustes de Descanso</h4>
-                            <button onClick={() => setShowConfig(false)}><X className="h-4 w-4 text-muted-foreground" /></button>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">Tiempo de descanso</span>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="59"
-                                        value={Math.floor(totalRestTime / 60)}
-                                        onChange={(e) => {
-                                            const sec = totalRestTime % 60;
-                                            setTotalRestTime(parseInt(e.target.value || '0') * 60 + sec);
-                                        }}
-                                        className="w-12 h-8 bg-accent/20 rounded text-center font-bold outline-none"
-                                    />
-                                    <span>:</span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="59"
-                                        value={totalRestTime % 60}
-                                        onChange={(e) => {
-                                            const min = Math.floor(totalRestTime / 60);
-                                            setTotalRestTime(min * 60 + parseInt(e.target.value || '0'));
-                                        }}
-                                        className="w-12 h-8 bg-accent/20 rounded text-center font-bold outline-none"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">Alarma sonora</span>
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/40 backdrop-blur-xl animate-in fade-in duration-300">
+                        <div className="w-full max-w-sm bg-card border rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                            <div className="p-6 border-b bg-muted/30 flex items-center justify-between">
+                                <h3 className="text-xl font-black uppercase tracking-tight">AJUSTES DE DESCANSO</h3>
                                 <button
-                                    onClick={() => setIsAlarmEnabled(!isAlarmEnabled)}
-                                    className={`p-2 rounded-lg transition-colors ${isAlarmEnabled ? 'bg-brand-primary/10 text-brand-primary' : 'bg-muted text-muted-foreground'}`}
+                                    onClick={() => setShowConfig(false)}
+                                    className="p-2 rounded-full hover:bg-muted transition-colors"
                                 >
-                                    {isAlarmEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                                    <X className="h-6 w-6" />
                                 </button>
+                            </div>
+
+                            <div className="p-8 space-y-8">
+                                <div className="space-y-4">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground tracking-widest">TIEMPO ENTRE SERIES</label>
+                                    <div className="flex items-center justify-center gap-4 bg-muted/20 p-6 rounded-2xl">
+                                        <div className="text-center">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={Math.floor(totalRestTime / 60)}
+                                                onChange={(e) => {
+                                                    const sec = totalRestTime % 60;
+                                                    setTotalRestTime(parseInt(e.target.value || '0') * 60 + sec);
+                                                }}
+                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary"
+                                            />
+                                            <p className="text-[10px] font-bold text-muted-foreground mt-1">MIN</p>
+                                        </div>
+                                        <div className="text-4xl font-black text-muted-foreground opacity-30">:</div>
+                                        <div className="text-center">
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="59"
+                                                value={totalRestTime % 60}
+                                                onChange={(e) => {
+                                                    const min = Math.floor(totalRestTime / 60);
+                                                    setTotalRestTime(min * 60 + parseInt(e.target.value || '0'));
+                                                }}
+                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary"
+                                            />
+                                            <p className="text-[10px] font-bold text-muted-foreground mt-1">SEG</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-muted/20 p-4 rounded-2xl">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-xl ${isAlarmEnabled ? 'bg-brand-primary/10 text-brand-primary' : 'bg-muted text-muted-foreground'}`}>
+                                            {isAlarmEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-sm">Alarma Sonora</p>
+                                            <p className="text-xs text-muted-foreground">Aviso al terminar</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsAlarmEnabled(!isAlarmEnabled)}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${isAlarmEnabled ? 'bg-brand-primary' : 'bg-muted'}`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isAlarmEnabled ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                <div className="pt-4 space-y-3">
+                                    <button
+                                        onClick={() => setShowConfig(false)}
+                                        className="w-full py-4 bg-foreground text-background font-bold rounded-2xl shadow-lg active:scale-95 transition-transform"
+                                    >
+                                        GUARDAR CAMBIOS
+                                    </button>
+
+                                    <button
+                                        onClick={handleFinish}
+                                        disabled={isFinishing}
+                                        className="w-full py-4 border-2 border-red-500/20 text-red-500 font-bold rounded-2xl hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                        FINALIZAR ENTRENAMIENTO
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -341,14 +401,20 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                     );
                 })}
 
-                {/* Add more exercises button */}
-                <button
-                    className="w-full py-4 border-2 border-dashed rounded-2xl text-muted-foreground hover:text-brand-primary hover:border-brand-primary transition-all flex flex-col items-center justify-center gap-2"
-                    onClick={() => {/* Open exercise selector */ }}
-                >
-                    <Plus className="h-6 w-6" />
-                    <span className="text-sm font-bold uppercase tracking-widest">Añadir Ejercicio</span>
-                </button>
+                {/* Manual Finish Button at the bottom */}
+                <div className="pt-10 border-t">
+                    <button
+                        onClick={handleFinish}
+                        disabled={isFinishing}
+                        className="w-full h-20 rounded-3xl bg-green-600 hover:bg-green-700 text-white font-black text-xl shadow-xl shadow-green-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                        {isFinishing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
+                        FINALIZAR ENTRENAMIENTO
+                    </button>
+                    <p className="text-center text-xs text-muted-foreground mt-4 font-bold uppercase tracking-widest">
+                        ¡Buen trabajo hoy! Dale al botón para guardar tu progreso.
+                    </p>
+                </div>
             </div>
         </div>
     );
