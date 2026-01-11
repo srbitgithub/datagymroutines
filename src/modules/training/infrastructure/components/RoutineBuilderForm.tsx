@@ -77,7 +77,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                         onChange={(e) => setName(e.target.value)}
                         required
                         placeholder="Ej: Torso - Potencia"
-                        className="flex h-12 w-full rounded-md border border-input bg-background px-4 py-2 text-lg font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-lg font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
                     />
                 </div>
                 <div className="space-y-2">
@@ -88,7 +88,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                         onChange={(e) => setDescription(e.target.value)}
                         rows={2}
                         placeholder="Ej: Enfocada en básicos y progresión de cargas..."
-                        className="flex h-12 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
                     />
                 </div>
             </div>
@@ -120,7 +120,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                                             type="number"
                                             value={item.series}
                                             onChange={(e) => updateConfig(index, 'series', parseInt(e.target.value || '0'))}
-                                            className="w-full h-10 bg-accent/20 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                         />
                                     </div>
                                     <div className="space-y-1">
@@ -129,7 +129,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                                             type="number"
                                             value={item.targetReps}
                                             onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
-                                            className="w-full h-10 bg-accent/20 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                         />
                                     </div>
                                     <div className="space-y-1">
@@ -139,7 +139,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                                             step="0.5"
                                             value={item.targetWeight}
                                             onChange={(e) => updateConfig(index, 'targetWeight', parseFloat(e.target.value || '0'))}
-                                            className="w-full h-10 bg-accent/20 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                         />
                                     </div>
                                 </div>
