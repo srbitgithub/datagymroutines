@@ -138,7 +138,11 @@ export async function getSessionByIdAction(sessionId: string) {
     return session;
 }
 
-export async function createRoutineAction(name: string, description: string, exerciseIds: string[]) {
+export async function createRoutineAction(
+    name: string,
+    description: string,
+    exercisesConfigs: { id: string, series: number, targetReps?: number, targetWeight?: number }[]
+) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
@@ -154,10 +158,13 @@ export async function createRoutineAction(name: string, description: string, exe
             name,
             description,
             createdAt: new Date(),
-            exercises: exerciseIds.map((id, index) => ({
+            exercises: exercisesConfigs.map((config, index) => ({
                 id: crypto.randomUUID(),
-                exerciseId: id,
+                exerciseId: config.id,
                 orderIndex: index,
+                series: config.series,
+                targetReps: config.targetReps,
+                targetWeight: config.targetWeight,
             })),
         });
         revalidatePath("/dashboard");

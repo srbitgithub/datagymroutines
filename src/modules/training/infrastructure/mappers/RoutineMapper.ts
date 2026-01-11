@@ -38,6 +38,9 @@ export class RoutineMapper {
                 id: raw.id,
                 exerciseId: raw.exercise_id,
                 orderIndex: raw.order_index || 0,
+                series: raw.series || 3, // Default to 3 sets if not specified
+                targetReps: raw.target_reps,
+                targetWeight: raw.target_weight,
                 notes: raw.notes,
                 exercise: normalizedExercise ? ExerciseMapper.toDomain(normalizedExercise) : undefined,
             };

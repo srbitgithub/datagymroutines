@@ -70,6 +70,9 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
                         routine_id: routine.id,
                         exercise_id: re.exerciseId,
                         order_index: re.orderIndex,
+                        series: re.series,
+                        target_reps: re.targetReps,
+                        target_weight: re.targetWeight,
                         notes: re.notes,
                     }))
                 );

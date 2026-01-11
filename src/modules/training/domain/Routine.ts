@@ -13,6 +13,9 @@ export interface RoutineExercise {
     id: string;
     exerciseId: string;
     orderIndex: number;
+    series: number; // Number of sets
+    targetReps?: number;
+    targetWeight?: number;
     notes?: string;
     exercise?: Exercise; // Populated from join
 }

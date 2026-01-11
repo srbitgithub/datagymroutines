@@ -60,11 +60,16 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         setIsAddingSet(exerciseId);
         const orderIndex = (groupedSets[exerciseId]?.length || 0);
 
+        // Find prescribed values in routine
+        const routineConfig = routine?.exercises.find((re: any) => re.exerciseId === exerciseId);
+        const defaultWeight = routineConfig?.targetWeight || 0;
+        const defaultReps = routineConfig?.targetReps || 0;
+
         const result = (await addSetAction({
             sessionId: session.id,
             exerciseId,
-            weight: 0,
-            reps: 0,
+            weight: defaultWeight,
+            reps: defaultReps,
             type: 'normal',
             orderIndex,
         })) as any;
@@ -75,8 +80,8 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                 id: result.setId,
                 sessionId: session.id,
                 exerciseId,
-                weight: 0,
-                reps: 0,
+                weight: defaultWeight,
+                reps: defaultReps,
                 type: 'normal',
                 orderIndex,
                 createdAt: new Date()
