@@ -74,14 +74,15 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 group/title">
+                        <div className="flex items-center gap-2">
                             <p className="text-sm font-medium">{exercise.name}</p>
                             {exercise.userId && (
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="opacity-0 group-hover/title:opacity-100 p-1 text-muted-foreground hover:text-brand-primary transition-all"
+                                    className="p-1.5 bg-brand-primary/10 text-brand-primary rounded-md hover:bg-brand-primary/20 transition-all ml-1"
+                                    title="Editar nombre"
                                 >
-                                    <Edit2 className="h-3 w-3" />
+                                    <Edit2 className="h-3.5 w-3.5" />
                                 </button>
                             )}
                         </div>
