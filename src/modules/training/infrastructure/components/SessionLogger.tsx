@@ -246,9 +246,9 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
 
                 {/* Settings Modal Overlay */}
                 {showConfig && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/40 backdrop-blur-xl animate-in fade-in duration-300">
-                        <div className="w-full max-w-sm bg-card border rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                            <div className="p-6 border-b bg-muted/30 flex items-center justify-between">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="w-full max-w-sm bg-background border rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-border/50">
+                            <div className="p-6 border-b bg-accent/5 flex items-center justify-between">
                                 <h3 className="text-xl font-black uppercase tracking-tight">AJUSTES DE DESCANSO</h3>
                                 <button
                                     onClick={() => setShowConfig(false)}
