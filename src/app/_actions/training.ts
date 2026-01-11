@@ -27,6 +27,22 @@ export async function getExercisesAction() {
     }
 }
 
+export async function updateExerciseAction(id: string, name: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const exerciseRepository = new SupabaseExerciseRepository();
+    try {
+        await exerciseRepository.update(id, { name });
+        revalidatePath("/dashboard/exercises");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en updateExerciseAction:", error);
+        return { error: `Error al actualizar el ejercicio: ${error.message}` };
+    }
+}
+
 export async function createExerciseAction(prevState: any, formData: FormData) {
     const name = formData.get("name") as string;
     const muscleGroup = formData.get("muscleGroup") as string;

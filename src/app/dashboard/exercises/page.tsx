@@ -1,6 +1,7 @@
 import { getExercisesAction } from "@/app/_actions/training";
 import { ExerciseForm } from "@/modules/training/infrastructure/components/ExerciseForm";
-import { Dumbbell, Plus, Info } from "lucide-react";
+import { ExerciseListItem } from "@/modules/training/infrastructure/components/ExerciseListItem";
+import { Dumbbell, Plus } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ export default async function ExercisesPage() {
                 <ExerciseForm />
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-8 pb-10">
                 {Object.entries(groups).sort().map(([group, groupExercises]) => (
                     <section key={group} className="space-y-4">
                         <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground border-b pb-2">
@@ -42,26 +43,7 @@ export default async function ExercisesPage() {
                         </h3>
                         <div className="grid gap-3 md:grid-cols-2">
                             {groupExercises.map((exercise) => (
-                                <div key={exercise.id} className="flex items-center justify-between rounded-lg border bg-card p-4 hover:border-brand-primary/50 transition-colors group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="rounded-full bg-accent p-2 group-hover:bg-brand-primary/10 transition-colors">
-                                            <Dumbbell className="h-4 w-4 text-muted-foreground group-hover:text-brand-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium">{exercise.name}</p>
-                                            {exercise.description && (
-                                                <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                                                    {exercise.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {!exercise.userId && (
-                                        <span className="text-[10px] font-bold uppercase text-muted-foreground/50 border rounded px-1.5 py-0.5">
-                                            Global
-                                        </span>
-                                    )}
-                                </div>
+                                <ExerciseListItem key={exercise.id} exercise={exercise} />
                             ))}
                         </div>
                     </section>
