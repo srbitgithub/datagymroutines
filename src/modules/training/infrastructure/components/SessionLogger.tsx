@@ -246,13 +246,13 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
 
                 {/* Settings Modal Overlay */}
                 {showConfig && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-100 animate-in fade-in duration-300">
-                        <div className="w-full h-full sm:h-auto sm:max-w-sm bg-white sm:border sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 sm:border-border/50 text-slate-900">
-                            <div className="p-6 border-b bg-slate-50 flex items-center justify-between">
-                                <h3 className="text-xl font-black uppercase tracking-tight text-slate-900">AJUSTES DE DESCANSO</h3>
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 animate-in fade-in duration-300 p-4">
+                        <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                            <div className="p-6 border-b border-zinc-800 bg-zinc-900 flex items-center justify-between">
+                                <h3 className="text-xl font-black uppercase tracking-tight text-white">AJUSTES DE DESCANSO</h3>
                                 <button
                                     onClick={() => setShowConfig(false)}
-                                    className="p-2 rounded-full hover:bg-slate-200 transition-colors text-slate-900"
+                                    className="p-2 rounded-full hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
                                 >
                                     <X className="h-6 w-6" />
                                 </button>
@@ -260,8 +260,8 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
 
                             <div className="p-8 space-y-8">
                                 <div className="space-y-4">
-                                    <label className="text-xs font-bold uppercase text-slate-500 tracking-widest">TIEMPO ENTRE SERIES</label>
-                                    <div className="flex items-center justify-center gap-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <label className="text-xs font-bold uppercase text-zinc-500 tracking-widest">TIEMPO ENTRE SERIES</label>
+                                    <div className="flex items-center justify-center gap-4 bg-zinc-800/50 p-6 rounded-2xl border border-zinc-800">
                                         <div className="text-center">
                                             <input
                                                 type="number"
@@ -272,11 +272,11 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                                                     const sec = totalRestTime % 60;
                                                     setTotalRestTime(parseInt(e.target.value || '0') * 60 + sec);
                                                 }}
-                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-slate-900"
+                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                             />
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">MIN</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 mt-1">MIN</p>
                                         </div>
-                                        <div className="text-4xl font-black text-slate-200">:</div>
+                                        <div className="text-4xl font-black text-zinc-700">:</div>
                                         <div className="text-center">
                                             <input
                                                 type="number"
@@ -287,26 +287,26 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                                                     const min = Math.floor(totalRestTime / 60);
                                                     setTotalRestTime(min * 60 + parseInt(e.target.value || '0'));
                                                 }}
-                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-slate-900"
+                                                className="w-16 text-4xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                             />
-                                            <p className="text-[10px] font-bold text-slate-400 mt-1">SEG</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 mt-1">SEG</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <div className="flex items-center justify-between bg-zinc-800/50 p-4 rounded-2xl border border-zinc-800">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${isAlarmEnabled ? 'bg-brand-primary/10 text-brand-primary' : 'bg-slate-200 text-slate-400'}`}>
+                                        <div className={`p-2 rounded-xl ${isAlarmEnabled ? 'bg-brand-primary/20 text-brand-primary' : 'bg-zinc-800 text-zinc-600'}`}>
                                             {isAlarmEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm text-slate-900">Alarma Sonora</p>
-                                            <p className="text-xs text-slate-500">Aviso al terminar</p>
+                                            <p className="font-bold text-sm text-white">Alarma Sonora</p>
+                                            <p className="text-xs text-zinc-500">Aviso al terminar</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => setIsAlarmEnabled(!isAlarmEnabled)}
-                                        className={`w-12 h-6 rounded-full transition-colors relative ${isAlarmEnabled ? 'bg-brand-primary' : 'bg-slate-300'}`}
+                                        className={`w-12 h-6 rounded-full transition-colors relative ${isAlarmEnabled ? 'bg-brand-primary' : 'bg-zinc-700'}`}
                                     >
                                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isAlarmEnabled ? 'left-7' : 'left-1'}`} />
                                     </button>
@@ -315,7 +315,7 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                                 <div className="pt-4 space-y-3">
                                     <button
                                         onClick={() => setShowConfig(false)}
-                                        className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-transform"
+                                        className="w-full py-4 bg-white text-zinc-900 font-bold rounded-2xl shadow-lg active:scale-95 transition-transform"
                                     >
                                         GUARDAR CAMBIOS
                                     </button>
@@ -323,7 +323,7 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                                     <button
                                         onClick={handleFinish}
                                         disabled={isFinishing}
-                                        className="w-full py-4 border-2 border-red-100 text-red-500 font-bold rounded-2xl hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full py-4 border-2 border-red-500/20 text-red-500 font-bold rounded-2xl hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2"
                                     >
                                         {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                         FINALIZAR ENTRENAMIENTO
