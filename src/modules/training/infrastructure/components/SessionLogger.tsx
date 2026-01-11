@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2 } from 'lucide-react';
+import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2, Settings, Bell, BellOff, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { addSetAction, finishSessionAction, updateSetAction } from '@/app/_actions/training';
 
@@ -21,6 +21,14 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     const [elapsed, setElapsed] = useState(0);
     const [isFinishing, setIsFinishing] = useState(false);
     const [isAddingSet, setIsAddingSet] = useState<string | null>(null);
+
+    // Rest Timer States
+    const [restTime, setRestTime] = useState(120); // Current countdown
+    const [isResting, setIsResting] = useState(false);
+    const [totalRestTime, setTotalRestTime] = useState(120); // Configured time
+    const [isAlarmEnabled, setIsAlarmEnabled] = useState(true);
+    const [showConfig, setShowConfig] = useState(false);
+    const [isRestFinished, setIsRestFinished] = useState(false);
 
     // Sync state when props change (after router.refresh)
     useEffect(() => {
@@ -74,6 +82,12 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                 createdAt: new Date()
             };
             setSets(prev => [...prev, newSet]);
+
+            // Start rest timer automatically
+            setRestTime(totalRestTime);
+            setIsResting(true);
+            setIsRestFinished(false);
+
             router.refresh();
         }
         setIsAddingSet(null);
@@ -107,38 +121,158 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     const exerciseIdsWithSets = Object.keys(groupedSets);
     const allUniqueExerciseIds = Array.from(new Set([...routineExerciseIds, ...exerciseIdsWithSets]));
 
-    // Timer logic
+    // Rest Timer logic
     useEffect(() => {
-        if (isFinishing) return;
+        if (!isResting || isFinishing) return;
 
         const timer = setInterval(() => {
-            const start = new Date(session.startTime).getTime();
-            const now = new Date().getTime();
-            setElapsed(Math.floor((now - start) / 1000));
+            setRestTime((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    setIsResting(false);
+                    setIsRestFinished(true);
+                    if (isAlarmEnabled) {
+                        playAlarm();
+                    }
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
         return () => clearInterval(timer);
-    }, [session.startTime, isFinishing]);
+    }, [isResting, isFinishing, isAlarmEnabled]);
+
+    const playAlarm = () => {
+        try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(440, ctx.currentTime); // A4
+
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+
+            oscillator.start();
+            oscillator.stop(ctx.currentTime + 1);
+        } catch (e) {
+            console.error('Error playing alarm:', e);
+        }
+    };
+
+    const resetRestTimer = () => {
+        setRestTime(totalRestTime);
+        setIsResting(true);
+        setIsRestFinished(false);
+    };
+
+    const stopRestTimer = () => {
+        setIsResting(false);
+        setRestTime(totalRestTime);
+        setIsRestFinished(false);
+    };
 
     return (
         <div className="space-y-6 pb-40">
-            <header className="sticky top-0 z-30 flex items-center justify-between bg-background/80 backdrop-blur-md border-b p-4 -mx-6 md:mx-0 md:rounded-xl md:border mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-brand-primary/10 p-2">
-                        <Clock className="h-5 w-5 text-brand-primary" />
+            <header className={`sticky top-0 z-30 flex items-center justify-between border-b p-4 -mx-6 md:mx-0 md:rounded-xl md:border mb-6 transition-all duration-500 backdrop-blur-md ${isRestFinished ? 'bg-red-600/90 text-white shadow-[0_0_30px_rgba(220,38,38,0.5)] border-red-400' : isResting ? 'bg-brand-primary/90 text-white shadow-lg' : 'bg-background/80'}`}>
+                <div className="flex items-center gap-4">
+                    <div className={`rounded-full p-2 ${isResting || isRestFinished ? 'bg-white/20' : 'bg-brand-primary/10'}`}>
+                        <Clock className={`h-5 w-5 ${isResting || isRestFinished ? 'text-white' : 'text-brand-primary'}`} />
                     </div>
                     <div>
-                        <p className="text-xs font-bold uppercase text-muted-foreground">En curso</p>
-                        <p className="text-xl font-black tabular-nums">{formatTime(elapsed)}</p>
+                        <p className={`text-[10px] font-bold uppercase ${isResting || isRestFinished ? 'text-white/80' : 'text-muted-foreground'}`}>
+                            {isRestFinished ? '¡DESCANSO TERMINADO!' : isResting ? 'DESCANSANDO...' : 'PREPARADO'}
+                        </p>
+                        <p className="text-3xl font-black tabular-nums tracking-tight">
+                            {formatTime(isResting || isRestFinished ? restTime : totalRestTime)}
+                        </p>
                     </div>
+                    {isResting && (
+                        <button
+                            onClick={stopRestTimer}
+                            className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                        >
+                            <X className="h-4 w-4 text-white" />
+                        </button>
+                    )}
+                    {isRestFinished && (
+                        <button
+                            onClick={() => setIsRestFinished(false)}
+                            className="px-3 py-1 rounded-full bg-white text-red-600 text-[10px] font-black uppercase shadow-sm"
+                        >
+                            OK
+                        </button>
+                    )}
                 </div>
-                <button
-                    className="inline-flex h-10 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
-                    onClick={handleFinish}
-                    disabled={isFinishing}
-                >
-                    {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-                    Finalizar
-                </button>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setShowConfig(!showConfig)}
+                        className={`p-2 rounded-lg transition-colors ${isResting || isRestFinished ? 'hover:bg-white/20 text-white' : 'hover:bg-accent text-muted-foreground'}`}
+                    >
+                        <Settings className="h-5 w-5" />
+                    </button>
+                    <button
+                        className="inline-flex h-10 items-center justify-center rounded-lg bg-green-600 px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                        onClick={handleFinish}
+                        disabled={isFinishing}
+                    >
+                        {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                        Finalizar
+                    </button>
+                </div>
+
+                {showConfig && (
+                    <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-background border rounded-xl shadow-xl z-50 animate-in fade-in slide-in-from-top-2 text-foreground">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-bold text-sm uppercase tracking-wider">Ajustes de Descanso</h4>
+                            <button onClick={() => setShowConfig(false)}><X className="h-4 w-4 text-muted-foreground" /></button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Tiempo de descanso</span>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={Math.floor(totalRestTime / 60)}
+                                        onChange={(e) => {
+                                            const sec = totalRestTime % 60;
+                                            setTotalRestTime(parseInt(e.target.value || '0') * 60 + sec);
+                                        }}
+                                        className="w-12 h-8 bg-accent/20 rounded text-center font-bold outline-none"
+                                    />
+                                    <span>:</span>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={totalRestTime % 60}
+                                        onChange={(e) => {
+                                            const min = Math.floor(totalRestTime / 60);
+                                            setTotalRestTime(min * 60 + parseInt(e.target.value || '0'));
+                                        }}
+                                        className="w-12 h-8 bg-accent/20 rounded text-center font-bold outline-none"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Alarma sonora</span>
+                                <button
+                                    onClick={() => setIsAlarmEnabled(!isAlarmEnabled)}
+                                    className={`p-2 rounded-lg transition-colors ${isAlarmEnabled ? 'bg-brand-primary/10 text-brand-primary' : 'bg-muted text-muted-foreground'}`}
+                                >
+                                    {isAlarmEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </header>
 
             <div className="space-y-6">
