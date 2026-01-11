@@ -7,7 +7,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex min-h-screen bg-background">
             {/* Sidebar Mobile (bottom) / Desktop (left) */}
-            <aside className="fixed bottom-0 left-0 z-50 w-full border-t bg-zinc-950 md:static md:w-64 md:border-r md:border-t-0">
+            <aside className="fixed bottom-0 left-0 right-0 z-50 w-full border-t bg-zinc-950 md:static md:w-64 md:border-r md:border-t-0">
                 <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
                     <div className="hidden items-center gap-2 md:flex mb-8">
                         <Dumbbell className="h-6 w-6 text-brand-primary" />
