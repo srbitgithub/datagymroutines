@@ -101,7 +101,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                                     <button
                                         onClick={handleDelete}
                                         disabled={isDeleting}
-                                        className="p-1.5 bg-red-500/10 text-red-500 rounded-md hover:bg-red-500/20 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                                        className="p-1.5 bg-red-50 text-red-600 border border-red-100 rounded-md hover:bg-red-100 transition-all disabled:opacity-50"
                                         title="Borrar ejercicio"
                                     >
                                         {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
