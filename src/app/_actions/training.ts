@@ -3,7 +3,7 @@
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { SupabaseExerciseRepository } from "@/modules/training/infrastructure/adapters/SupabaseExerciseRepository";
 import { GetExercisesUseCase, CreateExerciseUseCase, DeleteExerciseUseCase } from "@/modules/training/application/ExerciseUseCases";
-import { GetRoutinesUseCase, CreateRoutineUseCase } from "@/modules/training/application/RoutineUseCases";
+import { GetRoutinesUseCase, CreateRoutineUseCase, UpdateRoutinesOrderUseCase } from "@/modules/training/application/RoutineUseCases";
 import { StartSessionUseCase, AddSetUseCase, EndSessionUseCase } from "@/modules/training/application/SessionUseCases";
 import { ExerciseSet } from "@/modules/training/domain/Session";
 import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/adapters/SupabaseRoutineRepository";
@@ -201,6 +201,7 @@ export async function createRoutineAction(
                 targetReps: config.targetReps,
                 targetWeight: config.targetWeight,
             })),
+            orderIndex: 0,
         });
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/routines");
@@ -290,6 +291,7 @@ export async function duplicateRoutineAction(sourceId: string, newName: string, 
                 targetReps: re.targetReps,
                 targetWeight: re.targetWeight,
             })),
+            orderIndex: 0, // Duplicate at the beginning or follow source? Let's say 0
         });
 
         revalidatePath("/dashboard");
@@ -441,5 +443,23 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
     } catch (error: any) {
         console.error("Error en getProgressionDataAction:", error);
         return { items: [] };
+    }
+}
+
+export async function updateRoutinesOrderAction(orders: { id: string, orderIndex: number }[]) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const routineRepository = new SupabaseRoutineRepository();
+    const useCase = new UpdateRoutinesOrderUseCase(routineRepository);
+
+    try {
+        await useCase.execute(orders);
+        revalidatePath("/dashboard/routines");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en updateRoutinesOrderAction:", error);
+        return { error: `Error al actualizar el orden: ${error.message}` };
     }
 }

@@ -7,6 +7,7 @@ export interface Routine {
     description?: string;
     exercises: RoutineExercise[];
     createdAt: Date;
+    orderIndex: number;
 }
 
 export interface RoutineExercise {
@@ -25,5 +26,6 @@ export interface RoutineRepository {
     getAllByUserId(userId: string): Promise<Routine[]>;
     save(routine: Routine): Promise<void>;
     update(id: string, routine: Partial<Routine>): Promise<void>;
+    updateOrders(orders: { id: string, orderIndex: number }[]): Promise<void>;
     delete(id: string): Promise<void>;
 }

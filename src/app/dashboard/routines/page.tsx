@@ -1,7 +1,7 @@
 import { getRoutinesAction } from "@/app/_actions/training";
-import { Plus, ListChecks, Play } from "lucide-react";
+import { Plus, ListChecks } from "lucide-react";
 import Link from "next/link";
-import { RoutineCardActions } from "@/modules/training/infrastructure/components/RoutineCardActions";
+import { RoutinesList } from "@/modules/training/infrastructure/components/RoutinesList";
 
 export const dynamic = 'force-dynamic';
 
@@ -27,40 +27,7 @@ export default async function RoutinesPage() {
             </header>
 
             {routines.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                    {routines.map((routine) => (
-                        <div key={routine.id} className="group relative rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-full bg-brand-primary/10 p-2">
-                                        <ListChecks className="h-5 w-5 text-brand-primary" />
-                                    </div>
-                                    <RoutineCardActions
-                                        routineId={routine.id}
-                                        routineName={routine.name}
-                                        routineDescription={routine.description || ""}
-                                    />
-                                </div>
-                                <Link
-                                    href={`/dashboard/session/start?routineId=${routine.id}`}
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-white shadow-sm hover:scale-110 transition-transform"
-                                    title="Comenzar ahora"
-                                >
-                                    <Play className="h-4 w-4 fill-current ml-0.5" />
-                                </Link>
-                            </div>
-                            <h3 className="text-lg font-bold">{routine.name}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-4">
-                                {routine.description || "Sin descripción"}
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-muted-foreground bg-accent px-2 py-1 rounded">
-                                    {routine.exercises.length} ejercicios
-                                </span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <RoutinesList initialRoutines={routines} />
             ) : (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
                     <ListChecks className="h-12 w-12 text-muted-foreground/30 mb-4" />

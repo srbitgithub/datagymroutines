@@ -22,7 +22,7 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
             .from("routines")
             .select("*, routine_exercises(*, exercises(*))")
             .eq("user_id", userId)
-            .order("created_at", { ascending: false });
+            .order("order_index", { ascending: true });
 
         if (error) {
             console.error(`SupabaseRoutineRepository.getAllByUserId error:`, error);
@@ -141,5 +141,19 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
             .eq("id", id);
 
         if (routineError) throw new Error(routineError.message);
+    }
+
+    async updateOrders(orders: { id: string, orderIndex: number }[]): Promise<void> {
+        const client = await this.getClient();
+        const { error } = await client
+            .from("routines")
+            .upsert(
+                orders.map((o) => ({
+                    id: o.id,
+                    order_index: o.orderIndex,
+                }))
+            );
+
+        if (error) throw new Error(error.message);
     }
 }

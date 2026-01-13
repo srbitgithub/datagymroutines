@@ -14,6 +14,7 @@ export class RoutineMapper {
                     .map((re: any) => this.toExerciseDomain(re))
                     .filter((e: RoutineExercise | null): e is RoutineExercise => e !== null), // Filter out failed exercises
                 createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
+                orderIndex: raw.order_index || 0,
             };
         } catch (error) {
             console.error(`Error mapping routine ID ${raw.id}:`, error);
@@ -57,6 +58,7 @@ export class RoutineMapper {
             name: routine.name,
             description: routine.description,
             created_at: routine.createdAt?.toISOString(),
+            order_index: routine.orderIndex,
         };
     }
 
@@ -71,6 +73,7 @@ export class RoutineMapper {
                 ? routine.createdAt.toISOString()
                 : new Date(routine.createdAt).toISOString();
         }
+        if (routine.orderIndex !== undefined) persistence.order_index = routine.orderIndex;
         return persistence;
     }
 }

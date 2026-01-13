@@ -15,3 +15,11 @@ export class CreateRoutineUseCase {
         return this.routineRepository.save(routine);
     }
 }
+
+export class UpdateRoutinesOrderUseCase {
+    constructor(private routineRepository: RoutineRepository) { }
+
+    async execute(orders: { id: string, orderIndex: number }[]): Promise<void> {
+        return this.routineRepository.updateOrders(orders);
+    }
+}
