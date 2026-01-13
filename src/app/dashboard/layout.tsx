@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     const navItems = [
         { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
-        { href: "/dashboard/session", icon: PlayCircle, label: "Rutina" },
+        { href: "/dashboard/session", icon: PlayCircle, label: "Entrenamiento" },
         { href: "/dashboard/routines", icon: ListChecks, label: "Rutinas" },
         { href: "/dashboard/exercises", icon: Dumbbell, label: "Ejercicios" },
         { href: "/dashboard/tools", icon: Wrench, label: "Herramientas" },

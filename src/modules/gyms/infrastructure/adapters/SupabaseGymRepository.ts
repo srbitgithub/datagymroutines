@@ -42,7 +42,7 @@ export class SupabaseGymRepository extends SupabaseRepository implements GymRepo
         const client = await this.getClient();
         const { error } = await client
             .from("gyms")
-            .update(gymData)
+            .update(GymMapper.toPartialPersistence(gymData))
             .eq("id", id);
 
         if (error) throw new Error(error.message);

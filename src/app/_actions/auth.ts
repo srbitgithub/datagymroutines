@@ -10,6 +10,7 @@ import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/ada
 import { SupabaseGymRepository } from "@/modules/gyms/infrastructure/adapters/SupabaseGymRepository";
 import { AuthError } from "@/core/errors/DomainErrors";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function loginAction(prevState: any, formData: FormData) {
     const email = formData.get("email") as string;
@@ -128,9 +129,44 @@ export async function createGymAction(prevState: any, formData: FormData) {
             isDefault,
             createdAt: new Date(),
         });
+        revalidatePath("/dashboard/gyms");
         return { success: true };
     } catch (error) {
         return { error: "Error al crear el gimnasio" };
+    }
+}
+
+export async function updateGymAction(id: string, name: string, description: string, isDefault: boolean) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const gymRepository = new SupabaseGymRepository();
+    const updateGymUseCase = new UpdateGymUseCase(gymRepository);
+
+    try {
+        await updateGymUseCase.execute(id, { name, description, isDefault });
+        revalidatePath("/dashboard/gyms");
+        return { success: true };
+    } catch (error) {
+        return { error: "Error al actualizar el gimnasio" };
+    }
+}
+
+export async function deleteGymAction(id: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const gymRepository = new SupabaseGymRepository();
+    const deleteGymUseCase = new DeleteGymUseCase(gymRepository);
+
+    try {
+        await deleteGymUseCase.execute(id);
+        revalidatePath("/dashboard/gyms");
+        return { success: true };
+    } catch (error) {
+        return { error: "Error al eliminar el gimnasio" };
     }
 }
 
@@ -157,6 +193,7 @@ export async function updateMonthlyGoalAction(goal: number) {
             monthlyGoal: goal,
             updatedAt: new Date()
         });
+        revalidatePath("/dashboard");
         return { success: true };
     } catch (error: any) {
         console.error("Error al actualizar el objetivo mensual:", error);

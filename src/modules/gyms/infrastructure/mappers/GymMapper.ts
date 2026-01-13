@@ -22,4 +22,13 @@ export class GymMapper {
             created_at: gym.createdAt.toISOString(),
         };
     }
+
+    static toPartialPersistence(gym: Partial<Gym>): any {
+        const persistence: any = {};
+        if (gym.name !== undefined) persistence.name = gym.name;
+        if (gym.description !== undefined) persistence.description = gym.description;
+        if (gym.isDefault !== undefined) persistence.is_default = gym.isDefault;
+        if (gym.userId !== undefined) persistence.user_id = gym.userId;
+        return persistence;
+    }
 }
