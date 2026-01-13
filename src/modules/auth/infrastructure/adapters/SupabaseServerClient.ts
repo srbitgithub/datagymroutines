@@ -13,7 +13,11 @@ export async function createServerSideClient() {
     }
 
     const cookieStore = await cookies()
-    console.info(`[SupabaseServerClient] Creando cliente. Cookies: ${cookieStore.getAll().length}`);
+    const allCookies = cookieStore.getAll();
+    console.info(`[SupabaseServerClient] Creando cliente. Cookies: ${allCookies.length}`);
+    if (allCookies.length > 0) {
+        console.log("Cookie names:", allCookies.map(c => c.name).join(', '));
+    }
 
     return createServerClient(
         supabaseUrl || 'https://placeholder.supabase.co',

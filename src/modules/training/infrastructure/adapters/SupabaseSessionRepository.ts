@@ -18,6 +18,13 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
 
     async getAllByUserId(userId: string): Promise<TrainingSession[]> {
         const client = await this.getClient();
+        const { data: { user: authUser } } = await client.auth.getUser();
+        console.log(`[SupabaseSessionRepository] Auth User en el cliente: ${authUser?.id || 'null'}`);
+
+        // DEBUG: ¿Veo alguna sesión aunque no sea de este usuario? (Si esto da 0 y hay datos, es RLS)
+        const { count: globalCount } = await client.from("training_sessions").select("*", { count: 'exact', head: true });
+        console.log(`[SupabaseSessionRepository] DEBUG GLOBAL: Hay ${globalCount} sesiones totales en la tabla`);
+
         const { data, error } = await client
             .from("training_sessions")
             .select("*, exercise_sets(*)")

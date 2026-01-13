@@ -17,7 +17,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const user = await authRepo.getSession();
 
     const routines = await getRoutinesAction();
-    const progression = await getProgressionDataAction(undefined, userTimezone);
+    const { items: progressionItems, debug } = await getProgressionDataAction(undefined, userTimezone);
 
     // Weekly Tracker Logic (User's 10-step plan + Robust TZ handling)
     const tz = userTimezone;
@@ -57,7 +57,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const todayStr = fmt(localNow);
     const mondayStr = fmt(mondayLocal);
     const sundayStr = fmt(sundayLocal);
-    const trainingDates = new Set(progression.map(p => p.date));
+    const trainingDates = new Set(progressionItems.map(p => p.date));
 
     // Debug Logs
     console.log("\x1b[42m\x1b[30m%s\x1b[0m", "====================================================");
@@ -96,9 +96,24 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            {/* Visual Debug Overlay (Solo visible para depuración) */}
-            <div className="text-[10px] font-mono bg-black text-green-500 p-2 rounded border border-green-500/30 opacity-50 hover:opacity-100 transition-opacity">
-                DEBUG: UID={user?.id || 'null'} | TZ={tz} | Hoy={todayStr} | Lunes={mondayStr} | Entrenados=[{Array.from(trainingDates).join(',')}] | TrainedToday={trainingDates.has(todayStr) ? 'SI' : 'NO'}
+            {/* Panel de Depuración Visual */}
+            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 text-[11px] font-mono shadow-inner space-y-1">
+                <div className="flex items-center gap-2 text-blue-800 font-bold mb-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Soporte Técnico: Diagnóstico de Datos
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <div><span className="text-zinc-500">Sesión Usuario (UID):</span> <span className="text-blue-700 font-bold">{user?.id || 'NO DETECTADO'}</span></div>
+                    <div><span className="text-zinc-500">País/Zona (TZ):</span> <span className="text-blue-700 font-bold">{tz}</span></div>
+                    <div><span className="text-zinc-500">Fecha Hoy:</span> <span className="text-blue-700 font-bold">{todayStr}</span></div>
+                    <div><span className="text-zinc-500">Inicio Semana:</span> <span className="text-blue-700 font-bold">{mondayStr}</span></div>
+                    <div><span className="text-zinc-500">Días Registrados:</span> <span className="text-blue-700 font-bold">[{Array.from(trainingDates).join(', ') || 'VACÍO'}]</span></div>
+                    <div><span className="text-zinc-500">Sesiones (User/Global):</span> <span className="text-blue-700 font-bold">{debug?.returnedCount || 0} / {debug?.globalCount || 0}</span></div>
+                    <div><span className="text-zinc-500">¿Sesión hoy detectada?:</span> <span className={`${trainingDates.has(todayStr) ? 'text-green-600' : 'text-red-600'} font-bold`}>{trainingDates.has(todayStr) ? 'SÍ' : 'NO'}</span></div>
+                </div>
+                <div className="mt-2 text-[10px] text-zinc-400 italic">
+                    * Si 'Días Registrados' está VACÍO pero tienes datos en Supabase, revisa las políticas RLS.
+                </div>
             </div>
             {error && (
                 <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
