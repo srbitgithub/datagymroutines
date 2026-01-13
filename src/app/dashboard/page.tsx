@@ -4,8 +4,10 @@ import { getRoutinesAction, getProgressionDataAction } from "@/app/_actions/trai
 import { ListChecks, Plus, History, Check, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+    noStore();
     const { error } = await searchParams;
     const headerList = await headers();
     const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid';
@@ -54,14 +56,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const trainingDates = new Set(progression.map(p => p.date));
 
     // Debug Logs
-    console.log("--- DEBUG WEEKLY TRACKER ---");
+    console.log("\x1b[33m%s\x1b[0m", "**********************************************");
+    console.log("\x1b[33m%s\x1b[0m", "--- DEBUG WEEKLY TRACKER START ---");
     console.log("Timezone detectada:", tz);
     console.log("Hoy (local format):", todayStr);
     console.log("Inicio de semana (Lunes):", mondayStr);
     console.log("Fin de semana (Domingo):", sundayStr);
     console.log("Fechas entrenadas encontradas en la DB:", Array.from(trainingDates));
-    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ" : "NO");
-    console.log("----------------------------");
+    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ (Verde)" : "NO (Gris/Rojo)");
+    console.log("\x1b[33m%s\x1b[0m", "--- DEBUG WEEKLY TRACKER END ---");
+    console.log("\x1b[33m%s\x1b[0m", "**********************************************");
 
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
 
