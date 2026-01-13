@@ -103,8 +103,8 @@ export function RestTimer() {
                         onClick={toggleTimer}
                         disabled={timeLeft === 0}
                         className={`flex-[2] h-12 flex items-center justify-center rounded-xl font-bold transition-all active:scale-95 ${isActive
-                                ? 'bg-amber-500 text-white shadow-lg'
-                                : 'bg-brand-primary text-white shadow-lg disabled:opacity-50'
+                            ? 'bg-amber-500 text-white shadow-lg'
+                            : 'bg-brand-primary text-white shadow-lg disabled:opacity-50'
                             }`}
                     >
                         {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-1" />}
@@ -114,7 +114,7 @@ export function RestTimer() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2 w-full">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
                     {PRESETS.map((p) => (
                         <button
                             key={p}
@@ -123,8 +123,8 @@ export function RestTimer() {
                                 startTimer(p);
                             }}
                             className={`h-10 rounded-lg text-xs font-bold border transition-all ${duration === p && timeLeft > 0
-                                    ? 'bg-brand-primary border-brand-primary text-white'
-                                    : 'bg-background hover:bg-accent'
+                                ? 'bg-brand-primary border-brand-primary text-white'
+                                : 'bg-background hover:bg-accent'
                                 }`}
                         >
                             {p}s
