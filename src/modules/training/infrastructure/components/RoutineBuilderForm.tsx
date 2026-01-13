@@ -35,6 +35,14 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
         return [];
     });
     const [isSaving, setIsSaving] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('Todos');
+
+    const categories = ['Todos', ...Array.from(new Set(exercises.map(e => e.muscleGroup)))].sort();
+
+    const filteredExercises = selectedCategory === 'Todos'
+        ? exercises
+        : exercises.filter(e => e.muscleGroup === selectedCategory);
+
 
     const addExercise = (exercise: Exercise) => {
         setSelectedExercises([...selectedExercises, {
@@ -169,24 +177,46 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Catálogo de Ejercicios</h2>
-                <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[350px] border rounded-xl p-3 bg-accent/5 shadow-inner">
-                    {exercises.map((exercise) => (
-                        <button
-                            key={exercise.id}
-                            type="button"
-                            onClick={() => addExercise(exercise)}
-                            className="flex items-center justify-between rounded-xl border bg-card p-4 text-left hover:border-brand-primary/50 hover:shadow-md transition-all active:scale-[0.98]"
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Catálogo de Ejercicios</h2>
+                    <div className="space-y-1.5 min-w-[160px]">
+                        <label htmlFor="category-filter" className="text-[10px] font-bold uppercase text-muted-foreground px-1">Filtrar por Grupo</label>
+                        <select
+                            id="category-filter"
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="flex h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary text-white"
                         >
-                            <div>
-                                <p className="text-sm font-bold">{exercise.name}</p>
-                                <p className="text-[10px] uppercase font-medium text-muted-foreground">{exercise.muscleGroup}</p>
-                            </div>
-                            <div className="bg-brand-primary/10 p-2 rounded-lg">
-                                <Plus className="h-4 w-4 text-brand-primary" />
-                            </div>
-                        </button>
-                    ))}
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[350px] border rounded-xl p-3 bg-accent/5 shadow-inner">
+                    {filteredExercises.length > 0 ? (
+                        filteredExercises.map((exercise) => (
+                            <button
+                                key={exercise.id}
+                                type="button"
+                                onClick={() => addExercise(exercise)}
+                                className="flex items-center justify-between rounded-xl border bg-card p-4 text-left hover:border-brand-primary/50 hover:shadow-md transition-all active:scale-[0.98] animate-in fade-in duration-200"
+                            >
+                                <div>
+                                    <p className="text-sm font-bold">{exercise.name}</p>
+                                    <p className="text-[10px] uppercase font-medium text-muted-foreground">{exercise.muscleGroup}</p>
+                                </div>
+                                <div className="bg-brand-primary/10 p-2 rounded-lg">
+                                    <Plus className="h-4 w-4 text-brand-primary" />
+                                </div>
+                            </button>
+                        ))
+                    ) : (
+                        <div className="py-8 text-center text-muted-foreground text-xs italic">
+                            No hay ejercicios en esta categoría.
+                        </div>
+                    )}
                 </div>
             </div>
 
