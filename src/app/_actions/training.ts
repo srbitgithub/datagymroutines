@@ -373,7 +373,11 @@ export async function addSetAction(setData: Omit<ExerciseSet, 'id' | 'createdAt'
     }
 }
 
+import { unstable_noStore as noStore } from 'next/cache';
+
 export async function getProgressionDataAction(exerciseId?: string, timezone: string = 'UTC') {
+    noStore();
+    console.log("\x1b[41m\x1b[37m%s\x1b[0m", "[DEBUG ACTION] getProgressionDataAction EJECUTÁNDOSE...");
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();

@@ -56,16 +56,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const trainingDates = new Set(progression.map(p => p.date));
 
     // Debug Logs
-    console.log("\x1b[33m%s\x1b[0m", "**********************************************");
-    console.log("\x1b[33m%s\x1b[0m", "--- DEBUG WEEKLY TRACKER START ---");
+    console.log("\x1b[42m\x1b[30m%s\x1b[0m", "====================================================");
+    console.log("\x1b[42m\x1b[30m%s\x1b[0m", ">>> SERVER RENDER: DASHBOARD PAGE <<<");
     console.log("Timezone detectada:", tz);
+    console.log("X-Timezone Header:", headerList.get('x-timezone'));
+    console.log("Vercel-TZ Header:", headerList.get('x-vercel-ip-timezone'));
     console.log("Hoy (local format):", todayStr);
     console.log("Inicio de semana (Lunes):", mondayStr);
     console.log("Fin de semana (Domingo):", sundayStr);
     console.log("Fechas entrenadas encontradas en la DB:", Array.from(trainingDates));
-    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ (Verde)" : "NO (Gris/Rojo)");
-    console.log("\x1b[33m%s\x1b[0m", "--- DEBUG WEEKLY TRACKER END ---");
-    console.log("\x1b[33m%s\x1b[0m", "**********************************************");
+    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ (Verde) ✅" : "NO (Gris/Rojo) ❌");
+    console.log("\x1b[42m\x1b[30m%s\x1b[0m", "====================================================");
 
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
 
@@ -91,6 +92,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
+            {/* Visual Debug Overlay (Solo visible para depuración) */}
+            <div className="text-[10px] font-mono bg-black text-green-500 p-2 rounded border border-green-500/30 opacity-50 hover:opacity-100 transition-opacity">
+                DEBUG: TZ={tz} | Hoy={todayStr} | Lunes={mondayStr} | Entrenados=[{Array.from(trainingDates).join(',')}] | TrainedToday={trainingDates.has(todayStr) ? 'SI' : 'NO'}
+            </div>
             {error && (
                 <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
