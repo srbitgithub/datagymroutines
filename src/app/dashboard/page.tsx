@@ -109,6 +109,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <div><span className="text-zinc-500">Inicio Semana:</span> <span className="text-blue-700 font-bold">{mondayStr}</span></div>
                     <div><span className="text-zinc-500">Días Registrados:</span> <span className="text-blue-700 font-bold">[{Array.from(trainingDates).join(', ') || 'VACÍO'}]</span></div>
                     <div><span className="text-zinc-500">Sesiones (User/Global):</span> <span className="text-blue-700 font-bold">{debug?.returnedCount || 0} / {debug?.globalCount || 0}</span></div>
+                    <div><span className="text-zinc-500">Error DB:</span> <span className="text-red-600 font-bold">{debug?.dbError || 'Ninguno'}</span></div>
                     <div><span className="text-zinc-500">¿Sesión hoy detectada?:</span> <span className={`${trainingDates.has(todayStr) ? 'text-green-600' : 'text-red-600'} font-bold`}>{trainingDates.has(todayStr) ? 'SÍ' : 'NO'}</span></div>
                 </div>
                 <div className="mt-2 text-[10px] text-zinc-400 italic">

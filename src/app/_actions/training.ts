@@ -388,11 +388,20 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
 
         // DEBUG: ¿Veo alguna sesión aunque no sea de este usuario? (Si esto da 0 y hay datos, es RLS)
         const client = await (new SupabaseAuthRepository() as any).getClient();
-        const { count: globalCount } = await client.from("training_sessions").select("*", { count: 'exact', head: true });
+        const { count: globalCount, error: countError } = await client.from("training_sessions").select("*", { count: 'exact', head: true });
 
         console.log(`[getProgressionDataAction] UserID: ${user.id}, Sesiones encontradas: ${sessions.length}`);
 
-        if (!Array.isArray(sessions)) return { items: [], debug: { globalCount: globalCount || 0, returnedCount: 0 } };
+        if (!Array.isArray(sessions)) {
+            return {
+                items: [],
+                debug: {
+                    globalCount: globalCount || 0,
+                    returnedCount: 0,
+                    dbError: countError?.message || 'Ningún error reportado (pero 0 filas)'
+                }
+            };
+        }
 
         const data = sessions.map(session => {
             let volume = 0;
@@ -430,11 +439,12 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
             items: data,
             debug: {
                 globalCount: globalCount || 0,
-                returnedCount: sessions.length
+                returnedCount: sessions.length,
+                dbError: countError?.message
             }
         };
     } catch (error: any) {
         console.error("Error in getProgressionDataAction:", error);
-        return { items: [], error: error.message, debug: { globalCount: 0, returnedCount: 0 } };
+        return { items: [], error: error.message, debug: { globalCount: 0, returnedCount: 0, dbError: error.message } };
     }
 }
