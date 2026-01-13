@@ -36,6 +36,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const mondayLocal = new Date(year, month, day);
     mondayLocal.setDate(mondayLocal.getDate() - diffToMonday);
 
+    // 6. Calculate end of the week (Sunday)
+    const sundayLocal = new Date(mondayLocal);
+    sundayLocal.setDate(mondayLocal.getDate() + 6);
+
     // Stable formatter for YYYY-MM-DD comparisons
     const fmt = (d: Date) => {
         const y = d.getFullYear();
@@ -44,7 +48,21 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         return `${y}-${m}-${dp}`;
     };
 
+    const todayStr = fmt(localNow);
+    const mondayStr = fmt(mondayLocal);
+    const sundayStr = fmt(sundayLocal);
     const trainingDates = new Set(progression.map(p => p.date));
+
+    // Debug Logs
+    console.log("--- DEBUG WEEKLY TRACKER ---");
+    console.log("Timezone detectada:", tz);
+    console.log("Hoy (local format):", todayStr);
+    console.log("Inicio de semana (Lunes):", mondayStr);
+    console.log("Fin de semana (Domingo):", sundayStr);
+    console.log("Fechas entrenadas encontradas en la DB:", Array.from(trainingDates));
+    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ" : "NO");
+    console.log("----------------------------");
+
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
 
     const weekProgress = dayAbbreviations.map((label, index) => {

@@ -382,6 +382,8 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
         const sessionRepository = new SupabaseSessionRepository();
         const sessions = await sessionRepository.getAllByUserId(user.id);
 
+        console.log(`[getProgressionDataAction] UserID: ${user.id}, Sesiones encontradas: ${sessions.length}`);
+
         if (!Array.isArray(sessions)) return [];
 
         const data = sessions.map(session => {
