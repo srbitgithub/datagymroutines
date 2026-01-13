@@ -320,9 +320,34 @@ export async function finishSessionAction(sessionId: string, notes?: string) {
 
     try {
         await endSessionUseCase.execute(sessionId, new Date(), notes);
+        revalidatePath("/dashboard");
         return { success: true };
     } catch (error) {
         return { error: "Error al finalizar la sesión" };
+    }
+}
+
+export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], notes?: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const sessionRepository = new SupabaseSessionRepository();
+
+    try {
+        // 1. Sync sets
+        await sessionRepository.saveSets(sessionId, sets);
+
+        // 2. Finish session
+        const endSessionUseCase = new EndSessionUseCase(sessionRepository);
+        await endSessionUseCase.execute(sessionId, new Date(), notes);
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/session");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en saveSessionBatchAction:", error);
+        return { error: `Error al guardar la sesión: ${error.message}` };
     }
 }
 

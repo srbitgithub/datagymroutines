@@ -107,4 +107,25 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
 
         if (error) throw new Error(error.message);
     }
+
+    async saveSets(sessionId: string, sets: ExerciseSet[]): Promise<void> {
+        const client = await this.getClient();
+
+        // 1. Delete existing sets for this session
+        const { error: deleteError } = await client
+            .from("exercise_sets")
+            .delete()
+            .eq("session_id", sessionId);
+
+        if (deleteError) throw new Error(deleteError.message);
+
+        // 2. Insert new sets
+        if (sets.length > 0) {
+            const { error: insertError } = await client
+                .from("exercise_sets")
+                .insert(sets.map(SessionMapper.setToPersistence));
+
+            if (insertError) throw new Error(insertError.message);
+        }
+    }
 }

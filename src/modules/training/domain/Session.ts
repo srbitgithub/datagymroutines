@@ -28,4 +28,5 @@ export interface SessionRepository {
     update(id: string, session: Partial<TrainingSession>): Promise<void>;
     addSet(set: ExerciseSet): Promise<void>;
     updateSet(id: string, setData: Partial<ExerciseSet>): Promise<void>;
+    saveSets(sessionId: string, sets: ExerciseSet[]): Promise<void>;
 }

@@ -5,7 +5,7 @@ import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
 import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2, Settings, Bell, BellOff, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { addSetAction, finishSessionAction, updateSetAction } from '@/app/_actions/training';
+import { finishSessionAction, saveSessionBatchAction } from '@/app/_actions/training';
 
 import { Routine } from '../../domain/Routine';
 
@@ -17,10 +17,37 @@ interface SessionLoggerProps {
 
 export function SessionLogger({ session, exercises, routine }: SessionLoggerProps) {
     const router = useRouter();
-    const [sets, setSets] = useState<ExerciseSet[]>(session.sets || []);
-    const [elapsed, setElapsed] = useState(0);
+
+    // Initialize sets either from current session or pre-fill from routine if session is empty
+    const [sets, setSets] = useState<ExerciseSet[]>(() => {
+        if (session.sets && session.sets.length > 0) {
+            return session.sets;
+        }
+
+        if (routine) {
+            const prefilledSets: ExerciseSet[] = [];
+            routine.exercises.forEach((re) => {
+                for (let i = 0; i < re.series; i++) {
+                    prefilledSets.push({
+                        id: crypto.randomUUID(),
+                        sessionId: session.id,
+                        exerciseId: re.exerciseId,
+                        weight: re.targetWeight || 0,
+                        reps: re.targetReps || 0,
+                        type: 'normal',
+                        orderIndex: i,
+                        createdAt: new Date()
+                    });
+                }
+            });
+            return prefilledSets;
+        }
+
+        return [];
+    });
+
+    const [completedSetIds, setCompletedSetIds] = useState<Set<string>>(new Set());
     const [isFinishing, setIsFinishing] = useState(false);
-    const [isAddingSet, setIsAddingSet] = useState<string | null>(null);
 
     // Rest Timer States
     const [restTime, setRestTime] = useState(120); // Current countdown
@@ -30,24 +57,12 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     const [showConfig, setShowConfig] = useState(false);
     const [isRestFinished, setIsRestFinished] = useState(false);
 
-    // Sync state when props change (after router.refresh)
-    useEffect(() => {
-        setSets(session.sets || []);
-    }, [session.sets]);
-
-    // Map to get exercise names easily
-    const exerciseMap = exercises.reduce((acc, ex) => {
-        acc[ex.id] = ex;
-        return acc;
-    }, {} as Record<string, Exercise>);
-
     // Group sets by exercise
     const groupedSets = sets.reduce((acc, set) => {
         if (!acc[set.exerciseId]) acc[set.exerciseId] = [];
         acc[set.exerciseId].push(set);
         return acc;
     }, {} as Record<string, ExerciseSet[]>);
-
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
@@ -56,93 +71,44 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const addSet = async (exerciseId: string) => {
-        setIsAddingSet(exerciseId);
-        const orderIndex = (groupedSets[exerciseId]?.length || 0);
-
-        // Find prescribed values in routine
-        const routineConfig = routine?.exercises.find((re: any) => re.exerciseId === exerciseId);
-        const defaultWeight = routineConfig?.targetWeight || 0;
-        const defaultReps = routineConfig?.targetReps || 0;
-
-        const result = (await addSetAction({
-            sessionId: session.id,
-            exerciseId,
-            weight: defaultWeight,
-            reps: defaultReps,
-            type: 'normal',
-            orderIndex,
-        })) as any;
-
-        if (result.success && result.setId) {
-            // Optimistic/Local update to show immediately
-            const newSet: ExerciseSet = {
-                id: result.setId,
-                sessionId: session.id,
-                exerciseId,
-                weight: defaultWeight,
-                reps: defaultReps,
-                type: 'normal',
-                orderIndex,
-                createdAt: new Date()
-            };
-            setSets(prev => [...prev, newSet]);
-
-            // Start rest timer automatically
-            setRestTime(totalRestTime);
-            setIsResting(true);
-            setIsRestFinished(false);
-
-            router.refresh();
-        }
-        setIsAddingSet(null);
+    const toggleSetCompletion = (setId: string) => {
+        setCompletedSetIds(prev => {
+            const next = new Set(prev);
+            if (next.has(setId)) {
+                next.delete(setId);
+                // Stop timer if we un-complete
+                stopRestTimer();
+            } else {
+                next.add(setId);
+                // Start timer
+                resetRestTimer();
+            }
+            return next;
+        });
     };
 
-    const updateSetData = async (setId: string, field: 'weight' | 'reps', value: string) => {
+    const updateSetData = (setId: string, field: 'weight' | 'reps', value: string) => {
         const numValue = parseFloat(value);
         if (isNaN(numValue)) return;
 
-        // Optimistic update
         setSets(prev => prev.map(s => s.id === setId ? { ...s, [field]: numValue } : s));
-
-        await updateSetAction(setId, { [field]: numValue });
     };
 
     const handleFinish = async () => {
         if (isFinishing) return;
         setIsFinishing(true);
-        const result = await finishSessionAction(session.id);
+
+        // Final save: send all current sets to DB
+        const result = await saveSessionBatchAction(session.id, sets);
+
         if (result.success) {
             router.replace('/dashboard');
             router.refresh();
         } else {
+            alert("Error al guardar: " + result.error);
             setIsFinishing(false);
         }
     };
-
-    // Auto-finish logic: check if all exercises in routine have at least 1 set
-    // You can refine this if you have a specific number of sets per exercise required
-    const checkAutoFinish = useCallback((currentSets: ExerciseSet[]) => {
-        if (!routine) return;
-
-        const routineExIds = routine.exercises.map((re: any) => re.exerciseId);
-        const completedExIds = new Set(currentSets.map(s => s.exerciseId));
-
-        const allDone = routineExIds.every(id => completedExIds.has(id));
-
-        // If all exercises have at least one set, we could auto-finish
-        // But requested: "después de terminar el último ejercicio de la última serie"
-        // For now, let's show a prompt or auto-trigger if they've fulfilled a "goal"
-        // Since we don't have "target sets" yet, let's keep it manual unless they want total automation.
-        // The user said: "de forma automática después de terminar el último ejercicio de la última serie"
-        // I will implement a simpler check: if we just added a set and it's the "last" one expected.
-    }, [routine]);
-
-    // Combine routine exercises with actual sets
-    // We want to show every exercise from the routine, plus any extra ones the user added
-    const routineExerciseIds = routine?.exercises.map((re: any) => re.exerciseId) || [];
-    const exerciseIdsWithSets = Object.keys(groupedSets);
-    const allUniqueExerciseIds = Array.from(new Set([...routineExerciseIds, ...exerciseIdsWithSets]));
 
     // Rest Timer logic
     useEffect(() => {
@@ -198,6 +164,15 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         setRestTime(totalRestTime);
         setIsRestFinished(false);
     };
+
+    const exerciseMap = exercises.reduce((acc, ex) => {
+        acc[ex.id] = ex;
+        return acc;
+    }, {} as Record<string, Exercise>);
+
+    const routineExerciseIds = routine?.exercises.map((re: any) => re.exerciseId) || [];
+    const exerciseIdsWithSets = Object.keys(groupedSets);
+    const allUniqueExerciseIds = Array.from(new Set([...routineExerciseIds, ...exerciseIdsWithSets]));
 
     if (showConfig) {
         return (
@@ -271,16 +246,7 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                             onClick={() => setShowConfig(false)}
                             className="w-full py-6 bg-white text-zinc-950 font-black text-xl rounded-3xl shadow-xl active:scale-95 transition-all uppercase tracking-tight"
                         >
-                            Guardar y volver
-                        </button>
-
-                        <button
-                            onClick={handleFinish}
-                            disabled={isFinishing}
-                            className="w-full py-5 border-2 border-red-500/20 text-red-500 font-bold rounded-3xl hover:bg-red-500/5 transition-colors flex items-center justify-center gap-2"
-                        >
-                            {isFinishing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
-                            FINALIZAR ENTRENAMIENTO
+                            Volver al entrenamiento
                         </button>
                     </section>
                 </main>
@@ -329,12 +295,12 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                         <Settings className="h-5 w-5" />
                     </button>
                     <button
-                        className="inline-flex h-10 items-center justify-center rounded-lg bg-brand-primary px-4 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-50"
-                        onClick={resetRestTimer}
+                        className={`inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 ${isFinishing ? 'bg-zinc-800' : 'bg-green-600 hover:bg-green-500'}`}
+                        onClick={handleFinish}
                         disabled={isFinishing}
                     >
-                        {isResting ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
-                        Finalizar Serie
+                        {isFinishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                        GUARDAR
                     </button>
                 </div>
             </header>
@@ -350,75 +316,54 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                                     <Dumbbell className="h-4 w-4 text-brand-primary" />
                                     {exercise?.name || "Ejercicio"}
                                 </h3>
-                                <button
-                                    onClick={() => addSet(exerciseId)}
-                                    disabled={isAddingSet === exerciseId}
-                                    className="text-xs font-bold uppercase text-brand-primary hover:bg-brand-primary/10 px-2 py-1 rounded transition-colors flex items-center gap-1"
-                                >
-                                    {isAddingSet === exerciseId ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-                                    Añadir Serie
-                                </button>
                             </div>
 
                             <div className="p-0">
-                                <table className="w-full text-center border-collapse">
-                                    <thead>
-                                        <tr className="text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30">
-                                            <th className="w-12 p-2">SET</th>
-                                            <th className="p-2">PESO (KG)</th>
-                                            <th className="p-2">REPS</th>
-                                            <th className="w-12 p-2"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => (
-                                            <tr key={set.id} className="border-b last:border-0 hover:bg-accent/5 transition-colors">
-                                                <td className="p-3 text-xs font-bold text-muted-foreground">{idx + 1}</td>
-                                                <td className="p-3">
+                                <div className="space-y-0 text-sm">
+                                    <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
+                                        <div className="text-center">SET</div>
+                                        <div className="text-center">PESO</div>
+                                        <div className="text-center">REPS</div>
+                                        <div className="text-center">ACCIÓN</div>
+                                    </div>
+                                    {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => {
+                                        const isCompleted = completedSetIds.has(set.id);
+                                        return (
+                                            <div key={set.id} className="grid grid-cols-4 items-center border-b last:border-0 hover:bg-accent/5 transition-colors p-3 gap-2">
+                                                <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
+                                                <div className="flex justify-center">
                                                     <input
                                                         type="number"
                                                         step="0.5"
-                                                        defaultValue={set.weight || ''}
-                                                        onBlur={(e) => updateSetData(set.id, 'weight', e.target.value)}
+                                                        value={set.weight}
+                                                        onChange={(e) => updateSetData(set.id, 'weight', e.target.value)}
                                                         className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                                                     />
-                                                </td>
-                                                <td className="p-3">
+                                                </div>
+                                                <div className="flex justify-center">
                                                     <input
                                                         type="number"
-                                                        defaultValue={set.reps || ''}
-                                                        onBlur={(e) => updateSetData(set.id, 'reps', e.target.value)}
+                                                        value={set.reps}
+                                                        onChange={(e) => updateSetData(set.id, 'reps', e.target.value)}
                                                         className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                                                     />
-                                                </td>
-                                                <td className="p-3">
-                                                    <div className={`flex items-center justify-center h-8 w-8 rounded-full ${set.weight > 0 ? 'bg-brand-primary text-white shadow-sm' : 'bg-muted/50 text-muted-foreground'}`}>
-                                                        <Check className="h-4 w-4" />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        onClick={() => toggleSetCompletion(set.id)}
+                                                        className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                                                    >
+                                                        {isCompleted ? 'TERMINADA' : 'FINALIZAR'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     );
                 })}
-
-                {/* Manual Finish Button at the bottom */}
-                <div className="pt-10 border-t">
-                    <button
-                        onClick={handleFinish}
-                        disabled={isFinishing}
-                        className="w-full h-20 rounded-3xl bg-green-600 hover:bg-green-700 text-white font-black text-xl shadow-xl shadow-green-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                        {isFinishing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
-                        FINALIZAR ENTRENAMIENTO
-                    </button>
-                    <p className="text-center text-xs text-muted-foreground mt-4 font-bold uppercase tracking-widest">
-                        ¡Buen trabajo hoy! Dale al botón para guardar tu progreso.
-                    </p>
-                </div>
             </div>
         </div>
     );
