@@ -1,53 +1,67 @@
 export const dynamic = "force-dynamic";
 
 import { getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
-import { ListChecks, Plus, History, Check } from "lucide-react";
+import { ListChecks, Plus, History, Check, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
     const { error } = await searchParams;
     const headerList = await headers();
-    const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid'; // Fallback to Madrid if not detected
+    const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid';
 
     const routines = await getRoutinesAction();
     const progression = await getProgressionDataAction(undefined, userTimezone);
 
-    // Weekly Tracker Logic
+    // Weekly Tracker Logic (User's 10-step plan + Robust TZ handling)
     const tz = userTimezone;
     const now = new Date();
 
-    // Formatter for YYYY-MM-DD
-    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
-    const todayStr = fmt.format(now);
+    // 1. "Bend" the date to the user's local values as if they were server-local
+    // This is the most robust way to do day arithmetic without TZ shifts.
+    const localNow = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+    const year = localNow.getFullYear();
+    const month = localNow.getMonth();
+    const day = localNow.getDate();
 
-    // Safe day of week detection (0=Sun, 1=Mon, ..., 6=Sat)
+    // Safe day of week detection
     const dayName = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(now);
-    const dayMap: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
-    const currentDayIdx = dayMap[dayName] ?? 0;
-    const diffToMonday = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
+    const dayMap: Record<string, number> = { 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7 };
+    const todayNum = dayMap[dayName] ?? 1;
 
-    // Calculate Monday of current week (local TZ)
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - diffToMonday);
+    // 4. Days until start (Monday)
+    const diffToMonday = todayNum - 1;
 
-    const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
+    // 5. Calculate start of the week (Monday)
+    const mondayLocal = new Date(year, month, day);
+    mondayLocal.setDate(mondayLocal.getDate() - diffToMonday);
+
+    // Stable formatter for YYYY-MM-DD comparisons
+    const fmt = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dp = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dp}`;
+    };
+
     const trainingDates = new Set(progression.map(p => p.date));
+    const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
 
     const weekProgress = dayAbbreviations.map((label, index) => {
-        const dayDate = new Date(monday);
-        dayDate.setDate(monday.getDate() + index);
-        const dateStr = fmt.format(dayDate);
+        const d = new Date(mondayLocal);
+        d.setDate(mondayLocal.getDate() + index);
+        const dateStr = fmt(d);
 
         const isTrained = trainingDates.has(dateStr);
-        const isToday = dateStr === todayStr;
-        const isPast = index < diffToMonday;
+        const isPast = index < (todayNum - 1);
+        const isToday = index === (todayNum - 1);
 
-        let statusColor = "bg-zinc-800 text-zinc-500"; // Future/Today Default
+        let statusColor = "bg-zinc-800 text-zinc-500"; // Step 10: Future gray (also Today not yet trained)
+
         if (isTrained) {
-            statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]";
+            statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]"; // Step 8: Green if trained
         } else if (isPast) {
-            statusColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)]";
+            statusColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)]"; // Step 9: Red if past and not trained
         }
 
         return { label, statusColor, isTrained };

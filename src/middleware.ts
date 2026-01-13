@@ -4,9 +4,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
     const tz = request.headers.get('x-vercel-ip-timezone') || 'Europe/Madrid'
 
+    // Add header to request so Server Components can see it via headers()
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-timezone', tz)
+
     let supabaseResponse = NextResponse.next({
         request: {
-            headers: new Headers(request.headers),
+            headers: requestHeaders,
         },
     })
     supabaseResponse.headers.set('x-timezone', tz)

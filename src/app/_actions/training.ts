@@ -384,13 +384,6 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
 
         if (!Array.isArray(sessions)) return [];
 
-        const formatter = new Intl.DateTimeFormat('en-CA', {
-            timeZone: timezone,
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        });
-
         const data = sessions.map(session => {
             let volume = 0;
             let max1RM = 0;
@@ -408,7 +401,13 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
             });
 
             const date = session.startTime instanceof Date ? session.startTime : new Date();
-            const dateStr = formatter.format(date);
+
+            // Format to YYYY-MM-DD in user's dynamic timezone (Manual for maximum stability)
+            const localDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+            const y = localDate.getFullYear();
+            const m = String(localDate.getMonth() + 1).padStart(2, '0');
+            const dPart = String(localDate.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${dPart}`;
 
             return {
                 date: dateStr,
