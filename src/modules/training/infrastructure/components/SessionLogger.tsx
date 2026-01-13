@@ -15,8 +15,10 @@ export function SessionLogger() {
         completedSetIds,
         routine,
         exercises,
+        preferredRestTime,
         updateSet,
         toggleSetCompletion,
+        setPreferredRestTime,
         saveSession,
         finishSession
     } = useSession();
@@ -24,15 +26,23 @@ export function SessionLogger() {
     const [isFinishing, setIsFinishing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Rest Timer States
-    const [restTime, setRestTime] = useState(120); // Current countdown
+    // Rest Timer States - Initialized with preferredRestTime from context
+    const [restTime, setRestTime] = useState(preferredRestTime);
     const [isResting, setIsResting] = useState(false);
-    const [totalRestTime, setTotalRestTime] = useState(120); // Configured time
+    const [internalTotalRestTime, setInternalTotalRestTime] = useState(preferredRestTime);
     const [isAlarmEnabled, setIsAlarmEnabled] = useState(true);
     const [showConfig, setShowConfig] = useState(false);
     const [isRestFinished, setIsRestFinished] = useState(false);
 
+    // Sync internal state when preferredRestTime changes
+    useEffect(() => {
+        setInternalTotalRestTime(preferredRestTime);
+        setRestTime(preferredRestTime);
+    }, [preferredRestTime]);
+
     if (!activeSession) return null;
+
+    const allSetsCompleted = sessionSets.length > 0 && completedSetIds.length === sessionSets.length;
 
     // Group sets by exercise
     const groupedSets = sessionSets.reduce((acc, set) => {
@@ -50,11 +60,10 @@ export function SessionLogger() {
 
     const handleToggleCompletion = (setId: string) => {
         toggleSetCompletion(setId);
-        // Check if the set was completed *before* the toggle
         const wasCompleted = completedSetIds.includes(setId);
-        if (!wasCompleted) { // If it was not completed and now it is
+        if (!wasCompleted) {
             resetRestTimer();
-        } else { // If it was completed and now it's uncompleted
+        } else {
             stopRestTimer();
         }
     };
@@ -63,6 +72,14 @@ export function SessionLogger() {
         const numValue = parseFloat(value);
         if (isNaN(numValue)) return;
         updateSet(setId, field, numValue);
+    };
+
+    const handleMainAction = async () => {
+        if (allSetsCompleted) {
+            handleSaveAndExit();
+        } else {
+            handleQuickSave();
+        }
     };
 
     const handleSaveAndExit = async () => {
@@ -85,13 +102,13 @@ export function SessionLogger() {
         if ('error' in result && result.error) {
             alert("Error al guardar: " + result.error);
         } else {
-            // Feedback visual de guardado exitoso
-            const originalColor = document.getElementById('fab-save')?.style.backgroundColor;
-            const fab = document.getElementById('fab-save');
-            if (fab) {
-                fab.style.backgroundColor = '#16a34a'; // Green
+            // Visual feedback
+            const btn = document.getElementById('main-action-btn');
+            if (btn) {
+                const originalBg = btn.style.backgroundColor;
+                btn.style.backgroundColor = '#16a34a';
                 setTimeout(() => {
-                    fab.style.backgroundColor = originalColor || '';
+                    btn.style.backgroundColor = originalBg;
                 }, 1000);
             }
         }
@@ -126,7 +143,7 @@ export function SessionLogger() {
             const gain = ctx.createGain();
 
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(440, ctx.currentTime); // A4
+            oscillator.frequency.setValueAtTime(440, ctx.currentTime);
 
             gain.gain.setValueAtTime(0.5, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
@@ -142,14 +159,14 @@ export function SessionLogger() {
     };
 
     const resetRestTimer = () => {
-        setRestTime(totalRestTime);
+        setRestTime(internalTotalRestTime);
         setIsResting(true);
         setIsRestFinished(false);
     };
 
     const stopRestTimer = () => {
         setIsResting(false);
-        setRestTime(totalRestTime);
+        setRestTime(internalTotalRestTime);
         setIsRestFinished(false);
     };
 
@@ -184,10 +201,12 @@ export function SessionLogger() {
                                     type="number"
                                     min="0"
                                     max="60"
-                                    value={Math.floor(totalRestTime / 60)}
+                                    value={Math.floor(internalTotalRestTime / 60)}
                                     onChange={(e) => {
-                                        const sec = totalRestTime % 60;
-                                        setTotalRestTime(parseInt(e.target.value || '0') * 60 + sec);
+                                        const sec = internalTotalRestTime % 60;
+                                        const newTotal = parseInt(e.target.value || '0') * 60 + sec;
+                                        setInternalTotalRestTime(newTotal);
+                                        setPreferredRestTime(newTotal);
                                     }}
                                     className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                 />
@@ -199,10 +218,12 @@ export function SessionLogger() {
                                     type="number"
                                     min="0"
                                     max="59"
-                                    value={totalRestTime % 60}
+                                    value={internalTotalRestTime % 60}
                                     onChange={(e) => {
-                                        const min = Math.floor(totalRestTime / 60);
-                                        setTotalRestTime(min * 60 + parseInt(e.target.value || '0'));
+                                        const min = Math.floor(internalTotalRestTime / 60);
+                                        const newTotal = min * 60 + parseInt(e.target.value || '0');
+                                        setInternalTotalRestTime(newTotal);
+                                        setPreferredRestTime(newTotal);
                                     }}
                                     className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                 />
@@ -254,7 +275,7 @@ export function SessionLogger() {
                             {isRestFinished ? '¡DESCANSO TERMINADO!' : isResting ? 'DESCANSANDO...' : 'PREPARADO'}
                         </p>
                         <p className="text-3xl font-black tabular-nums tracking-tight">
-                            {formatTime(isResting || isRestFinished ? restTime : totalRestTime)}
+                            {formatTime(isResting || isRestFinished ? restTime : internalTotalRestTime)}
                         </p>
                     </div>
                     {isResting && (
@@ -347,34 +368,23 @@ export function SessionLogger() {
             {/* Floating Action Button Group */}
             <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
                 <div className="flex flex-col items-end gap-3 pointer-events-auto">
-                    {/* Quick Save Button (Circular) */}
+                    {/* Main Dynamic Action Button */}
                     <button
-                        id="fab-save"
-                        onClick={handleQuickSave}
-                        disabled={isSaving || isFinishing}
-                        className="group flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 border border-zinc-800 text-white shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all hover:scale-110 active:scale-95 disabled:opacity-50 relative overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-brand-primary opacity-0 group-hover:opacity-10 transition-opacity" />
-                        {isSaving ? <Loader2 className="h-6 w-6 animate-spin text-brand-primary" /> : <Save className="h-6 w-6 group-hover:text-brand-primary transition-colors" />}
-                        <span className="absolute -left-32 bg-zinc-900 text-white text-[10px] font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-zinc-800 uppercase tracking-widest whitespace-nowrap">
-                            Guardar progreso
-                        </span>
-                    </button>
-
-                    {/* Finish Button */}
-                    <button
-                        onClick={handleSaveAndExit}
+                        id="main-action-btn"
+                        onClick={handleMainAction}
                         disabled={isFinishing || isSaving}
-                        className="flex items-center gap-3 rounded-2xl bg-brand-primary px-6 py-4 text-sm font-black text-white shadow-[0_10px_40px_rgba(239,68,68,0.3)] transition-all hover:translate-y-[-2px] hover:shadow-[0_15px_50px_rgba(239,68,68,0.4)] active:scale-95 disabled:opacity-50"
+                        className={`flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-black text-white shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 ${allSetsCompleted ? 'bg-brand-primary shadow-brand-primary/30' : 'bg-zinc-900 border border-zinc-800 shadow-black/50'}`}
                     >
-                        {isFinishing ? (
+                        {isFinishing || isSaving ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
                         ) : (
-                            <div className="flex items-center justify-center bg-white/20 rounded-lg p-1">
-                                <Check className="h-4 w-4" />
+                            <div className={`flex items-center justify-center rounded-lg p-1 ${allSetsCompleted ? 'bg-white/20' : 'bg-brand-primary/20 text-brand-primary'}`}>
+                                {allSetsCompleted ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
                             </div>
                         )}
-                        <span className="tracking-tight uppercase">GUARDAR Y SALIR</span>
+                        <span className="tracking-tight uppercase font-black">
+                            {allSetsCompleted ? "GUARDAR Y SALIR" : "GUARDAR"}
+                        </span>
                     </button>
                 </div>
             </div>

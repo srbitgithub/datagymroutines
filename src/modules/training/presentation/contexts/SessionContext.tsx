@@ -12,10 +12,12 @@ interface SessionContextType {
     completedSetIds: string[];
     routine: Routine | null;
     exercises: Exercise[];
+    preferredRestTime: number;
     isLoading: boolean;
     startNewSession: (routine: Routine, exercises: Exercise[]) => Promise<void>;
     updateSet: (setId: string, field: 'weight' | 'reps', value: number) => void;
     toggleSetCompletion: (setId: string) => void;
+    setPreferredRestTime: (time: number) => void;
     saveSession: () => Promise<{ success: boolean; error?: string }>;
     finishSession: () => Promise<void>;
 }
@@ -30,11 +32,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const [completedSetIds, setCompletedSetIds] = useState<string[]>([]);
     const [routine, setRoutine] = useState<Routine | null>(null);
     const [exercises, setExercises] = useState<Exercise[]>([]);
+    const [preferredRestTime, setPreferredRestTimeState] = useState(120);
     const [isLoading, setIsLoading] = useState(true);
 
     // Load from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
+        const savedRest = localStorage.getItem('datagym_preferred_rest');
+
+        if (savedRest) {
+            setPreferredRestTimeState(parseInt(savedRest));
+        }
+
         if (saved) {
             try {
                 const data = JSON.parse(saved);
@@ -49,6 +58,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         }
         setIsLoading(false);
     }, []);
+
+    const setPreferredRestTime = (time: number) => {
+        setPreferredRestTimeState(time);
+        localStorage.setItem('datagym_preferred_rest', time.toString());
+    };
 
     // Save to localStorage on change
     useEffect(() => {
@@ -137,7 +151,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const finishSession = async () => {
         const result = await saveSession();
-        if ('success' in result) {
+        if (result.success) {
             setActiveSession(null);
             setSessionSets([]);
             setCompletedSetIds([]);
@@ -153,10 +167,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             completedSetIds,
             routine,
             exercises,
+            preferredRestTime,
             isLoading,
             startNewSession,
             updateSet,
             toggleSetCompletion,
+            setPreferredRestTime,
             saveSession,
             finishSession
         }}>
