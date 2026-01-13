@@ -35,7 +35,11 @@ export default async function RoutinesPage() {
                                     <div className="rounded-full bg-brand-primary/10 p-2">
                                         <ListChecks className="h-5 w-5 text-brand-primary" />
                                     </div>
-                                    <RoutineCardActions routineId={routine.id} routineName={routine.name} />
+                                    <RoutineCardActions
+                                        routineId={routine.id}
+                                        routineName={routine.name}
+                                        routineDescription={routine.description || ""}
+                                    />
                                 </div>
                                 <Link
                                     href={`/dashboard/session/start?routineId=${routine.id}`}

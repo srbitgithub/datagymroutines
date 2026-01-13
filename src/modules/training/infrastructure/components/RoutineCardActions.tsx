@@ -1,18 +1,20 @@
 'use client';
 
 import { useState } from "react";
-import { Edit2, Trash2, Loader2 } from "lucide-react";
+import { Edit2, Trash2, Loader2, Copy } from "lucide-react";
 import Link from "next/link";
-import { deleteRoutineAction } from "@/app/_actions/training";
+import { deleteRoutineAction, duplicateRoutineAction } from "@/app/_actions/training";
 import { useRouter } from "next/navigation";
 
 interface RoutineCardActionsProps {
     routineId: string;
     routineName: string;
+    routineDescription: string;
 }
 
-export function RoutineCardActions({ routineId, routineName }: RoutineCardActionsProps) {
+export function RoutineCardActions({ routineId, routineName, routineDescription }: RoutineCardActionsProps) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDuplicating, setIsDuplicating] = useState(false);
     const router = useRouter();
 
     const handleDelete = async () => {
@@ -31,6 +33,24 @@ export function RoutineCardActions({ routineId, routineName }: RoutineCardAction
         }
     };
 
+    const handleDuplicate = async () => {
+        const newName = window.prompt("Nombre de la nueva rutina:", `${routineName} (copia)`);
+        if (newName === null) return;
+
+        const newDescription = window.prompt("Descripción de la nueva rutina:", routineDescription);
+        if (newDescription === null) return;
+
+        setIsDuplicating(true);
+        const result = await duplicateRoutineAction(routineId, newName, newDescription);
+        setIsDuplicating(false);
+
+        if (result.success) {
+            router.refresh();
+        } else {
+            alert(result.error);
+        }
+    };
+
     return (
         <div className="flex items-center gap-2">
             <Link
@@ -40,6 +60,18 @@ export function RoutineCardActions({ routineId, routineName }: RoutineCardAction
             >
                 <Edit2 className="h-4 w-4" />
             </Link>
+            <button
+                onClick={handleDuplicate}
+                disabled={isDuplicating}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                title="Duplicar rutina"
+            >
+                {isDuplicating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <Copy className="h-4 w-4" />
+                )}
+            </button>
             <button
                 onClick={handleDelete}
                 disabled={isDeleting}

@@ -246,6 +246,44 @@ export async function deleteRoutineAction(id: string) {
     }
 }
 
+export async function duplicateRoutineAction(sourceId: string, newName: string, newDescription: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const routineRepository = new SupabaseRoutineRepository();
+    const createRoutineUseCase = new CreateRoutineUseCase(routineRepository);
+
+    try {
+        const sourceRoutine = await routineRepository.getById(sourceId);
+        if (!sourceRoutine) return { error: "Rutina original no encontrada" };
+
+        const routineId = crypto.randomUUID();
+        await createRoutineUseCase.execute({
+            id: routineId,
+            userId: user.id,
+            name: newName,
+            description: newDescription,
+            createdAt: new Date(),
+            exercises: sourceRoutine.exercises.map((re, index) => ({
+                id: crypto.randomUUID(),
+                exerciseId: re.exerciseId,
+                orderIndex: index,
+                series: re.series,
+                targetReps: re.targetReps,
+                targetWeight: re.targetWeight,
+            })),
+        });
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/routines");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en duplicateRoutineAction:", error);
+        return { error: `Error al duplicar la rutina: ${error.message}` };
+    }
+}
+
 export async function startSessionAction(routineId?: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
@@ -353,3 +391,4 @@ export async function getProgressionDataAction(exerciseId?: string) {
         return [];
     }
 }
+
