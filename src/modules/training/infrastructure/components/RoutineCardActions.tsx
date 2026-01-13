@@ -32,7 +32,7 @@ export function RoutineCardActions({ routineId, routineName }: RoutineCardAction
     };
 
     return (
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2">
             <Link
                 href={`/dashboard/routines/${routineId}/edit`}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
