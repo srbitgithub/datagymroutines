@@ -1,11 +1,19 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { createExerciseAction } from '@/app/_actions/training';
 import { Plus, Loader2 } from 'lucide-react';
 
 export function ExerciseForm() {
     const [state, action, isPending] = useActionState(createExerciseAction, null);
+    const [name, setName] = useState('');
+    const [muscleGroup, setMuscleGroup] = useState('Pecho');
+
+    useEffect(() => {
+        if (state?.success) {
+            setName('');
+        }
+    }, [state]);
 
     return (
         <form action={action} className="grid gap-4 md:grid-cols-[1fr_1fr_auto] items-end">
@@ -15,6 +23,8 @@ export function ExerciseForm() {
                     id="name"
                     name="name"
                     required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     placeholder="Ej: Press inclinado"
                     className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
@@ -25,6 +35,8 @@ export function ExerciseForm() {
                 <select
                     id="muscleGroup"
                     name="muscleGroup"
+                    value={muscleGroup}
+                    onChange={(e) => setMuscleGroup(e.target.value)}
                     className="flex h-9 w-full rounded-md border border-input bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-white"
                 >
                     <option value="Pecho">Pecho</option>
