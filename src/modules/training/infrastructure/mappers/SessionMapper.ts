@@ -27,16 +27,26 @@ export class SessionMapper {
         };
     }
 
-    static toPersistence(session: TrainingSession): any {
-        return {
+    static toPersistence(session: Partial<TrainingSession>): any {
+        const persistence: any = {
             id: session.id,
             user_id: session.userId,
             routine_id: session.routineId,
             gym_id: session.gymId,
-            start_time: (session.startTime instanceof Date ? session.startTime : new Date(session.startTime)).toISOString(),
-            end_time: session.endTime ? (session.endTime instanceof Date ? session.endTime : new Date(session.endTime)).toISOString() : null,
             notes: session.notes,
         };
+
+        if (session.startTime) {
+            persistence.start_time = (session.startTime instanceof Date ? session.startTime : new Date(session.startTime)).toISOString();
+        }
+
+        if (session.endTime) {
+            persistence.end_time = (session.endTime instanceof Date ? session.endTime : new Date(session.endTime)).toISOString();
+        } else if (session.endTime === null) {
+            persistence.end_time = null;
+        }
+
+        return persistence;
     }
 
     static setToPersistence(set: ExerciseSet): any {

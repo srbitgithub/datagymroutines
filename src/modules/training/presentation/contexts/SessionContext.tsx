@@ -151,11 +151,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const saveSession = async (): Promise<{ success: boolean; error?: string }> => {
+    const saveSession = async (isFinished: boolean = false): Promise<{ success: boolean; error?: string }> => {
         if (!activeSession) return { success: false, error: "No hay sesión activa" };
 
         try {
-            const result = await saveSessionBatchAction(activeSession.id, sessionSets);
+            const result = await saveSessionBatchAction(activeSession.id, sessionSets, isFinished);
             return result as { success: boolean; error?: string };
         } catch (error: any) {
             return { success: false, error: error.message };
@@ -163,7 +163,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
 
     const finishSession = async () => {
-        const result = await saveSession();
+        const result = await saveSession(true);
         if (result.success) {
             setActiveSession(null);
             setSessionSets([]);

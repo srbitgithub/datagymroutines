@@ -327,7 +327,7 @@ export async function finishSessionAction(sessionId: string, notes?: string) {
     }
 }
 
-export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], notes?: string) {
+export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], isFinished: boolean = false, notes?: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
@@ -338,9 +338,11 @@ export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSe
         // 1. Sync sets
         await sessionRepository.saveSets(sessionId, sets);
 
-        // 2. Finish session
-        const endSessionUseCase = new EndSessionUseCase(sessionRepository);
-        await endSessionUseCase.execute(sessionId, new Date(), notes);
+        // 2. Finish session if requested
+        if (isFinished) {
+            const endSessionUseCase = new EndSessionUseCase(sessionRepository);
+            await endSessionUseCase.execute(sessionId, new Date(), notes);
+        }
 
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/session");
