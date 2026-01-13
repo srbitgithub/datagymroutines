@@ -36,12 +36,41 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
     });
     const [isSaving, setIsSaving] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('Todos');
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
 
     const categories = ['Todos', ...Array.from(new Set(exercises.map(e => e.muscleGroup)))].sort();
 
     const filteredExercises = selectedCategory === 'Todos'
         ? exercises
         : exercises.filter(e => e.muscleGroup === selectedCategory);
+
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index);
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDropTargetIndex(index);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDropTargetIndex(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        if (draggedIndex === null) return;
+
+        const newItems = [...selectedExercises];
+        const [movedItem] = newItems.splice(draggedIndex, 1);
+        newItems.splice(targetIndex, 0, movedItem);
+
+        setSelectedExercises(newItems);
+        setDraggedIndex(null);
+        setDropTargetIndex(null);
+    };
 
 
     const addExercise = (exercise: Exercise) => {
@@ -120,51 +149,71 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                 {selectedExercises.length > 0 ? (
                     <div className="space-y-4">
                         {selectedExercises.map((item, index) => (
-                            <div key={`${item.exercise.id}-${index}`} className="block rounded-xl border bg-card shadow-sm animate-in fade-in slide-in-from-left-2 duration-200">
-                                <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
-                                    <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold truncate text-sm">{item.exercise.name}</p>
-                                        <p className="text-[10px] text-muted-foreground uppercase">{item.exercise.muscleGroup}</p>
+                            <div
+                                key={`${item.exercise.id}-${index}`}
+                                className="relative"
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDrop={(e) => handleDrop(e, index)}
+                            >
+                                {dropTargetIndex === index && draggedIndex !== index && (
+                                    <div className="absolute -top-2 left-0 right-0 h-1 bg-yellow-400 rounded-full z-10 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                                )}
+
+                                <div
+                                    draggable
+                                    onDragStart={() => handleDragStart(index)}
+                                    onDragEnd={handleDragEnd}
+                                    className={`block rounded-xl border bg-card shadow-sm animate-in fade-in slide-in-from-left-2 duration-200 transition-opacity ${draggedIndex === index ? 'opacity-40' : ''}`}
+                                >
+                                    <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
+                                        <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold truncate text-sm">{item.exercise.name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase">{item.exercise.muscleGroup}</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExercise(index)}
+                                            className="text-muted-foreground hover:text-red-500 transition-colors p-1"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeExercise(index)}
-                                        className="text-muted-foreground hover:text-red-500 transition-colors p-1"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
+                                    <div className="p-4 grid grid-cols-3 gap-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Series</label>
+                                            <input
+                                                type="number"
+                                                value={item.series}
+                                                onChange={(e) => updateConfig(index, 'series', parseInt(e.target.value || '0'))}
+                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Reps</label>
+                                            <input
+                                                type="number"
+                                                value={item.targetReps}
+                                                onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
+                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Peso (kg)</label>
+                                            <input
+                                                type="number"
+                                                step="0.5"
+                                                value={item.targetWeight}
+                                                onChange={(e) => updateConfig(index, 'targetWeight', parseFloat(e.target.value || '0'))}
+                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="p-4 grid grid-cols-3 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Series</label>
-                                        <input
-                                            type="number"
-                                            value={item.series}
-                                            onChange={(e) => updateConfig(index, 'series', parseInt(e.target.value || '0'))}
-                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Reps</label>
-                                        <input
-                                            type="number"
-                                            value={item.targetReps}
-                                            onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
-                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Peso (kg)</label>
-                                        <input
-                                            type="number"
-                                            step="0.5"
-                                            value={item.targetWeight}
-                                            onChange={(e) => updateConfig(index, 'targetWeight', parseFloat(e.target.value || '0'))}
-                                            className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
-                                        />
-                                    </div>
-                                </div>
+
+                                {dropTargetIndex === index + 1 && draggedIndex !== index && index === selectedExercises.length - 1 && (
+                                    <div className="absolute -bottom-2 left-0 right-0 h-1 bg-yellow-400 rounded-full z-10 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                                )}
                             </div>
                         ))}
                     </div>
