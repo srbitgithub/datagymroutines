@@ -15,18 +15,21 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
     // Weekly Tracker Logic
     const tz = userTimezone;
-    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
-    const nowLocalStr = formatter.format(new Date());
-    const nowParts = nowLocalStr.split('-').map(Number);
-    const nowLocal = new Date(nowParts[0], nowParts[1] - 1, nowParts[2]);
+    const now = new Date();
 
-    // getDay() for current week logic needs to be relative to the local date
-    // But since we want Monday-Sunday, we need to find Monday in that local perspective
-    const currentDay = (new Date(new Date().toLocaleString('en-US', { timeZone: tz }))).getDay();
-    const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    // Formatter for YYYY-MM-DD
+    const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const todayStr = fmt.format(now);
 
-    const monday = new Date(nowLocal);
-    monday.setDate(nowLocal.getDate() - diffToMonday);
+    // Safe day of week detection (0=Sun, 1=Mon, ..., 6=Sat)
+    const dayName = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(now);
+    const dayMap: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+    const currentDayIdx = dayMap[dayName] ?? 0;
+    const diffToMonday = currentDayIdx === 0 ? 6 : currentDayIdx - 1;
+
+    // Calculate Monday of current week (local TZ)
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diffToMonday);
 
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
     const trainingDates = new Set(progression.map(p => p.date));
@@ -34,12 +37,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const weekProgress = dayAbbreviations.map((label, index) => {
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + index);
-        const dateStr = formatter.format(dayDate);
-        const isTrained = trainingDates.has(dateStr);
-        const isPast = index < diffToMonday;
-        const isToday = index === diffToMonday;
+        const dateStr = fmt.format(dayDate);
 
-        let statusColor = "bg-zinc-800 text-zinc-500"; // Default
+        const isTrained = trainingDates.has(dateStr);
+        const isToday = dateStr === todayStr;
+        const isPast = index < diffToMonday;
+
+        let statusColor = "bg-zinc-800 text-zinc-500"; // Future/Today Default
         if (isTrained) {
             statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]";
         } else if (isPast) {

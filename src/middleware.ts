@@ -2,9 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+    const tz = request.headers.get('x-vercel-ip-timezone') || 'Europe/Madrid'
+
     let supabaseResponse = NextResponse.next({
-        request,
+        request: {
+            headers: new Headers(request.headers),
+        },
     })
+    supabaseResponse.headers.set('x-timezone', tz)
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
