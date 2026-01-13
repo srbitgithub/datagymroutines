@@ -26,6 +26,7 @@ create table routines (
   user_id uuid references auth.users on delete cascade not null,
   name text not null,
   description text,
+  order_index int default 0 not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
