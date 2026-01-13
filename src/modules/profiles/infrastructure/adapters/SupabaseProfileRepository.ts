@@ -29,7 +29,7 @@ export class SupabaseProfileRepository extends SupabaseRepository implements Pro
         const client = await this.getClient();
         const { error } = await client
             .from("profiles")
-            .update(profile)
+            .update(ProfileMapper.toPartialPersistence(profile))
             .eq("id", id);
 
         if (error) throw new Error(error.message);

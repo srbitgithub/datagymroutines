@@ -24,4 +24,15 @@ export class ProfileMapper {
             updated_at: profile.updatedAt.toISOString(),
         };
     }
+
+    static toPartialPersistence(profile: Partial<Profile>): any {
+        const persistence: any = {};
+        if (profile.username !== undefined) persistence.username = profile.username;
+        if (profile.fullName !== undefined) persistence.full_name = profile.fullName;
+        if (profile.avatarUrl !== undefined) persistence.avatar_url = profile.avatarUrl;
+        if (profile.weightUnit !== undefined) persistence.weight_unit = profile.weightUnit;
+        if (profile.monthlyGoal !== undefined) persistence.monthly_goal = profile.monthlyGoal;
+        if (profile.updatedAt !== undefined) persistence.updated_at = profile.updatedAt.toISOString();
+        return persistence;
+    }
 }
