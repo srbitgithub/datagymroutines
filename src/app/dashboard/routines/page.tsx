@@ -1,6 +1,7 @@
 import { getRoutinesAction } from "@/app/_actions/training";
 import { Plus, ListChecks, Play } from "lucide-react";
 import Link from "next/link";
+import { RoutineCardActions } from "@/modules/training/infrastructure/components/RoutineCardActions";
 
 export const dynamic = 'force-dynamic';
 
@@ -30,8 +31,11 @@ export default async function RoutinesPage() {
                     {routines.map((routine) => (
                         <div key={routine.id} className="group relative rounded-xl border bg-card p-6 shadow-sm transition-all hover:shadow-md">
                             <div className="flex items-start justify-between mb-4">
-                                <div className="rounded-full bg-brand-primary/10 p-2">
-                                    <ListChecks className="h-5 w-5 text-brand-primary" />
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-full bg-brand-primary/10 p-2">
+                                        <ListChecks className="h-5 w-5 text-brand-primary" />
+                                    </div>
+                                    <RoutineCardActions routineId={routine.id} routineName={routine.name} />
                                 </div>
                                 <Link
                                     href={`/dashboard/session/start?routineId=${routine.id}`}

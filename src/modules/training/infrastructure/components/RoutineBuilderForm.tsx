@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { createRoutineAction } from '@/app/_actions/training';
+import { createRoutineAction, updateRoutineAction } from '@/app/_actions/training';
 import { Exercise } from '../../domain/Exercise';
+import { Routine } from '../../domain/Routine';
 import { Plus, GripVertical, Trash2, Save, Dumbbell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -15,13 +16,24 @@ interface ExerciseConfig {
 
 interface RoutineBuilderFormProps {
     exercises: Exercise[];
+    initialRoutine?: Routine;
 }
 
-export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
+export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilderFormProps) {
     const router = useRouter();
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [selectedExercises, setSelectedExercises] = useState<ExerciseConfig[]>([]);
+    const [name, setName] = useState(initialRoutine?.name || '');
+    const [description, setDescription] = useState(initialRoutine?.description || '');
+    const [selectedExercises, setSelectedExercises] = useState<ExerciseConfig[]>(() => {
+        if (initialRoutine) {
+            return initialRoutine.exercises.map(re => ({
+                exercise: re.exercise!,
+                series: re.series,
+                targetReps: re.targetReps || 12,
+                targetWeight: re.targetWeight || 0
+            }));
+        }
+        return [];
+    });
     const [isSaving, setIsSaving] = useState(false);
 
     const addExercise = (exercise: Exercise) => {
@@ -48,21 +60,23 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
         if (!name || selectedExercises.length === 0) return;
 
         setIsSaving(true);
-        const result = await createRoutineAction(
-            name,
-            description,
-            selectedExercises.map((item) => ({
-                id: item.exercise.id,
-                series: item.series,
-                targetReps: item.targetReps,
-                targetWeight: item.targetWeight
-            }))
-        );
+        const exercisesData = selectedExercises.map((item) => ({
+            id: item.exercise.id,
+            series: item.series,
+            targetReps: item.targetReps,
+            targetWeight: item.targetWeight
+        }));
+
+        const result = initialRoutine
+            ? await updateRoutineAction(initialRoutine.id, name, description, exercisesData)
+            : await createRoutineAction(name, description, exercisesData);
 
         setIsSaving(false);
         if (result.success) {
             router.push('/dashboard/routines');
             router.refresh();
+        } else {
+            alert(result.error);
         }
     };
 
@@ -191,7 +205,7 @@ export function RoutineBuilderForm({ exercises }: RoutineBuilderFormProps) {
                         ) : (
                             <div className="flex items-center gap-2">
                                 <Save className="h-6 w-6" />
-                                <span>Crear Rutina</span>
+                                <span>{initialRoutine ? 'Actualizar Rutina' : 'Crear Rutina'}</span>
                             </div>
                         )}
                     </button>

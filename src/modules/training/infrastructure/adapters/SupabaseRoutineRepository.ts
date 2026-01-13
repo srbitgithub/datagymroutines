@@ -81,23 +81,65 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
         }
     }
 
-    async update(id: string, routineData: Partial<Routine>): Promise<void> {
+    async update(id: string, routine: Partial<Routine>): Promise<void> {
         const client = await this.getClient();
-        const { error } = await client
-            .from("routines")
-            .update(RoutineMapper.toPersistence(routineData as Routine))
-            .eq("id", id);
 
-        if (error) throw new Error(error.message);
+        // 1. Update routine metadata if present
+        if (routine.name || routine.description) {
+            const { error } = await client
+                .from("routines")
+                .update(RoutineMapper.toPersistence(routine as Routine))
+                .eq("id", id);
+
+            if (error) throw new Error(error.message);
+        }
+
+        // 2. Update exercises if present
+        if (routine.exercises) {
+            // Simplest way is to delete and re-insert
+            const { error: deleteError } = await client
+                .from("routine_exercises")
+                .delete()
+                .eq("routine_id", id);
+
+            if (deleteError) throw new Error(deleteError.message);
+
+            if (routine.exercises.length > 0) {
+                const { error: insertError } = await client
+                    .from("routine_exercises")
+                    .insert(
+                        routine.exercises.map((re) => ({
+                            routine_id: id,
+                            exercise_id: re.exerciseId,
+                            order_index: re.orderIndex,
+                            series: re.series,
+                            target_reps: re.targetReps,
+                            target_weight: re.targetWeight,
+                            notes: re.notes,
+                        }))
+                    );
+
+                if (insertError) throw new Error(insertError.message);
+            }
+        }
     }
 
     async delete(id: string): Promise<void> {
         const client = await this.getClient();
-        const { error } = await client
+
+        // First delete routine_exercises (though Supabase might have ON DELETE CASCADE)
+        const { error: exercisesError } = await client
+            .from("routine_exercises")
+            .delete()
+            .eq("routine_id", id);
+
+        if (exercisesError) throw new Error(exercisesError.message);
+
+        const { error: routineError } = await client
             .from("routines")
             .delete()
             .eq("id", id);
 
-        if (error) throw new Error(error.message);
+        if (routineError) throw new Error(routineError.message);
     }
 }

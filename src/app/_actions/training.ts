@@ -85,15 +85,27 @@ export async function getRoutinesAction() {
             return [];
         }
 
-        console.log(`getRoutinesAction: Obteniendo rutinas para el usuario ${user.id}`);
         const routineRepository = new SupabaseRoutineRepository();
         const getRoutinesUseCase = new GetRoutinesUseCase(routineRepository);
         const routines = await getRoutinesUseCase.execute(user.id);
-        console.log(`getRoutinesAction: Supabase devolvió ${routines.length} rutinas`);
         return routines;
     } catch (error) {
         console.error("Error en getRoutinesAction:", error);
         return [];
+    }
+}
+
+export async function getRoutineByIdAction(id: string) {
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return null;
+
+        const routineRepository = new SupabaseRoutineRepository();
+        return await routineRepository.getById(id);
+    } catch (error) {
+        console.error("Error en getRoutineByIdAction:", error);
+        return null;
     }
 }
 
@@ -103,23 +115,13 @@ export async function getActiveSessionAction() {
     if (!user) return null;
 
     const sessionRepository = new SupabaseSessionRepository();
-    console.log(`[getActiveSessionAction] Consultando repositorio para UserID: ${user.id}`);
     const activeSession = await sessionRepository.getActiveSession(user.id);
-
-    if (!activeSession) {
-        console.warn(`[getActiveSessionAction] Repositorio devolvió null para ${user.id}`);
-        return null;
-    }
-
-    console.log(`[getActiveSessionAction] Sesión recuperada: ${activeSession.id}`);
 
     if (!activeSession) return null;
 
-    // Fetch exercises to show names
     const exerciseRepository = new SupabaseExerciseRepository();
     const exercises = await exerciseRepository.getAll(user.id);
 
-    // Fetch routine details if it exists
     let routine = null;
     if (activeSession.routineId) {
         const routineRepository = new SupabaseRoutineRepository();
@@ -189,6 +191,58 @@ export async function createRoutineAction(
     } catch (error: any) {
         console.error("Error en createRoutineAction:", error);
         return { error: `Error al crear la rutina: ${error.message}` };
+    }
+}
+
+export async function updateRoutineAction(
+    id: string,
+    name: string,
+    description: string,
+    exercisesConfigs: { id: string, series: number, targetReps?: number, targetWeight?: number }[]
+) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const routineRepository = new SupabaseRoutineRepository();
+
+    try {
+        await routineRepository.update(id, {
+            name,
+            description,
+            exercises: exercisesConfigs.map((config, index) => ({
+                id: crypto.randomUUID(),
+                exerciseId: config.id,
+                orderIndex: index,
+                series: config.series,
+                targetReps: config.targetReps,
+                targetWeight: config.targetWeight,
+            })),
+        });
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/routines");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en updateRoutineAction:", error);
+        return { error: `Error al actualizar la rutina: ${error.message}` };
+    }
+}
+
+export async function deleteRoutineAction(id: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const routineRepository = new SupabaseRoutineRepository();
+
+    try {
+        await routineRepository.delete(id);
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/routines");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en deleteRoutineAction:", error);
+        return { error: `Error al borrar la rutina: ${error.message}` };
     }
 }
 
@@ -263,12 +317,8 @@ export async function getProgressionDataAction(exerciseId?: string) {
         const sessionRepository = new SupabaseSessionRepository();
         const sessions = await sessionRepository.getAllByUserId(user.id);
 
-        if (!Array.isArray(sessions)) {
-            console.error("getProgressionDataAction: sessions is not an array", sessions);
-            return [];
-        }
+        if (!Array.isArray(sessions)) return [];
 
-        // Simple aggregation for volume/progress
         const data = sessions.map(session => {
             let volume = 0;
             let max1RM = 0;
@@ -277,8 +327,7 @@ export async function getProgressionDataAction(exerciseId?: string) {
             sets.forEach(set => {
                 const weight = Number(set.weight || 0);
                 const reps = Number(set.reps || 0);
-                const vol = weight * reps;
-                volume += vol;
+                volume += weight * reps;
 
                 if (!exerciseId || set.exerciseId === exerciseId) {
                     const est1RM = weight * (1 + 0.0333 * reps);
@@ -287,12 +336,8 @@ export async function getProgressionDataAction(exerciseId?: string) {
             });
 
             let dateStr = new Date().toISOString().split('T')[0];
-            try {
-                if (session.startTime instanceof Date && !isNaN(session.startTime.getTime())) {
-                    dateStr = session.startTime.toISOString().split('T')[0];
-                }
-            } catch (e) {
-                console.error("Error formatting date in getProgressionDataAction:", e);
+            if (session.startTime instanceof Date) {
+                dateStr = session.startTime.toISOString().split('T')[0];
             }
 
             return {
