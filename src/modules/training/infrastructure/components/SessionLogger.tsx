@@ -1,53 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { TrainingSession, ExerciseSet } from '../../domain/Session';
+import { useState, useEffect } from 'react';
+import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Plus, Check, Clock, Save, X, Trash2, Loader2, Settings, Bell, BellOff, RefreshCw } from 'lucide-react';
+import { Dumbbell, Clock, Save, X, Loader2, Settings, Bell, BellOff, PlayCircle, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { finishSessionAction, saveSessionBatchAction } from '@/app/_actions/training';
+import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 
-import { Routine } from '../../domain/Routine';
-
-interface SessionLoggerProps {
-    session: TrainingSession;
-    exercises: Exercise[];
-    routine: Routine | null;
-}
-
-export function SessionLogger({ session, exercises, routine }: SessionLoggerProps) {
+export function SessionLogger() {
     const router = useRouter();
+    const {
+        activeSession,
+        sessionSets,
+        completedSetIds,
+        routine,
+        exercises,
+        updateSet,
+        toggleSetCompletion,
+        saveSession,
+        finishSession
+    } = useSession();
 
-    // Initialize sets either from current session or pre-fill from routine if session is empty
-    const [sets, setSets] = useState<ExerciseSet[]>(() => {
-        if (session.sets && session.sets.length > 0) {
-            return session.sets;
-        }
-
-        if (routine) {
-            const prefilledSets: ExerciseSet[] = [];
-            routine.exercises.forEach((re) => {
-                for (let i = 0; i < re.series; i++) {
-                    prefilledSets.push({
-                        id: crypto.randomUUID(),
-                        sessionId: session.id,
-                        exerciseId: re.exerciseId,
-                        weight: re.targetWeight || 0,
-                        reps: re.targetReps || 0,
-                        type: 'normal',
-                        orderIndex: i,
-                        createdAt: new Date()
-                    });
-                }
-            });
-            return prefilledSets;
-        }
-
-        return [];
-    });
-
-    const [completedSetIds, setCompletedSetIds] = useState<Set<string>>(new Set());
     const [isFinishing, setIsFinishing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Rest Timer States
     const [restTime, setRestTime] = useState(120); // Current countdown
@@ -57,8 +32,10 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     const [showConfig, setShowConfig] = useState(false);
     const [isRestFinished, setIsRestFinished] = useState(false);
 
+    if (!activeSession) return null;
+
     // Group sets by exercise
-    const groupedSets = sets.reduce((acc, set) => {
+    const groupedSets = sessionSets.reduce((acc, set) => {
         if (!acc[set.exerciseId]) acc[set.exerciseId] = [];
         acc[set.exerciseId].push(set);
         return acc;
@@ -71,43 +48,54 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
         return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const toggleSetCompletion = (setId: string) => {
-        setCompletedSetIds(prev => {
-            const next = new Set(prev);
-            if (next.has(setId)) {
-                next.delete(setId);
-                // Stop timer if we un-complete
-                stopRestTimer();
-            } else {
-                next.add(setId);
-                // Start timer
-                resetRestTimer();
-            }
-            return next;
-        });
+    const handleToggleCompletion = (setId: string) => {
+        toggleSetCompletion(setId);
+        // Check if the set was completed *before* the toggle
+        const wasCompleted = completedSetIds.includes(setId);
+        if (!wasCompleted) { // If it was not completed and now it is
+            resetRestTimer();
+        } else { // If it was completed and now it's uncompleted
+            stopRestTimer();
+        }
     };
 
-    const updateSetData = (setId: string, field: 'weight' | 'reps', value: string) => {
+    const handleUpdateSet = (setId: string, field: 'weight' | 'reps', value: string) => {
         const numValue = parseFloat(value);
         if (isNaN(numValue)) return;
-
-        setSets(prev => prev.map(s => s.id === setId ? { ...s, [field]: numValue } : s));
+        updateSet(setId, field, numValue);
     };
 
-    const handleFinish = async () => {
+    const handleSaveAndExit = async () => {
         if (isFinishing) return;
         setIsFinishing(true);
-
-        // Final save: send all current sets to DB
-        const result = await saveSessionBatchAction(session.id, sets);
-
-        if (result.success) {
+        try {
+            await finishSession();
             router.replace('/dashboard');
-            router.refresh();
-        } else {
-            alert("Error al guardar: " + result.error);
+        } catch (error) {
+            alert("Error al finalizar: " + error);
+        } finally {
             setIsFinishing(false);
         }
+    };
+
+    const handleQuickSave = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        const result = await saveSession();
+        if ('error' in result && result.error) {
+            alert("Error al guardar: " + result.error);
+        } else {
+            // Feedback visual de guardado exitoso
+            const originalColor = document.getElementById('fab-save')?.style.backgroundColor;
+            const fab = document.getElementById('fab-save');
+            if (fab) {
+                fab.style.backgroundColor = '#16a34a'; // Green
+                setTimeout(() => {
+                    fab.style.backgroundColor = originalColor || '';
+                }, 1000);
+            }
+        }
+        setIsSaving(false);
     };
 
     // Rest Timer logic
@@ -255,7 +243,7 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
     }
 
     return (
-        <div className="space-y-6 pb-40">
+        <div className="space-y-6 pb-60">
             <header className={`sticky top-0 z-30 flex items-center justify-between border-b p-4 -mx-6 md:mx-0 md:rounded-xl md:border mb-6 transition-all duration-500 backdrop-blur-md ${isRestFinished ? 'bg-red-600/90 text-white shadow-[0_0_30px_rgba(220,38,38,0.5)] border-red-400' : isResting ? 'bg-brand-primary/90 text-white shadow-lg' : 'bg-background/80'}`}>
                 <div className="flex items-center gap-4">
                     <div className={`rounded-full p-2 ${isResting || isRestFinished ? 'bg-white/20' : 'bg-brand-primary/10'}`}>
@@ -294,14 +282,6 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                     >
                         <Settings className="h-5 w-5" />
                     </button>
-                    <button
-                        className={`inline-flex h-12 items-center justify-center rounded-xl px-6 text-sm font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 ${isFinishing ? 'bg-zinc-800' : 'bg-green-600 hover:bg-green-500'}`}
-                        onClick={handleFinish}
-                        disabled={isFinishing}
-                    >
-                        {isFinishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        GUARDAR
-                    </button>
                 </div>
             </header>
 
@@ -319,51 +299,84 @@ export function SessionLogger({ session, exercises, routine }: SessionLoggerProp
                             </div>
 
                             <div className="p-0">
-                                <div className="space-y-0 text-sm">
-                                    <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
-                                        <div className="text-center">SET</div>
-                                        <div className="text-center">PESO</div>
-                                        <div className="text-center">REPS</div>
-                                        <div className="text-center">ACCIÓN</div>
-                                    </div>
-                                    {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => {
-                                        const isCompleted = completedSetIds.has(set.id);
-                                        return (
-                                            <div key={set.id} className="grid grid-cols-4 items-center border-b last:border-0 hover:bg-accent/5 transition-colors p-3 gap-2">
-                                                <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
-                                                <div className="flex justify-center">
-                                                    <input
-                                                        type="number"
-                                                        step="0.5"
-                                                        value={set.weight}
-                                                        onChange={(e) => updateSetData(set.id, 'weight', e.target.value)}
-                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                                    />
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <input
-                                                        type="number"
-                                                        value={set.reps}
-                                                        onChange={(e) => updateSetData(set.id, 'reps', e.target.value)}
-                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                                    />
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <button
-                                                        onClick={() => toggleSetCompletion(set.id)}
-                                                        className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
-                                                    >
-                                                        {isCompleted ? 'TERMINADA' : 'FINALIZAR'}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
+                                    <div className="text-center">SET</div>
+                                    <div className="text-center">PESO</div>
+                                    <div className="text-center">REPS</div>
+                                    <div className="text-center">ACCIÓN</div>
                                 </div>
+                                {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => {
+                                    const isCompleted = completedSetIds.includes(set.id);
+                                    return (
+                                        <div key={set.id} className="grid grid-cols-4 items-center border-b last:border-0 hover:bg-accent/5 transition-colors p-3 gap-2">
+                                            <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
+                                            <div className="flex justify-center">
+                                                <input
+                                                    type="number"
+                                                    step="0.5"
+                                                    value={set.weight}
+                                                    onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
+                                                    className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div className="flex justify-center">
+                                                <input
+                                                    type="number"
+                                                    value={set.reps}
+                                                    onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
+                                                    className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div className="flex justify-center">
+                                                <button
+                                                    onClick={() => handleToggleCompletion(set.id)}
+                                                    className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                                                >
+                                                    {isCompleted ? 'TERMINADA' : 'FINALIZAR'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     );
                 })}
+            </div>
+
+            {/* Floating Action Button Group */}
+            <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
+                <div className="flex flex-col items-end gap-3 pointer-events-auto">
+                    {/* Quick Save Button (Circular) */}
+                    <button
+                        id="fab-save"
+                        onClick={handleQuickSave}
+                        disabled={isSaving || isFinishing}
+                        className="group flex h-14 w-14 items-center justify-center rounded-full bg-zinc-900 border border-zinc-800 text-white shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all hover:scale-110 active:scale-95 disabled:opacity-50 relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-brand-primary opacity-0 group-hover:opacity-10 transition-opacity" />
+                        {isSaving ? <Loader2 className="h-6 w-6 animate-spin text-brand-primary" /> : <Save className="h-6 w-6 group-hover:text-brand-primary transition-colors" />}
+                        <span className="absolute -left-32 bg-zinc-900 text-white text-[10px] font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-zinc-800 uppercase tracking-widest whitespace-nowrap">
+                            Guardar progreso
+                        </span>
+                    </button>
+
+                    {/* Finish Button */}
+                    <button
+                        onClick={handleSaveAndExit}
+                        disabled={isFinishing || isSaving}
+                        className="flex items-center gap-3 rounded-2xl bg-brand-primary px-6 py-4 text-sm font-black text-white shadow-[0_10px_40px_rgba(239,68,68,0.3)] transition-all hover:translate-y-[-2px] hover:shadow-[0_15px_50px_rgba(239,68,68,0.4)] active:scale-95 disabled:opacity-50"
+                    >
+                        {isFinishing ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                            <div className="flex items-center justify-center bg-white/20 rounded-lg p-1">
+                                <Check className="h-4 w-4" />
+                            </div>
+                        )}
+                        <span className="tracking-tight uppercase">GUARDAR Y SALIR</span>
+                    </button>
+                </div>
             </div>
         </div>
     );

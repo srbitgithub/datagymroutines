@@ -38,7 +38,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 </div>
                 <div className="flex items-center gap-2">
                     <Link
-                        href="/dashboard/session/start"
+                        href="/dashboard/session"
                         className="flex-1 md:flex-none inline-flex h-11 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-primary/90 active:scale-95"
                     >
                         <Play className="mr-2 h-4 w-4 fill-current" />
@@ -91,7 +91,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             {routines.slice(0, 4).map((routine) => (
                                 <Link
                                     key={routine.id}
-                                    href={`/dashboard/session/start?routineId=${routine.id}`}
+                                    href={`/dashboard/session?routineId=${routine.id}`}
                                     className="group rounded-xl border bg-card p-5 hover:border-brand-primary/50 transition-all hover:shadow-md"
                                 >
                                     <div className="flex items-start justify-between mb-3">

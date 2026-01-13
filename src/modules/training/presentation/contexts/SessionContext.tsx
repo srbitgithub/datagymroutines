@@ -1,0 +1,174 @@
+'use client';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { TrainingSession, ExerciseSet } from '../../domain/Session';
+import { Routine } from '../../domain/Routine';
+import { Exercise } from '../../domain/Exercise';
+import { saveSessionBatchAction, startSessionAction } from '@/app/_actions/training';
+
+interface SessionContextType {
+    activeSession: TrainingSession | null;
+    sessionSets: ExerciseSet[];
+    completedSetIds: string[];
+    routine: Routine | null;
+    exercises: Exercise[];
+    isLoading: boolean;
+    startNewSession: (routine: Routine, exercises: Exercise[]) => Promise<void>;
+    updateSet: (setId: string, field: 'weight' | 'reps', value: number) => void;
+    toggleSetCompletion: (setId: string) => void;
+    saveSession: () => Promise<{ success: boolean; error?: string }>;
+    finishSession: () => Promise<void>;
+}
+
+const SessionContext = createContext<SessionContextType | undefined>(undefined);
+
+const STORAGE_KEY = 'datagym_active_session';
+
+export function SessionProvider({ children }: { children: ReactNode }) {
+    const [activeSession, setActiveSession] = useState<TrainingSession | null>(null);
+    const [sessionSets, setSessionSets] = useState<ExerciseSet[]>([]);
+    const [completedSetIds, setCompletedSetIds] = useState<string[]>([]);
+    const [routine, setRoutine] = useState<Routine | null>(null);
+    const [exercises, setExercises] = useState<Exercise[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Load from localStorage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                setActiveSession(data.activeSession);
+                setSessionSets(data.sessionSets);
+                setCompletedSetIds(data.completedSetIds);
+                setRoutine(data.routine);
+                setExercises(data.exercises || []);
+            } catch (e) {
+                console.error('Error parsing saved session:', e);
+            }
+        }
+        setIsLoading(false);
+    }, []);
+
+    // Save to localStorage on change
+    useEffect(() => {
+        if (!isLoading) {
+            if (activeSession) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    activeSession,
+                    sessionSets,
+                    completedSetIds,
+                    routine,
+                    exercises
+                }));
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        }
+    }, [activeSession, sessionSets, completedSetIds, routine, exercises, isLoading]);
+
+    const startNewSession = async (selectedRoutine: Routine, allExercises: Exercise[]) => {
+        setIsLoading(true);
+        const result = await startSessionAction(selectedRoutine.id);
+
+        if (result.success && result.sessionId) {
+            const newSession: TrainingSession = {
+                id: result.sessionId,
+                userId: '', // Will be handled on server
+                routineId: selectedRoutine.id,
+                startTime: new Date(),
+                sets: []
+            };
+
+            const prefilledSets: ExerciseSet[] = [];
+            selectedRoutine.exercises.forEach((re) => {
+                for (let i = 0; i < re.series; i++) {
+                    prefilledSets.push({
+                        id: crypto.randomUUID(),
+                        sessionId: result.sessionId!,
+                        exerciseId: re.exerciseId,
+                        weight: re.targetWeight || 0,
+                        reps: re.targetReps || 0,
+                        type: 'normal',
+                        orderIndex: i,
+                        createdAt: new Date()
+                    });
+                }
+            });
+
+            setActiveSession(newSession);
+            setSessionSets(prefilledSets);
+            setCompletedSetIds([]);
+            setRoutine(selectedRoutine);
+            setExercises(allExercises);
+        } else {
+            throw new Error(result.error || "Error al iniciar sesión");
+        }
+        setIsLoading(false);
+    };
+
+    const updateSet = (setId: string, field: 'weight' | 'reps', value: number) => {
+        setSessionSets(prev => prev.map(s => s.id === setId ? { ...s, [field]: value } : s));
+    };
+
+    const toggleSetCompletion = (setId: string) => {
+        setCompletedSetIds(prev => {
+            const next = [...prev];
+            const index = next.indexOf(setId);
+            if (index > -1) {
+                next.splice(index, 1);
+            } else {
+                next.push(setId);
+            }
+            return next;
+        });
+    };
+
+    const saveSession = async (): Promise<{ success: boolean; error?: string }> => {
+        if (!activeSession) return { success: false, error: "No hay sesión activa" };
+
+        try {
+            const result = await saveSessionBatchAction(activeSession.id, sessionSets);
+            return result as { success: boolean; error?: string };
+        } catch (error: any) {
+            return { success: false, error: error.message };
+        }
+    };
+
+    const finishSession = async () => {
+        const result = await saveSession();
+        if ('success' in result) {
+            setActiveSession(null);
+            setSessionSets([]);
+            setCompletedSetIds([]);
+            setRoutine(null);
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    };
+
+    return (
+        <SessionContext.Provider value={{
+            activeSession,
+            sessionSets,
+            completedSetIds,
+            routine,
+            exercises,
+            isLoading,
+            startNewSession,
+            updateSet,
+            toggleSetCompletion,
+            saveSession,
+            finishSession
+        }}>
+            {children}
+        </SessionContext.Provider>
+    );
+}
+
+export function useSession() {
+    const context = useContext(SessionContext);
+    if (context === undefined) {
+        throw new Error('useSession must be used within a SessionProvider');
+    }
+    return context;
+}
