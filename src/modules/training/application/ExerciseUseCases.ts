@@ -15,3 +15,11 @@ export class CreateExerciseUseCase {
         return this.exerciseRepository.save(exercise);
     }
 }
+
+export class DeleteExerciseUseCase {
+    constructor(private exerciseRepository: ExerciseRepository) { }
+
+    async execute(id: string): Promise<void> {
+        return this.exerciseRepository.delete(id);
+    }
+}

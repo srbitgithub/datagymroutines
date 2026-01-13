@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Edit2, Check, X, Loader2 } from 'lucide-react';
-import { updateExerciseAction } from '@/app/_actions/training';
+import { Dumbbell, Edit2, Check, X, Loader2, Trash2 } from 'lucide-react';
+import { updateExerciseAction, deleteExerciseAction } from '@/app/_actions/training';
 
 interface ExerciseListItemProps {
     exercise: Exercise;
@@ -13,6 +13,19 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState(exercise.name);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!confirm(`¿Estás seguro de que quieres borrar "${exercise.name}"?`)) return;
+
+        setIsDeleting(true);
+        const result = await deleteExerciseAction(exercise.id);
+        setIsDeleting(false);
+
+        if (!result.success) {
+            alert(result.error || "Error al borrar el ejercicio");
+        }
+    };
 
     const handleSave = async () => {
         if (!newName.trim() || newName === exercise.name) {
@@ -77,13 +90,23 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                         <div className="flex items-center gap-2">
                             <p className="text-sm font-medium">{exercise.name}</p>
                             {exercise.userId && (
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="p-1.5 bg-brand-primary/10 text-brand-primary rounded-md hover:bg-brand-primary/20 transition-all ml-1"
-                                    title="Editar nombre"
-                                >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="flex items-center gap-1 ml-1">
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="p-1.5 bg-brand-primary/10 text-brand-primary rounded-md hover:bg-brand-primary/20 transition-all"
+                                        title="Editar nombre"
+                                    >
+                                        <Edit2 className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        disabled={isDeleting}
+                                        className="p-1.5 bg-red-500/10 text-red-500 rounded-md hover:bg-red-500/20 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                                        title="Borrar ejercicio"
+                                    >
+                                        {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     )}

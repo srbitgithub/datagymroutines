@@ -2,7 +2,7 @@
 
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { SupabaseExerciseRepository } from "@/modules/training/infrastructure/adapters/SupabaseExerciseRepository";
-import { GetExercisesUseCase, CreateExerciseUseCase } from "@/modules/training/application/ExerciseUseCases";
+import { GetExercisesUseCase, CreateExerciseUseCase, DeleteExerciseUseCase } from "@/modules/training/application/ExerciseUseCases";
 import { GetRoutinesUseCase, CreateRoutineUseCase } from "@/modules/training/application/RoutineUseCases";
 import { StartSessionUseCase, AddSetUseCase, EndSessionUseCase } from "@/modules/training/application/SessionUseCases";
 import { ExerciseSet } from "@/modules/training/domain/Session";
@@ -40,6 +40,23 @@ export async function updateExerciseAction(id: string, name: string) {
     } catch (error: any) {
         console.error("Error en updateExerciseAction:", error);
         return { error: `Error al actualizar el ejercicio: ${error.message}` };
+    }
+}
+
+export async function deleteExerciseAction(id: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const exerciseRepository = new SupabaseExerciseRepository();
+    const deleteExerciseUseCase = new DeleteExerciseUseCase(exerciseRepository);
+    try {
+        await deleteExerciseUseCase.execute(id);
+        revalidatePath("/dashboard/exercises");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en deleteExerciseAction:", error);
+        return { error: `Error al borrar el ejercicio: ${error.message}` };
     }
 }
 
