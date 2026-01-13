@@ -284,7 +284,7 @@ export async function duplicateRoutineAction(sourceId: string, newName: string, 
     }
 }
 
-export async function startSessionAction(routineId?: string) {
+export async function startSessionAction(routineId?: string, clientStartTime?: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
@@ -298,7 +298,7 @@ export async function startSessionAction(routineId?: string) {
             id: sessionId,
             userId: user.id,
             routineId,
-            startTime: new Date(),
+            startTime: clientStartTime ? new Date(clientStartTime) : new Date(),
             sets: [],
         });
         revalidatePath("/dashboard/session");
@@ -327,7 +327,7 @@ export async function finishSessionAction(sessionId: string, notes?: string) {
     }
 }
 
-export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], isFinished: boolean = false, notes?: string) {
+export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], isFinished: boolean = false, notes?: string, clientFinishTime?: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
@@ -341,7 +341,7 @@ export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSe
         // 2. Finish session if requested
         if (isFinished) {
             const endSessionUseCase = new EndSessionUseCase(sessionRepository);
-            await endSessionUseCase.execute(sessionId, new Date(), notes);
+            await endSessionUseCase.execute(sessionId, clientFinishTime ? new Date(clientFinishTime) : new Date(), notes);
         }
 
         revalidatePath("/dashboard");
@@ -373,7 +373,7 @@ export async function addSetAction(setData: Omit<ExerciseSet, 'id' | 'createdAt'
     }
 }
 
-export async function getProgressionDataAction(exerciseId?: string) {
+export async function getProgressionDataAction(exerciseId?: string, timezone: string = 'UTC') {
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
@@ -401,7 +401,15 @@ export async function getProgressionDataAction(exerciseId?: string) {
             });
 
             const date = session.startTime instanceof Date ? session.startTime : new Date();
-            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+            // Format to YYYY-MM-DD in user's dynamic timezone
+            const formatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            const dateStr = formatter.format(date);
 
             return {
                 date: dateStr,

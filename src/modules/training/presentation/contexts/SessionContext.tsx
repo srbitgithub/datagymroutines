@@ -96,7 +96,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const startNewSession = async (selectedRoutine: Routine, allExercises: Exercise[]) => {
         setIsLoading(true);
-        const result = await startSessionAction(selectedRoutine.id);
+        const now = new Date();
+        const result = await startSessionAction(selectedRoutine.id, now.toISOString());
 
         if (result.success && result.sessionId) {
             const newSession: TrainingSession = {
@@ -155,7 +156,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (!activeSession) return { success: false, error: "No hay sesión activa" };
 
         try {
-            const result = await saveSessionBatchAction(activeSession.id, sessionSets, isFinished);
+            const now = new Date();
+            const result = await saveSessionBatchAction(activeSession.id, sessionSets, isFinished, undefined, now.toISOString());
             return result as { success: boolean; error?: string };
         } catch (error: any) {
             return { success: false, error: error.message };

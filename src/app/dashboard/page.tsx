@@ -3,20 +3,30 @@ export const dynamic = "force-dynamic";
 import { getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
 import { ListChecks, Plus, History, Check } from "lucide-react";
 import Link from "next/link";
+import { headers } from "next/headers";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
     const { error } = await searchParams;
+    const headerList = await headers();
+    const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid'; // Fallback to Madrid if not detected
+
     const routines = await getRoutinesAction();
-    const progression = await getProgressionDataAction();
+    const progression = await getProgressionDataAction(undefined, userTimezone);
 
     // Weekly Tracker Logic
-    const now = new Date();
-    // Get Monday of current week
-    const currentDay = now.getDay(); // 0 (Sun) to 6 (Sat)
+    const tz = userTimezone;
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const nowLocalStr = formatter.format(new Date());
+    const nowParts = nowLocalStr.split('-').map(Number);
+    const nowLocal = new Date(nowParts[0], nowParts[1] - 1, nowParts[2]);
+
+    // getDay() for current week logic needs to be relative to the local date
+    // But since we want Monday-Sunday, we need to find Monday in that local perspective
+    const currentDay = (new Date(new Date().toLocaleString('en-US', { timeZone: tz }))).getDay();
     const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - diffToMonday);
-    monday.setHours(0, 0, 0, 0);
+
+    const monday = new Date(nowLocal);
+    monday.setDate(nowLocal.getDate() - diffToMonday);
 
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
     const trainingDates = new Set(progression.map(p => p.date));
@@ -24,12 +34,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const weekProgress = dayAbbreviations.map((label, index) => {
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + index);
-        const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+        const dateStr = formatter.format(dayDate);
         const isTrained = trainingDates.has(dateStr);
         const isPast = index < diffToMonday;
         const isToday = index === diffToMonday;
 
-        let statusColor = "bg-zinc-800 text-zinc-500"; // Default (Future or Today Haven't Trained)
+        let statusColor = "bg-zinc-800 text-zinc-500"; // Default
         if (isTrained) {
             statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]";
         } else if (isPast) {
