@@ -24,16 +24,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const weekProgress = dayAbbreviations.map((label, index) => {
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + index);
-        const dateStr = dayDate.toISOString().split('T')[0];
+        const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
         const isTrained = trainingDates.has(dateStr);
         const isPast = index < diffToMonday;
         const isToday = index === diffToMonday;
 
         let statusColor = "bg-zinc-800 text-zinc-500"; // Default (Future or Today Haven't Trained)
         if (isTrained) {
-            statusColor = "bg-green-600 text-white";
+            statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]";
         } else if (isPast) {
-            statusColor = "bg-red-600 text-white";
+            statusColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)]";
         }
 
         return { label, statusColor, isTrained };

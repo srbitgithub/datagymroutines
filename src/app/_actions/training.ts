@@ -400,10 +400,8 @@ export async function getProgressionDataAction(exerciseId?: string) {
                 }
             });
 
-            let dateStr = new Date().toISOString().split('T')[0];
-            if (session.startTime instanceof Date) {
-                dateStr = session.startTime.toISOString().split('T')[0];
-            }
+            const date = session.startTime instanceof Date ? session.startTime : new Date();
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
             return {
                 date: dateStr,
