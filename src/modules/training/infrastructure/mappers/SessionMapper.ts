@@ -10,7 +10,7 @@ export class SessionMapper {
             startTime: raw.start_time ? new Date(raw.start_time) : new Date(),
             endTime: raw.end_time ? new Date(raw.end_time) : undefined,
             notes: raw.notes,
-            sets: (raw.exercise_sets || []).map((set: any) => this.toSetDomain(set)),
+            sets: (raw.exercise_sets || []).map((set: any) => SessionMapper.toSetDomain(set)),
         };
     }
 
