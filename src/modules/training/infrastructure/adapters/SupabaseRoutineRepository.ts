@@ -143,13 +143,14 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
         if (routineError) throw new Error(routineError.message);
     }
 
-    async updateOrders(orders: { id: string, orderIndex: number }[]): Promise<void> {
+    async updateOrders(userId: string, orders: { id: string, orderIndex: number }[]): Promise<void> {
         const client = await this.getClient();
         const { error } = await client
             .from("routines")
             .upsert(
                 orders.map((o) => ({
                     id: o.id,
+                    user_id: userId,
                     order_index: o.orderIndex,
                 }))
             );

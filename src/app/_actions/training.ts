@@ -455,7 +455,7 @@ export async function updateRoutinesOrderAction(orders: { id: string, orderIndex
     const useCase = new UpdateRoutinesOrderUseCase(routineRepository);
 
     try {
-        await useCase.execute(orders);
+        await useCase.execute(user.id, orders);
         revalidatePath("/dashboard/routines");
         return { success: true };
     } catch (error: any) {

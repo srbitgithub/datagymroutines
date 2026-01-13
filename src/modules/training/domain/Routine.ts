@@ -26,6 +26,6 @@ export interface RoutineRepository {
     getAllByUserId(userId: string): Promise<Routine[]>;
     save(routine: Routine): Promise<void>;
     update(id: string, routine: Partial<Routine>): Promise<void>;
-    updateOrders(orders: { id: string, orderIndex: number }[]): Promise<void>;
+    updateOrders(userId: string, orders: { id: string, orderIndex: number }[]): Promise<void>;
     delete(id: string): Promise<void>;
 }

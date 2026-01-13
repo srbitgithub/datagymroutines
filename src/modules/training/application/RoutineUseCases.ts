@@ -19,7 +19,7 @@ export class CreateRoutineUseCase {
 export class UpdateRoutinesOrderUseCase {
     constructor(private routineRepository: RoutineRepository) { }
 
-    async execute(orders: { id: string, orderIndex: number }[]): Promise<void> {
-        return this.routineRepository.updateOrders(orders);
+    async execute(userId: string, orders: { id: string, orderIndex: number }[]): Promise<void> {
+        return this.routineRepository.updateOrders(userId, orders);
     }
 }
