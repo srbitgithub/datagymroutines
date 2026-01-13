@@ -56,7 +56,21 @@ export class RoutineMapper {
             user_id: routine.userId,
             name: routine.name,
             description: routine.description,
-            created_at: routine.createdAt.toISOString(),
+            created_at: routine.createdAt?.toISOString(),
         };
+    }
+
+    static toPartialPersistence(routine: Partial<Routine>): any {
+        const persistence: any = {};
+        if (routine.id) persistence.id = routine.id;
+        if (routine.userId) persistence.user_id = routine.userId;
+        if (routine.name) persistence.name = routine.name;
+        if (routine.description !== undefined) persistence.description = routine.description;
+        if (routine.createdAt) {
+            persistence.created_at = routine.createdAt instanceof Date
+                ? routine.createdAt.toISOString()
+                : new Date(routine.createdAt).toISOString();
+        }
+        return persistence;
     }
 }

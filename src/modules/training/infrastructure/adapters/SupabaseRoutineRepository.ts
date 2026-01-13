@@ -88,7 +88,7 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
         if (routine.name || routine.description) {
             const { error } = await client
                 .from("routines")
-                .update(RoutineMapper.toPersistence(routine as Routine))
+                .update(RoutineMapper.toPartialPersistence(routine))
                 .eq("id", id);
 
             if (error) throw new Error(error.message);

@@ -43,7 +43,7 @@ export class SupabaseExerciseRepository extends SupabaseRepository implements Ex
         const client = await this.getClient();
         const { error } = await client
             .from("exercises")
-            .update(exerciseData)
+            .update(ExerciseMapper.toPartialPersistence(exerciseData))
             .eq("id", id);
 
         if (error) throw new Error(error.message);
