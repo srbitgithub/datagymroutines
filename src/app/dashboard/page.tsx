@@ -1,28 +1,50 @@
 export const dynamic = "force-dynamic";
 
-import { getExercisesAction, getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
-import { ListChecks, Plus, Play, History, Dumbbell, AlertTriangle } from "lucide-react";
+import { getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
+import { ListChecks, Plus, History, Check } from "lucide-react";
 import Link from "next/link";
-import { MiniChart } from "@/modules/training/infrastructure/components/MiniChart";
-import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
     const { error } = await searchParams;
     const routines = await getRoutinesAction();
-    const exercises = await getExercisesAction();
     const progression = await getProgressionDataAction();
-    const authRepository = new SupabaseAuthRepository();
-    const authUser = await authRepository.getSession();
 
-    const volumeData = progression.map(p => ({ date: p.date, value: p.volume }));
-    const strengthData = progression.map(p => ({ date: p.date, value: p.max1RM }));
+    // Weekly Tracker Logic
+    const now = new Date();
+    // Get Monday of current week
+    const currentDay = now.getDay(); // 0 (Sun) to 6 (Sat)
+    const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
+    const trainingDates = new Set(progression.map(p => p.date));
+
+    const weekProgress = dayAbbreviations.map((label, index) => {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + index);
+        const dateStr = dayDate.toISOString().split('T')[0];
+        const isTrained = trainingDates.has(dateStr);
+        const isPast = index < diffToMonday;
+        const isToday = index === diffToMonday;
+
+        let statusColor = "bg-zinc-800 text-zinc-500"; // Default (Future or Today Haven't Trained)
+        if (isTrained) {
+            statusColor = "bg-green-600 text-white";
+        } else if (isPast) {
+            statusColor = "bg-red-600 text-white";
+        }
+
+        return { label, statusColor, isTrained };
+    });
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             {error && (
                 <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
-                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <div className="h-5 w-5 text-red-600" />
                         <div>
                             <h3 className="font-bold text-red-900">No se pudo iniciar la sesión</h3>
                             <p className="text-sm text-red-700">{decodeURIComponent(error)}</p>
@@ -36,49 +58,31 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <h1 className="text-3xl font-bold tracking-tight">DataGym</h1>
                     <p className="text-muted-foreground">Tu cuaderno de fuerza inteligente.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/dashboard/session"
-                        className="flex-1 md:flex-none inline-flex h-11 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-primary/90 active:scale-95"
-                    >
-                        <Play className="mr-2 h-4 w-4 fill-current" />
-                        Empezar Sesión
-                    </Link>
-                </div>
             </header>
 
-            <div className="grid gap-4 md:grid-cols-2">
-                <MiniChart
-                    data={volumeData}
-                    label="Volumen Total"
-                    color="#3b82f6"
-                />
-                <MiniChart
-                    data={strengthData}
-                    label="Fuerza Estimada (1RM)"
-                    color="#ef4444"
-                />
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-3">
-                {/* Quick Stats Placeholder */}
-                <div className="rounded-2xl border bg-card p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-black text-brand-primary mb-1">{routines.length}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Rutinas</span>
-                </div>
-                <div className="rounded-2xl border bg-card p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-black text-brand-primary mb-1">{exercises.length}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ejercicios</span>
-                </div>
-                <div className="rounded-2xl border bg-card p-6 shadow-sm flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-black text-brand-primary mb-1">0</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sesiones</span>
-                </div>
-            </div>
-
-            <div className="grid gap-8 md:grid-cols-[1fr_300px]">
+            <div className="grid gap-8">
                 <div className="space-y-8">
-                    {/* Active / Recent Routines */}
+                    {/* Weekly Tracker */}
+                    <section className="space-y-4">
+                        <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                            <History className="h-5 w-5 text-brand-primary" />
+                            Actividad Semanal
+                        </h2>
+                        <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                            <div className="flex justify-between items-center gap-2">
+                                {weekProgress.map((day, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-2 flex-1">
+                                        <span className="text-[10px] font-black text-muted-foreground uppercase">{day.label}</span>
+                                        <div className={`w-full aspect-square max-w-[48px] rounded-xl flex items-center justify-center transition-all shadow-inner ${day.statusColor}`}>
+                                            {day.isTrained && <Check className="h-5 w-5" />}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Mis Rutinas */}
                     <section className="space-y-4">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold tracking-tight">Mis Rutinas</h2>
@@ -112,37 +116,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                             </Link>
                         </div>
                     </section>
-
-                    {/* History Placeholder */}
-                    <section className="space-y-4">
-                        <h2 className="text-xl font-bold tracking-tight">Historial Reciente</h2>
-                        <div className="flex flex-col items-center justify-center rounded-2xl border bg-accent/5 p-12 text-center">
-                            <History className="h-8 w-8 text-muted-foreground/20 mb-3" />
-                            <p className="text-sm text-muted-foreground">No hay sesiones registradas todavía.</p>
-                        </div>
-                    </section>
                 </div>
-
-                <aside className="space-y-8">
-                    {/* Exercises card */}
-                    <section className="rounded-2xl border bg-card p-6 shadow-sm space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-bold flex items-center gap-2">
-                                <Dumbbell className="h-4 w-4" />
-                                Biblioteca
-                            </h3>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Gestiona tus ejercicios y grupos musculares.
-                        </p>
-                        <Link
-                            href="/dashboard/exercises"
-                            className="inline-flex w-full h-9 items-center justify-center rounded-lg border text-sm font-medium hover:bg-accent transition-colors"
-                        >
-                            Ir a Ejercicios
-                        </Link>
-                    </section>
-                </aside>
             </div>
         </div>
     );
