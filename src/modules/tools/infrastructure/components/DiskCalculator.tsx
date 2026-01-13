@@ -37,27 +37,27 @@ export function DiskCalculator() {
             </header>
 
             <div className="space-y-4">
-                <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                     <input
                         type="number"
                         value={targetWeight}
                         onChange={(e) => setTargetWeight(Number(e.target.value))}
-                        className="flex-1 h-12 sm:h-14 rounded-xl border bg-accent/5 px-4 text-xl sm:text-2xl font-black text-center focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                        placeholder="Peso total (kg)"
+                        className="flex-1 h-12 sm:h-14 rounded-xl border bg-accent/5 px-3 sm:px-4 text-lg sm:text-2xl font-black text-center focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                        placeholder="Peso total"
                     />
                     <button
                         onClick={() => setTargetWeight(20)}
-                        className="h-12 w-12 sm:h-14 sm:w-14 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground hover:text-foreground transition-colors"
+                        className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground hover:text-foreground transition-colors"
                         title="Reset"
                     >
-                        <RotateCcw className="h-5 w-5" />
+                        <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                 </div>
 
                 {/* Bar Visualizer */}
-                <div className="relative h-16 sm:h-20 bg-accent/5 rounded-xl flex items-center justify-center px-6 sm:px-10 overflow-hidden">
+                <div className="relative h-16 sm:h-20 bg-accent/5 rounded-xl flex items-center justify-center px-4 sm:px-10 overflow-hidden">
                     {/* Barbell sleeve */}
-                    <div className="absolute left-0 w-full h-1.5 sm:h-2 bg-muted-foreground/20 z-0"></div>
+                    <div className="absolute left-0 w-full h-1 sm:h-2 bg-muted-foreground/20 z-0"></div>
 
                     <div className="relative z-10 flex flex-row-reverse items-center gap-1">
                         {platesPerSide.length > 0 ? (

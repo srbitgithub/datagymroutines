@@ -113,25 +113,25 @@ export function RestTimer() {
                     </span>
                 </div>
 
-                <div className="flex items-center gap-3 sm:gap-4 w-full">
-                    <button
-                        onClick={resetTimer}
-                        className="flex-1 h-10 sm:h-12 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </button>
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-4 w-full">
                     <button
                         onClick={toggleTimer}
                         disabled={timeLeft === 0}
-                        className={`flex-[2] h-10 sm:h-12 flex items-center justify-center rounded-xl font-bold transition-all active:scale-95 ${isActive
+                        className={`col-span-2 h-12 flex items-center justify-center rounded-xl font-bold transition-all active:scale-95 sm:flex-[2] ${isActive
                             ? 'bg-amber-500 text-white shadow-lg'
                             : 'bg-brand-primary text-white shadow-lg disabled:opacity-50'
                             }`}
                     >
-                        {isActive ? <Pause className="h-5 w-5 sm:h-6 sm:w-6" /> : <Play className="h-5 w-5 sm:h-6 sm:w-6 ml-1" />}
+                        {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-1" />}
                     </button>
-                    <div className="flex-1 h-10 sm:h-12 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground">
-                        <Bell className={`h-4 w-4 sm:h-5 sm:w-5 ${percentage === 0 && duration > 0 ? 'animate-bounce' : ''}`} />
+                    <button
+                        onClick={resetTimer}
+                        className="h-12 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground hover:text-foreground transition-colors sm:flex-1"
+                    >
+                        <RotateCcw className="h-5 w-5" />
+                    </button>
+                    <div className="h-12 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground sm:flex-1">
+                        <Bell className={`h-5 w-5 ${percentage === 0 && duration > 0 ? 'animate-bounce' : ''}`} />
                     </div>
                 </div>
 
