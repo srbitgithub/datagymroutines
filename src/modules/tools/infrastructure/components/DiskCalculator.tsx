@@ -25,7 +25,7 @@ export function DiskCalculator() {
     }, [targetWeight]);
 
     return (
-        <div className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+        <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
             <header className="flex items-center gap-3">
                 <div className="rounded-full bg-brand-primary/10 p-2 text-brand-primary">
                     <Calculator className="h-5 w-5" />

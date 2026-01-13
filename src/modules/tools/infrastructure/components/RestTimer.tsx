@@ -50,7 +50,7 @@ export function RestTimer() {
     const percentage = timeLeft > 0 ? (timeLeft / duration) * 100 : 0;
 
     return (
-        <div className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+        <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
             <header className="flex items-center gap-3">
                 <div className="rounded-full bg-brand-primary/10 p-2 text-brand-primary">
                     <Timer className="h-5 w-5" />
@@ -61,7 +61,7 @@ export function RestTimer() {
                 </div>
             </header>
 
-            <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+            <div className="flex flex-col items-center justify-center space-y-6">
                 {/* Circular Visualizer */}
                 <div className="relative h-24 w-24 sm:h-32 sm:w-32 flex items-center justify-center">
                     <svg className="h-full w-full -rotate-90">
@@ -135,7 +135,7 @@ export function RestTimer() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-2 w-full">
+                <div className="grid grid-cols-2 gap-2 w-full">
                     {PRESETS.map((p) => (
                         <button
                             key={p}
@@ -143,7 +143,7 @@ export function RestTimer() {
                                 setDuration(p);
                                 startTimer(p);
                             }}
-                            className={`h-9 sm:h-10 rounded-lg text-[10px] sm:text-xs font-bold border transition-all ${duration === p && timeLeft > 0
+                            className={`h-10 rounded-lg text-xs font-bold border transition-all ${duration === p && timeLeft > 0
                                 ? 'bg-brand-primary border-brand-primary text-white'
                                 : 'bg-background hover:bg-accent'
                                 }`}

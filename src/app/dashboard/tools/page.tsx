@@ -10,7 +10,7 @@ export default function ToolsPage() {
                 <p className="text-muted-foreground">Utilidades para optimizar tu entrenamiento.</p>
             </header>
 
-            <div className="grid gap-4 md:gap-8 md:grid-cols-2 w-full overflow-hidden">
+            <div className="grid gap-4 md:grid-cols-2">
                 <DiskCalculator />
                 <RestTimer />
             </div>
