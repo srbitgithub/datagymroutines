@@ -4,13 +4,13 @@ import { useState, useMemo } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 
 const PLATE_WEIGHTS = [25, 20, 15, 10, 5, 2.5, 1.25];
-const BARBELL_WEIGHT = 20;
 
 export function DiskCalculator() {
     const [targetWeight, setTargetWeight] = useState<number>(60);
+    const [barbellWeight, setBarbellWeight] = useState<number>(20);
 
     const platesPerSide = useMemo(() => {
-        let remaining = (targetWeight - BARBELL_WEIGHT) / 2;
+        let remaining = (targetWeight - barbellWeight) / 2;
         if (remaining < 0) return [];
 
         const result: number[] = [];
@@ -22,7 +22,7 @@ export function DiskCalculator() {
             remaining %= weight;
         }
         return result;
-    }, [targetWeight]);
+    }, [targetWeight, barbellWeight]);
 
     return (
         <div className="rounded-xl border bg-card p-6 shadow-sm space-y-6">
@@ -32,9 +32,24 @@ export function DiskCalculator() {
                 </div>
                 <div>
                     <h3 className="font-bold">Calculadora de Discos</h3>
-                    <p className="text-xs text-muted-foreground">Discos por lado (barra de 20kg)</p>
+                    <p className="text-xs text-muted-foreground">Discos por lado (barra de {barbellWeight}kg)</p>
                 </div>
             </header>
+
+            <div className="flex gap-2">
+                <button
+                    onClick={() => setBarbellWeight(20)}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${barbellWeight === 20 ? 'bg-brand-primary text-white border-brand-primary' : 'bg-background hover:bg-accent border-input'}`}
+                >
+                    Barra 20Kg
+                </button>
+                <button
+                    onClick={() => setBarbellWeight(15)}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${barbellWeight === 15 ? 'bg-brand-primary text-white border-brand-primary' : 'bg-background hover:bg-accent border-input'}`}
+                >
+                    Barra 15Kg
+                </button>
+            </div>
 
             <div className="space-y-4">
                 <div className="flex items-center gap-2 sm:gap-4">
@@ -46,7 +61,7 @@ export function DiskCalculator() {
                         placeholder="Peso total"
                     />
                     <button
-                        onClick={() => setTargetWeight(20)}
+                        onClick={() => setTargetWeight(barbellWeight)}
                         className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 flex items-center justify-center rounded-xl bg-accent/20 text-muted-foreground hover:text-foreground transition-colors"
                         title="Reset"
                     >
