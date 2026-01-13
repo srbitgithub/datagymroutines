@@ -24,9 +24,21 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
             .eq("user_id", userId)
             .order("start_time", { ascending: false });
 
-        if (error || !data) return [];
+        if (error) {
+            console.error(`[SupabaseSessionRepository] Error al obtener sesiones:`, error);
+            return [];
+        }
 
-        return data.map(SessionMapper.toDomain);
+        if (!data) {
+            console.log(`[SupabaseSessionRepository] No se devolvieron datos para UserID: ${userId}`);
+            return [];
+        }
+
+        console.log(`[SupabaseSessionRepository] RAW DATA: Encontradas ${data.length} sesiones en DB para ${userId}`);
+        const domainSessions = data.map(SessionMapper.toDomain);
+        console.log(`[SupabaseSessionRepository] DOMAIN DATA: Mapeadas ${domainSessions.length} sesiones`);
+
+        return domainSessions;
     }
 
     async getActiveSession(userId: string): Promise<TrainingSession | null> {

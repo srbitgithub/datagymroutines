@@ -5,12 +5,16 @@ import { ListChecks, Plus, History, Check, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { unstable_noStore as noStore } from 'next/cache';
+import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
     noStore();
     const { error } = await searchParams;
     const headerList = await headers();
     const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid';
+
+    const authRepo = new SupabaseAuthRepository();
+    const user = await authRepo.getSession();
 
     const routines = await getRoutinesAction();
     const progression = await getProgressionDataAction(undefined, userTimezone);
@@ -94,7 +98,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <div className="max-w-4xl mx-auto space-y-8">
             {/* Visual Debug Overlay (Solo visible para depuración) */}
             <div className="text-[10px] font-mono bg-black text-green-500 p-2 rounded border border-green-500/30 opacity-50 hover:opacity-100 transition-opacity">
-                DEBUG: TZ={tz} | Hoy={todayStr} | Lunes={mondayStr} | Entrenados=[{Array.from(trainingDates).join(',')}] | TrainedToday={trainingDates.has(todayStr) ? 'SI' : 'NO'}
+                DEBUG: UID={user?.id || 'null'} | TZ={tz} | Hoy={todayStr} | Lunes={mondayStr} | Entrenados=[{Array.from(trainingDates).join(',')}] | TrainedToday={trainingDates.has(todayStr) ? 'SI' : 'NO'}
             </div>
             {error && (
                 <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
