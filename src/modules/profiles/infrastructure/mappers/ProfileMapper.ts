@@ -8,6 +8,7 @@ export class ProfileMapper {
             fullName: raw.full_name,
             avatarUrl: raw.avatar_url,
             weightUnit: raw.weight_unit as 'kg' | 'lbs',
+            monthlyGoal: raw.monthly_goal,
             updatedAt: new Date(raw.updated_at),
         };
     }
@@ -19,6 +20,7 @@ export class ProfileMapper {
             full_name: profile.fullName,
             avatar_url: profile.avatarUrl,
             weight_unit: profile.weightUnit,
+            monthly_goal: profile.monthlyGoal,
             updated_at: profile.updatedAt.toISOString(),
         };
     }

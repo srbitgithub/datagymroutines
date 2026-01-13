@@ -381,27 +381,12 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
-        if (!user) return { items: [], debug: { globalCount: 0, returnedCount: 0 } };
+        if (!user) return { items: [] };
 
         const sessionRepository = new SupabaseSessionRepository();
         const sessions = await sessionRepository.getAllByUserId(user.id);
 
-        // DEBUG: ¿Veo alguna sesión aunque no sea de este usuario? (Si esto da 0 y hay datos, es RLS)
-        const client = await (new SupabaseAuthRepository() as any).getClient();
-        const { count: globalCount, error: countError } = await client.from("training_sessions").select("*", { count: 'exact', head: true });
-
-        console.log(`[getProgressionDataAction] UserID: ${user.id}, Sesiones encontradas: ${sessions.length}`);
-
-        if (!Array.isArray(sessions)) {
-            return {
-                items: [],
-                debug: {
-                    globalCount: globalCount || 0,
-                    returnedCount: 0,
-                    dbError: countError?.message || 'Ningún error reportado (pero 0 filas)'
-                }
-            };
-        }
+        if (!Array.isArray(sessions)) return { items: [] };
 
         const data = sessions.map(session => {
             let volume = 0;
@@ -435,16 +420,9 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
             };
         }).reverse();
 
-        return {
-            items: data,
-            debug: {
-                globalCount: globalCount || 0,
-                returnedCount: sessions.length,
-                dbError: countError?.message
-            }
-        };
+        return { items: data };
     } catch (error: any) {
-        console.error("Error in getProgressionDataAction:", error);
-        return { items: [], error: error.message, debug: { globalCount: 0, returnedCount: 0, dbError: error.message } };
+        console.error("Error en getProgressionDataAction:", error);
+        return { items: [] };
     }
 }

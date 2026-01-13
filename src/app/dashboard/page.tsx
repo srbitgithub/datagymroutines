@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { getRoutinesAction, getProgressionDataAction } from "@/app/_actions/training";
-import { ListChecks, Plus, History, Check, AlertTriangle } from "lucide-react";
+import { getProfileAction } from "@/app/_actions/auth";
+import { ListChecks, Plus, History, Check } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { unstable_noStore as noStore } from 'next/cache';
@@ -13,11 +14,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const headerList = await headers();
     const userTimezone = headerList.get('x-timezone') || 'Europe/Madrid';
 
-    const authRepo = new SupabaseAuthRepository();
-    const user = await authRepo.getSession();
-
     const routines = await getRoutinesAction();
-    const { items: progressionItems, debug } = await getProgressionDataAction(undefined, userTimezone);
+    const { items: progressionItems } = await getProgressionDataAction(undefined, userTimezone);
+    const profile = await getProfileAction();
+    const monthlyGoal = profile?.monthlyGoal || 20;
 
     // Weekly Tracker Logic (User's 10-step plan + Robust TZ handling)
     const tz = userTimezone;
@@ -42,10 +42,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const mondayLocal = new Date(year, month, day);
     mondayLocal.setDate(mondayLocal.getDate() - diffToMonday);
 
-    // 6. Calculate end of the week (Sunday)
-    const sundayLocal = new Date(mondayLocal);
-    sundayLocal.setDate(mondayLocal.getDate() + 6);
-
     // Stable formatter for YYYY-MM-DD comparisons
     const fmt = (d: Date) => {
         const y = d.getFullYear();
@@ -54,23 +50,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         return `${y}-${m}-${dp}`;
     };
 
-    const todayStr = fmt(localNow);
-    const mondayStr = fmt(mondayLocal);
-    const sundayStr = fmt(sundayLocal);
     const trainingDates = new Set(progressionItems.map(p => p.date));
 
-    // Debug Logs
-    console.log("\x1b[42m\x1b[30m%s\x1b[0m", "====================================================");
-    console.log("\x1b[42m\x1b[30m%s\x1b[0m", ">>> SERVER RENDER: DASHBOARD PAGE <<<");
-    console.log("Timezone detectada:", tz);
-    console.log("X-Timezone Header:", headerList.get('x-timezone'));
-    console.log("Vercel-TZ Header:", headerList.get('x-vercel-ip-timezone'));
-    console.log("Hoy (local format):", todayStr);
-    console.log("Inicio de semana (Lunes):", mondayStr);
-    console.log("Fin de semana (Domingo):", sundayStr);
-    console.log("Fechas entrenadas encontradas en la DB:", Array.from(trainingDates));
-    console.log("¿Hay entrenamiento hoy?", trainingDates.has(todayStr) ? "SÍ (Verde) ✅" : "NO (Gris/Rojo) ❌");
-    console.log("\x1b[42m\x1b[30m%s\x1b[0m", "====================================================");
+    // Monthly Tracker Logic
+    const currentMonth = localNow.getMonth();
+    const currentYear = localNow.getFullYear();
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const currentMonthName = monthNames[currentMonth];
+
+    const daysTrainedThisMonth = Array.from(trainingDates).filter(dateStr => {
+        const [y, m] = dateStr.split('-').map(Number);
+        return y === currentYear && m === (currentMonth + 1);
+    }).length;
 
     const dayAbbreviations = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
 
@@ -81,7 +72,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         const isTrained = trainingDates.has(dateStr);
         const isPast = index < (todayNum - 1);
-        const isToday = index === (todayNum - 1);
+        // const isToday = index === (todayNum - 1); // Not used
 
         let statusColor = "bg-zinc-800 text-zinc-500"; // Step 10: Future gray (also Today not yet trained)
 
@@ -96,26 +87,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
-            {/* Panel de Depuración Visual */}
-            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 text-[11px] font-mono shadow-inner space-y-1">
-                <div className="flex items-center gap-2 text-blue-800 font-bold mb-1">
-                    <AlertTriangle className="h-3 w-3" />
-                    Soporte Técnico: Diagnóstico de Datos
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-                    <div><span className="text-zinc-500">Sesión Usuario (UID):</span> <span className="text-blue-700 font-bold">{user?.id || 'NO DETECTADO'}</span></div>
-                    <div><span className="text-zinc-500">País/Zona (TZ):</span> <span className="text-blue-700 font-bold">{tz}</span></div>
-                    <div><span className="text-zinc-500">Fecha Hoy:</span> <span className="text-blue-700 font-bold">{todayStr}</span></div>
-                    <div><span className="text-zinc-500">Inicio Semana:</span> <span className="text-blue-700 font-bold">{mondayStr}</span></div>
-                    <div><span className="text-zinc-500">Días Registrados:</span> <span className="text-blue-700 font-bold">[{Array.from(trainingDates).join(', ') || 'VACÍO'}]</span></div>
-                    <div><span className="text-zinc-500">Sesiones (User/Global):</span> <span className="text-blue-700 font-bold">{debug?.returnedCount || 0} / {debug?.globalCount || 0}</span></div>
-                    <div><span className="text-zinc-500">Error DB:</span> <span className="text-red-600 font-bold">{debug?.dbError || 'Ninguno'}</span></div>
-                    <div><span className="text-zinc-500">¿Sesión hoy detectada?:</span> <span className={`${trainingDates.has(todayStr) ? 'text-green-600' : 'text-red-600'} font-bold`}>{trainingDates.has(todayStr) ? 'SÍ' : 'NO'}</span></div>
-                </div>
-                <div className="mt-2 text-[10px] text-zinc-400 italic">
-                    * Si 'Días Registrados' está VACÍO pero tienes datos en Supabase, revisa las políticas RLS.
-                </div>
-            </div>
             {error && (
                 <div className="rounded-xl border-l-4 border-red-500 bg-red-50 p-4 shadow-sm">
                     <div className="flex items-center gap-3">
@@ -137,25 +108,52 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
             <div className="grid gap-8">
                 <div className="space-y-8">
-                    {/* Weekly Tracker */}
-                    <section className="space-y-4">
-                        <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                            <History className="h-5 w-5 text-brand-primary" />
-                            Actividad Semanal
-                        </h2>
-                        <div className="bg-card border rounded-2xl p-6 shadow-sm">
-                            <div className="flex justify-between items-center gap-2">
-                                {weekProgress.map((day, i) => (
-                                    <div key={i} className="flex flex-col items-center gap-2 flex-1">
-                                        <span className="text-[10px] font-black text-muted-foreground uppercase">{day.label}</span>
-                                        <div className={`w-full aspect-square max-w-[48px] rounded-xl flex items-center justify-center transition-all shadow-inner ${day.statusColor}`}>
-                                            {day.isTrained && <Check className="h-5 w-5" />}
+                    {/* Activity Trackers */}
+                    <div className="grid gap-4 md:grid-cols-3">
+                        {/* Weekly Tracker */}
+                        <section className="space-y-4 md:col-span-2">
+                            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                                <History className="h-5 w-5 text-brand-primary" />
+                                Actividad Semanal
+                            </h2>
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm">
+                                <div className="flex justify-between items-center gap-2">
+                                    {weekProgress.map((day, i) => (
+                                        <div key={i} className="flex flex-col items-center gap-2 flex-1">
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase">{day.label}</span>
+                                            <div className={`w-full aspect-square max-w-[48px] rounded-xl flex items-center justify-center transition-all shadow-inner ${day.statusColor}`}>
+                                                {day.isTrained && <Check className="h-5 w-5" />}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+
+                        {/* Monthly Summary */}
+                        <section className="space-y-4">
+                            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                                <ListChecks className="h-5 w-5 text-brand-secondary" />
+                                Resumen {currentMonthName}
+                            </h2>
+                            <div className="bg-brand-primary/5 border border-brand-primary/10 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <History className="h-24 w-24 -mr-8 -mt-8" />
+                                </div>
+                                <div className="relative">
+                                    <span className="text-5xl font-black text-brand-primary">{daysTrainedThisMonth}</span>
+                                    <p className="text-sm font-bold text-brand-primary/60 uppercase tracking-widest mt-1">Días Entrenados</p>
+                                </div>
+                                <div className="mt-4 w-full h-1 bg-zinc-200 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-brand-primary transition-all duration-1000"
+                                        style={{ width: `${Math.min((daysTrainedThisMonth / monthlyGoal) * 100, 100)}%` }}
+                                    />
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-2">Basado en objetivo de {monthlyGoal} días/mes</p>
+                            </div>
+                        </section>
+                    </div>
 
                     {/* Mis Rutinas */}
                     <section className="space-y-4">

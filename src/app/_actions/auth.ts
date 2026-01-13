@@ -143,3 +143,23 @@ export async function logoutAction() {
     }
     redirect("/login");
 }
+
+export async function updateMonthlyGoalAction(goal: number) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
+
+    try {
+        await updateProfileUseCase.execute(user.id, {
+            monthlyGoal: goal,
+            updatedAt: new Date()
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error al actualizar el objetivo mensual:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}

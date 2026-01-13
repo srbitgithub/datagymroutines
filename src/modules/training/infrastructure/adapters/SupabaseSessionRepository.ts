@@ -18,34 +18,15 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
 
     async getAllByUserId(userId: string): Promise<TrainingSession[]> {
         const client = await this.getClient();
-        const { data: { user: authUser } } = await client.auth.getUser();
-        console.log(`[SupabaseSessionRepository] Auth User en el cliente: ${authUser?.id || 'null'}`);
-
-        // DEBUG: ¿Veo alguna sesión aunque no sea de este usuario? (Si esto da 0 y hay datos, es RLS)
-        const { count: globalCount } = await client.from("training_sessions").select("*", { count: 'exact', head: true });
-        console.log(`[SupabaseSessionRepository] DEBUG GLOBAL: Hay ${globalCount} sesiones totales en la tabla`);
-
         const { data, error } = await client
             .from("training_sessions")
             .select("*, exercise_sets(*)")
             .eq("user_id", userId)
             .order("start_time", { ascending: false });
 
-        if (error) {
-            console.error(`[SupabaseSessionRepository] Error al obtener sesiones:`, error);
-            return [];
-        }
+        if (error || !data) return [];
 
-        if (!data) {
-            console.log(`[SupabaseSessionRepository] No se devolvieron datos para UserID: ${userId}`);
-            return [];
-        }
-
-        console.log(`[SupabaseSessionRepository] RAW DATA: Encontradas ${data.length} sesiones en DB para ${userId}`);
-        const domainSessions = data.map(SessionMapper.toDomain);
-        console.log(`[SupabaseSessionRepository] DOMAIN DATA: Mapeadas ${domainSessions.length} sesiones`);
-
-        return domainSessions;
+        return data.map(SessionMapper.toDomain);
     }
 
     async getActiveSession(userId: string): Promise<TrainingSession | null> {

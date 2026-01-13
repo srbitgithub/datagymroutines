@@ -4,6 +4,7 @@ export interface Profile {
     fullName?: string;
     avatarUrl?: string;
     weightUnit: 'kg' | 'lbs';
+    monthlyGoal?: number;
     updatedAt: Date;
 }
 

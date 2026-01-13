@@ -1,6 +1,7 @@
 import { getProfileAction, logoutAction } from "@/app/_actions/auth";
 import { User, Settings as SettingsIcon, LogOut, Mail, Weight } from "lucide-react";
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
+import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 
 export default async function SettingsPage() {
     const profile = await getProfileAction();
@@ -58,6 +59,10 @@ export default async function SettingsPage() {
                                     <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20 capitalize">
                                         {profile.weightUnit}
                                     </div>
+                                </div>
+
+                                <div className="pt-4 border-t">
+                                    <GoalSettingsForm initialGoal={profile.monthlyGoal || 20} />
                                 </div>
                             </>
                         )}
