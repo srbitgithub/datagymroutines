@@ -47,9 +47,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                setActiveSession(data.activeSession);
-                setSessionSets(data.sessionSets);
-                setCompletedSetIds(data.completedSetIds);
+
+                // Revive dates
+                const session = data.activeSession ? {
+                    ...data.activeSession,
+                    startTime: new Date(data.activeSession.startTime),
+                    endTime: data.activeSession.endTime ? new Date(data.activeSession.endTime) : undefined
+                } : null;
+
+                const sets = (data.sessionSets || []).map((s: any) => ({
+                    ...s,
+                    createdAt: s.createdAt ? new Date(s.createdAt) : new Date()
+                }));
+
+                setActiveSession(session);
+                setSessionSets(sets);
+                setCompletedSetIds(data.completedSetIds || []);
                 setRoutine(data.routine);
                 setExercises(data.exercises || []);
             } catch (e) {

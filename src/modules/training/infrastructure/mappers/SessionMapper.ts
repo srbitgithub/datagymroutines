@@ -33,8 +33,8 @@ export class SessionMapper {
             user_id: session.userId,
             routine_id: session.routineId,
             gym_id: session.gymId,
-            start_time: session.startTime.toISOString(),
-            end_time: session.endTime?.toISOString(),
+            start_time: (session.startTime instanceof Date ? session.startTime : new Date(session.startTime)).toISOString(),
+            end_time: session.endTime ? (session.endTime instanceof Date ? session.endTime : new Date(session.endTime)).toISOString() : null,
             notes: session.notes,
         };
     }
@@ -48,7 +48,7 @@ export class SessionMapper {
             reps: set.reps,
             type: set.type,
             order_index: set.orderIndex,
-            created_at: set.createdAt.toISOString(),
+            created_at: (set.createdAt instanceof Date ? set.createdAt : new Date(set.createdAt)).toISOString(),
         };
     }
 }
