@@ -145,16 +145,21 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
 
     async updateOrders(userId: string, orders: { id: string, orderIndex: number }[]): Promise<void> {
         const client = await this.getClient();
-        const { error } = await client
-            .from("routines")
-            .upsert(
-                orders.map((o) => ({
-                    id: o.id,
-                    user_id: userId,
-                    order_index: o.orderIndex,
-                }))
-            );
 
-        if (error) throw new Error(error.message);
+        // Usamos Promise.all para ejecutar todas las actualizaciones en paralelo
+        // El uso de .update() en lugar de .upsert() evita violar restricciones de campos obligatorios (como 'name')
+        const updates = orders.map((o) =>
+            client
+                .from("routines")
+                .update({ order_index: o.orderIndex })
+                .eq("id", o.id)
+                .eq("user_id", userId)
+        );
+
+        const results = await Promise.all(updates);
+
+        // Verificamos si hubo errores en alguna de las actualizaciones
+        const firstError = results.find(r => r.error)?.error;
+        if (firstError) throw new Error(firstError.message);
     }
 }
