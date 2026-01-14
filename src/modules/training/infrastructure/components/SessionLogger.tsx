@@ -28,6 +28,10 @@ export function SessionLogger() {
     const [isFinishing, setIsFinishing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Custom Modal State
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancelModalStage, setCancelModalStage] = useState<'abandon' | 'save'>('abandon');
+
     // Rest Timer States - Initialized with preferredRestTime from context
     const [restTime, setRestTime] = useState(preferredRestTime);
     const [isResting, setIsResting] = useState(false);
@@ -119,48 +123,42 @@ export function SessionLogger() {
 
     const handleCancel = async () => {
         if (isFinishing || isSaving) return;
+        setCancelModalStage('abandon');
+        setShowCancelModal(true);
+    };
 
+    const confirmAbandon = async () => {
         const hasFinishedSets = completedSetIds.length > 0;
-        const confirmMsg = "¿Realmente quieres abandonar el entrenamiento?";
-
-        if (!confirm(confirmMsg)) return;
 
         if (!hasFinishedSets) {
-            // No sets finished, just abandon
-            setIsFinishing(true);
-            try {
-                await abandonSession();
-                router.replace('/dashboard');
-            } catch (error) {
-                alert("Error al abandonar: " + error);
-            } finally {
-                setIsFinishing(false);
-            }
+            setShowCancelModal(false);
+            executeAbandon();
         } else {
-            // Sets finished, ask to save
-            const saveMsg = "Tienes series terminadas. ¿Quieres guardar los datos antes de salir?";
-            if (confirm(saveMsg)) {
-                setIsFinishing(true);
-                try {
-                    await finishSession();
-                    router.replace('/dashboard');
-                } catch (error) {
-                    alert("Error al guardar y salir: " + error);
-                } finally {
-                    setIsFinishing(false);
-                }
-            } else {
-                // User chose NOT to save
-                setIsFinishing(true);
-                try {
-                    await abandonSession();
-                    router.replace('/dashboard');
-                } catch (error) {
-                    alert("Error al abandonar: " + error);
-                } finally {
-                    setIsFinishing(false);
-                }
-            }
+            setCancelModalStage('save');
+        }
+    };
+
+    const executeAbandon = async () => {
+        setIsFinishing(true);
+        try {
+            await abandonSession();
+            router.replace('/dashboard');
+        } catch (error) {
+            alert("Error al abandonar: " + error);
+        } finally {
+            setIsFinishing(false);
+        }
+    };
+
+    const executeSaveAndExit = async () => {
+        setIsFinishing(true);
+        try {
+            await finishSession();
+            router.replace('/dashboard');
+        } catch (error) {
+            alert("Error al guardar y salir: " + error);
+        } finally {
+            setIsFinishing(false);
         }
     };
 
@@ -415,32 +413,13 @@ export function SessionLogger() {
             </div>
 
             {/* Floating Action Button Group */}
-            <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
-                <div className="flex flex-col items-end gap-3 pointer-events-auto">
-                    {/* Main Dynamic Action Button */}
-                    <button
-                        id="main-action-btn"
-                        onClick={handleMainAction}
-                        disabled={isFinishing || isSaving}
-                        className={`flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-black text-white shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 ${allSetsCompleted ? 'bg-brand-primary shadow-brand-primary/30' : 'bg-zinc-900 border border-zinc-800 shadow-black/50'}`}
-                    >
-                        {isFinishing || isSaving ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                            <div className={`flex items-center justify-center rounded-lg p-1 ${allSetsCompleted ? 'bg-white/20' : 'bg-brand-primary/20 text-brand-primary'}`}>
-                                {allSetsCompleted ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-                            </div>
-                        )}
-                        <span className="tracking-tight uppercase font-black">
-                            {allSetsCompleted ? "GUARDAR Y SALIR" : "GUARDAR"}
-                        </span>
-                    </button>
-
-                    {/* Cancel Button */}
+            <div className="fixed bottom-24 left-6 right-6 z-50 flex items-center justify-between gap-3 pointer-events-none">
+                <div className="flex w-full items-center justify-between pointer-events-auto">
+                    {/* Cancel Button - Left */}
                     <button
                         onClick={handleCancel}
                         disabled={isFinishing || isSaving}
-                        className="flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-black text-white bg-red-600/90 shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 border border-red-400 shadow-red-900/40"
+                        className="flex items-center gap-2 rounded-2xl px-4 py-4 text-xs font-black text-white bg-red-600/90 shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 border border-red-400 shadow-red-900/40"
                     >
                         <div className="flex items-center justify-center rounded-lg p-1 bg-white/20">
                             <X className="h-4 w-4" />
@@ -449,8 +428,97 @@ export function SessionLogger() {
                             CANCELAR
                         </span>
                     </button>
+
+                    {/* Main Dynamic Action Button - Right */}
+                    <button
+                        id="main-action-btn"
+                        onClick={handleMainAction}
+                        disabled={isFinishing || isSaving}
+                        className={`flex items-center gap-2 rounded-2xl px-4 py-4 text-xs font-black text-white shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 ${allSetsCompleted ? 'bg-brand-primary shadow-brand-primary/30' : 'bg-zinc-900 border border-zinc-800 shadow-black/50'}`}
+                    >
+                        {isFinishing || isSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <div className={`flex items-center justify-center rounded-lg p-1 ${allSetsCompleted ? 'bg-white/20' : 'bg-brand-primary/20 text-brand-primary'}`}>
+                                {allSetsCompleted ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                            </div>
+                        )}
+                        <span className="tracking-tight uppercase font-black">
+                            {allSetsCompleted ? "GUARDAR" : "GUARDAR"}
+                        </span>
+                    </button>
                 </div>
             </div>
+
+            {/* Custom Cancellation Modal */}
+            {showCancelModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCancelModal(false)} />
+                    <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                        {cancelModalStage === 'abandon' ? (
+                            <>
+                                <div className="text-center space-y-4">
+                                    <div className="w-16 h-16 bg-red-600/20 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <X className="h-8 w-8" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">¿Abandonar entrenamiento?</h3>
+                                    <p className="text-zinc-400 font-medium">Se perderá el progreso de esta sesión si no ha sido guardado.</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-8">
+                                    <button
+                                        onClick={() => setShowCancelModal(false)}
+                                        className="py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
+                                    >
+                                        No
+                                    </button>
+                                    <button
+                                        onClick={confirmAbandon}
+                                        className="py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl transition-all uppercase text-sm"
+                                    >
+                                        Sí
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-center space-y-4">
+                                    <div className="w-16 h-16 bg-brand-primary/20 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Save className="h-8 w-8" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">Sesión con progreso</h3>
+                                    <p className="text-zinc-400 font-medium font-semibold">Tienes series terminadas. ¿Qué quieres hacer?</p>
+                                </div>
+                                <div className="flex flex-col gap-3 mt-8">
+                                    <button
+                                        onClick={() => {
+                                            setShowCancelModal(false);
+                                            executeSaveAndExit();
+                                        }}
+                                        className="w-full py-4 bg-brand-primary text-white font-black rounded-2xl transition-all uppercase text-sm shadow-lg shadow-brand-primary/20"
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowCancelModal(false);
+                                            executeAbandon();
+                                        }}
+                                        className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
+                                    >
+                                        No Guardar
+                                    </button>
+                                    <button
+                                        onClick={() => setShowCancelModal(false)}
+                                        className="w-full py-3 text-zinc-500 hover:text-white font-bold transition-all uppercase text-xs mt-2"
+                                    >
+                                        Volver
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
