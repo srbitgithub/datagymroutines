@@ -346,6 +346,24 @@ export async function finishSessionAction(sessionId: string, notes?: string) {
     }
 }
 
+export async function abandonSessionAction(sessionId: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const sessionRepository = new SupabaseSessionRepository();
+
+    try {
+        await sessionRepository.delete(sessionId);
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/session");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error en abandonSessionAction:", error);
+        return { error: `Error al abandonar la sesión: ${error.message}` };
+    }
+}
+
 export async function saveSessionBatchAction(sessionId: string, sets: ExerciseSet[], isFinished: boolean = false, notes?: string, clientFinishTime?: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();

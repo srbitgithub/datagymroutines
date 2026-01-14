@@ -20,7 +20,9 @@ export function SessionLogger() {
         toggleSetCompletion,
         setPreferredRestTime,
         saveSession,
-        finishSession
+        finishSession,
+        abandonSession,
+        clearSession
     } = useSession();
 
     const [isFinishing, setIsFinishing] = useState(false);
@@ -113,6 +115,53 @@ export function SessionLogger() {
             }
         }
         setIsSaving(false);
+    };
+
+    const handleCancel = async () => {
+        if (isFinishing || isSaving) return;
+
+        const hasFinishedSets = completedSetIds.length > 0;
+        const confirmMsg = "¿Realmente quieres abandonar el entrenamiento?";
+
+        if (!confirm(confirmMsg)) return;
+
+        if (!hasFinishedSets) {
+            // No sets finished, just abandon
+            setIsFinishing(true);
+            try {
+                await abandonSession();
+                router.replace('/dashboard');
+            } catch (error) {
+                alert("Error al abandonar: " + error);
+            } finally {
+                setIsFinishing(false);
+            }
+        } else {
+            // Sets finished, ask to save
+            const saveMsg = "Tienes series terminadas. ¿Quieres guardar los datos antes de salir?";
+            if (confirm(saveMsg)) {
+                setIsFinishing(true);
+                try {
+                    await finishSession();
+                    router.replace('/dashboard');
+                } catch (error) {
+                    alert("Error al guardar y salir: " + error);
+                } finally {
+                    setIsFinishing(false);
+                }
+            } else {
+                // User chose NOT to save
+                setIsFinishing(true);
+                try {
+                    await abandonSession();
+                    router.replace('/dashboard');
+                } catch (error) {
+                    alert("Error al abandonar: " + error);
+                } finally {
+                    setIsFinishing(false);
+                }
+            }
+        }
     };
 
     // Rest Timer logic
@@ -384,6 +433,20 @@ export function SessionLogger() {
                         )}
                         <span className="tracking-tight uppercase font-black">
                             {allSetsCompleted ? "GUARDAR Y SALIR" : "GUARDAR"}
+                        </span>
+                    </button>
+
+                    {/* Cancel Button */}
+                    <button
+                        onClick={handleCancel}
+                        disabled={isFinishing || isSaving}
+                        className="flex items-center gap-3 rounded-2xl px-6 py-4 text-sm font-black text-white bg-red-600/90 shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 border border-red-400 shadow-red-900/40"
+                    >
+                        <div className="flex items-center justify-center rounded-lg p-1 bg-white/20">
+                            <X className="h-4 w-4" />
+                        </div>
+                        <span className="tracking-tight uppercase font-black">
+                            CANCELAR
                         </span>
                     </button>
                 </div>

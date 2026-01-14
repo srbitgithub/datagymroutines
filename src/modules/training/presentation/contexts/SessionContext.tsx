@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Routine } from '../../domain/Routine';
 import { Exercise } from '../../domain/Exercise';
-import { saveSessionBatchAction, startSessionAction } from '@/app/_actions/training';
+import { saveSessionBatchAction, startSessionAction, abandonSessionAction } from '@/app/_actions/training';
 
 interface SessionContextType {
     activeSession: TrainingSession | null;
@@ -20,6 +20,8 @@ interface SessionContextType {
     setPreferredRestTime: (time: number) => void;
     saveSession: () => Promise<{ success: boolean; error?: string }>;
     finishSession: () => Promise<void>;
+    abandonSession: () => Promise<void>;
+    clearSession: () => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -167,12 +169,33 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const finishSession = async () => {
         const result = await saveSession(true);
         if (result.success) {
-            setActiveSession(null);
-            setSessionSets([]);
-            setCompletedSetIds([]);
-            setRoutine(null);
-            localStorage.removeItem(STORAGE_KEY);
+            clearSession();
         }
+    };
+
+    const abandonSession = async () => {
+        if (!activeSession) return;
+        try {
+            const result = await abandonSessionAction(activeSession.id);
+            if (result.success) {
+                clearSession();
+            } else {
+                console.error("Error in abandonSessionAction:", result.error);
+                // Even if action fails on server (e.g. session already deleted), we clear locally
+                clearSession();
+            }
+        } catch (error) {
+            console.error("Error abandoning session:", error);
+            clearSession();
+        }
+    };
+
+    const clearSession = () => {
+        setActiveSession(null);
+        setSessionSets([]);
+        setCompletedSetIds([]);
+        setRoutine(null);
+        localStorage.removeItem(STORAGE_KEY);
     };
 
     return (
@@ -189,7 +212,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             toggleSetCompletion,
             setPreferredRestTime,
             saveSession,
-            finishSession
+            finishSession,
+            abandonSession,
+            clearSession
         }}>
             {children}
         </SessionContext.Provider>

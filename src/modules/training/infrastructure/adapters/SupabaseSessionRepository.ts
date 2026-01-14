@@ -128,4 +128,14 @@ export class SupabaseSessionRepository extends SupabaseRepository implements Ses
             if (insertError) throw new Error(insertError.message);
         }
     }
+
+    async delete(id: string): Promise<void> {
+        const client = await this.getClient();
+        const { error } = await client
+            .from("training_sessions")
+            .delete()
+            .eq("id", id);
+
+        if (error) throw new Error(error.message);
+    }
 }
