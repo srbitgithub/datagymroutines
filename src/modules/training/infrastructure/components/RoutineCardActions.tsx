@@ -11,9 +11,10 @@ interface RoutineCardActionsProps {
     routineId: string;
     routineName: string;
     routineDescription: string;
+    onDelete?: (id: string) => void;
 }
 
-export function RoutineCardActions({ routineId, routineName, routineDescription }: RoutineCardActionsProps) {
+export function RoutineCardActions({ routineId, routineName, routineDescription, onDelete }: RoutineCardActionsProps) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDuplicating, setIsDuplicating] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -31,6 +32,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription 
         setIsDeleting(false);
 
         if (result.success) {
+            if (onDelete) onDelete(routineId);
             router.refresh();
         } else {
             setShowError({ isOpen: true, message: result.error || "Error al borrar la rutina" });
