@@ -7,6 +7,7 @@ import { Routine } from "../../domain/Routine";
 import { RoutineCardActions } from "./RoutineCardActions";
 import { updateRoutinesOrderAction } from "@/app/_actions/training";
 import { CustomDialog } from "@/components/ui/CustomDialog";
+import { useTranslation } from "@/core/i18n/TranslationContext";
 
 interface RoutinesListProps {
     initialRoutines: Routine[];
@@ -20,6 +21,7 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
         isOpen: false,
         message: ''
     });
+    const { t } = useTranslation();
 
     const handleDeleteLocally = (id: string) => {
         setRoutines(prev => prev.filter(r => r.id !== id));
@@ -79,7 +81,7 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
         if (result.error) {
             setErrorDialog({
                 isOpen: true,
-                message: result.error || "Ocurrió un error al actualizar el orden de las rutinas."
+                message: result.error || t('common.error')
             });
             // Revert on error if necessary, but usually better to just log
             setRoutines(initialRoutines);
@@ -121,18 +123,18 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
                             <Link
                                 href={`/dashboard/session/start?routineId=${routine.id}`}
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary text-white shadow-sm hover:scale-110 transition-transform"
-                                title="Comenzar ahora"
+                                title={t('training.start_now')}
                             >
                                 <Play className="h-4 w-4 fill-current ml-0.5" />
                             </Link>
                         </div>
                         <h3 className="text-lg font-bold">{routine.name}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1 mb-4">
-                            {routine.description || "Sin descripción"}
+                            {routine.description || t('common.no_description')}
                         </p>
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-medium text-muted-foreground bg-accent px-2 py-1 rounded">
-                                {routine.exercises.length} ejercicios
+                                {t('dashboard.num_exercises', { count: routine.exercises.length })}
                             </span>
                         </div>
                     </div>
@@ -148,7 +150,7 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
                 isOpen={errorDialog.isOpen}
                 onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
                 onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
-                title="Error al ordenar"
+                title={t('common.error')}
                 description={errorDialog.message}
                 type="alert"
                 variant="danger"

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, AlertCircle, CheckCircle2, Info, AlertTriangle, Save } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface CustomDialogProps {
     isOpen: boolean;
@@ -14,7 +15,6 @@ interface CustomDialogProps {
     confirmLabel?: string;
     cancelLabel?: string;
 }
-
 export function CustomDialog({
     isOpen,
     onClose,
@@ -23,9 +23,13 @@ export function CustomDialog({
     description,
     type = 'confirm',
     variant = 'info',
-    confirmLabel = 'Aceptar',
-    cancelLabel = 'Cancelar'
+    confirmLabel,
+    cancelLabel
 }: CustomDialogProps) {
+    const { t } = useTranslation();
+    const finalConfirmLabel = confirmLabel || t('common.confirm');
+    const finalCancelLabel = cancelLabel || t('common.cancel');
+
     if (!isOpen) return null;
 
     const getIcon = () => {
@@ -73,7 +77,7 @@ export function CustomDialog({
                             onClick={onClose}
                             className="py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
                         >
-                            {cancelLabel}
+                            {finalCancelLabel}
                         </button>
                     )}
                     <button
@@ -83,7 +87,7 @@ export function CustomDialog({
                         }}
                         className={`py-4 ${getConfirmBtnClass()} text-white font-black rounded-2xl transition-all uppercase text-sm shadow-lg`}
                     >
-                        {confirmLabel}
+                        {finalConfirmLabel}
                     </button>
                 </div>
             </div>

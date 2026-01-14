@@ -6,6 +6,7 @@ import Link from "next/link";
 import { deleteRoutineAction, duplicateRoutineAction } from "@/app/_actions/training";
 import { useRouter } from "next/navigation";
 import { CustomDialog } from "@/components/ui/CustomDialog";
+import { useTranslation } from "@/core/i18n/TranslationContext";
 
 interface RoutineCardActionsProps {
     routineId: string;
@@ -20,6 +21,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showError, setShowError] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
     const router = useRouter();
+    const { t } = useTranslation();
 
     const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
@@ -35,7 +37,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
             if (onDelete) onDelete(routineId);
             router.refresh();
         } else {
-            setShowError({ isOpen: true, message: result.error || "Error al borrar la rutina" });
+            setShowError({ isOpen: true, message: result.error || t('common.error') });
         }
     };
 
@@ -48,13 +50,13 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
         // Actually, let's just use default name and notify user.
 
         setIsDuplicating(true);
-        const result = await duplicateRoutineAction(routineId, `${routineName} (copia)`, routineDescription);
+        const result = await duplicateRoutineAction(routineId, `${routineName} (${t('common.copy_suffix')})`, routineDescription);
         setIsDuplicating(false);
 
         if (result.success) {
             router.refresh();
         } else {
-            setShowError({ isOpen: true, message: result.error || "Error al duplicar la rutina" });
+            setShowError({ isOpen: true, message: result.error || t('common.error') });
         }
     };
 
@@ -63,7 +65,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
             <Link
                 href={`/dashboard/routines/${routineId}/edit`}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
-                title="Editar rutina"
+                title={t('routines.edit_routine')}
             >
                 <Edit2 className="h-4 w-4" />
             </Link>
@@ -71,7 +73,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
                 onClick={handleDuplicate}
                 disabled={isDuplicating}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors disabled:opacity-50"
-                title="Duplicar rutina"
+                title={t('routines.duplicate_routine')}
             >
                 {isDuplicating ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -83,7 +85,7 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
                 onClick={handleDeleteClick}
                 disabled={isDeleting}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
-                title="Borrar rutina"
+                title={t('routines.delete_confirm_title')}
             >
                 {isDeleting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -96,18 +98,18 @@ export function RoutineCardActions({ routineId, routineName, routineDescription,
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
                 onConfirm={confirmDelete}
-                title="Borrar rutina"
-                description={`¿Estás seguro de que quieres borrar la rutina "${routineName}"?`}
+                title={t('routines.delete_confirm_title')}
+                description={t('routines.delete_confirm_desc', { name: routineName })}
                 variant="danger"
                 type="confirm"
-                confirmLabel="Borrar"
+                confirmLabel={t('common.delete')}
             />
 
             <CustomDialog
                 isOpen={showError.isOpen}
                 onClose={() => setShowError({ ...showError, isOpen: false })}
                 onConfirm={() => setShowError({ ...showError, isOpen: false })}
-                title="Error"
+                title={t('common.error')}
                 description={showError.message}
                 variant="danger"
                 type="alert"

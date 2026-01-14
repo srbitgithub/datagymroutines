@@ -7,6 +7,7 @@ import { Routine } from '../../domain/Routine';
 import { Plus, GripVertical, Trash2, Save, Dumbbell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { CustomDialog } from '@/components/ui/CustomDialog';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface ExerciseConfig {
     exercise: Exercise;
@@ -22,6 +23,7 @@ interface RoutineBuilderFormProps {
 
 export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilderFormProps) {
     const router = useRouter();
+    const { t } = useTranslation();
     const [name, setName] = useState(initialRoutine?.name || '');
     const [description, setDescription] = useState(initialRoutine?.description || '');
     const [selectedExercises, setSelectedExercises] = useState<ExerciseConfig[]>(() => {
@@ -132,7 +134,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
         } else {
             setErrorDialog({
                 isOpen: true,
-                message: result.error || "Ocurrió un error al guardar la rutina."
+                message: result.error || t('common.error')
             });
         }
     };
@@ -141,31 +143,31 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
         <form onSubmit={handleSave} className="space-y-8 pb-32">
             <div className="space-y-4 rounded-xl border bg-card p-6 shadow-sm">
                 <div className="space-y-2">
-                    <label htmlFor="routine-name" className="text-sm font-bold uppercase text-muted-foreground">Nombre de la Rutina</label>
+                    <label htmlFor="routine-name" className="text-sm font-bold uppercase text-muted-foreground">{t('routines.name_label')}</label>
                     <input
                         id="routine-name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        placeholder="Ej: Torso - Potencia"
+                        placeholder={t('routines.name_placeholder')}
                         className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-lg font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
                     />
                 </div>
                 <div className="space-y-2">
-                    <label htmlFor="routine-desc" className="text-sm font-bold uppercase text-muted-foreground">Descripción (opcional)</label>
+                    <label htmlFor="routine-desc" className="text-sm font-bold uppercase text-muted-foreground">{t('routines.desc_label')}</label>
                     <textarea
                         id="routine-desc"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={2}
-                        placeholder="Ej: Enfocada en básicos y progresión de cargas..."
+                        placeholder={t('routines.desc_placeholder')}
                         className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
                     />
                 </div>
             </div>
 
             <div className="space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ejercicios y Series</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t('routines.exercises_title')}</h2>
                 {selectedExercises.length > 0 ? (
                     <div className="space-y-4">
                         {selectedExercises.map((item, index) => (
@@ -189,7 +191,9 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                         <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
                                         <div className="flex-1 min-w-0">
                                             <p className="font-bold truncate text-sm">{item.exercise.name}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase">{item.exercise.muscleGroup}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase">
+                                                {t(`exercises.muscle_groups.${item.exercise.muscleGroup}`) || item.exercise.muscleGroup}
+                                            </p>
                                         </div>
                                         <button
                                             type="button"
@@ -210,7 +214,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Reps</label>
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">{t('training.reps')}</label>
                                             <input
                                                 type="number"
                                                 value={item.targetReps}
@@ -219,7 +223,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">Peso (kg)</label>
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">{t('training.weight')} (kg)</label>
                                             <input
                                                 type="number"
                                                 step="0.5"
@@ -240,16 +244,16 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                 ) : (
                     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12 text-center opacity-60">
                         <Dumbbell className="h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-xs text-muted-foreground px-4">Selecciona ejercicios de la lista para configurar tus series.</p>
+                        <p className="text-xs text-muted-foreground px-4">{t('routines.select_exercises_hint')}</p>
                     </div>
                 )}
             </div>
 
             <div className="space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Catálogo de Ejercicios</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">{t('routines.catalog_title')}</h2>
                     <div className="space-y-1.5 min-w-[160px]">
-                        <label htmlFor="category-filter" className="text-[10px] font-bold uppercase text-muted-foreground px-1">Filtrar por Grupo</label>
+                        <label htmlFor="category-filter" className="text-[10px] font-bold uppercase text-muted-foreground px-1">{t('routines.filter_group')}</label>
                         <select
                             id="category-filter"
                             value={selectedCategory}
@@ -257,7 +261,9 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                             className="flex h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary text-white"
                         >
                             {categories.map(cat => (
-                                <option key={cat} value={cat}>{cat}</option>
+                                <option key={cat} value={cat}>
+                                    {cat === 'Todos' ? t('common.all') : (t(`exercises.muscle_groups.${cat}`) || cat)}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -274,7 +280,9 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                             >
                                 <div>
                                     <p className="text-sm font-bold">{exercise.name}</p>
-                                    <p className="text-[10px] uppercase font-medium text-muted-foreground">{exercise.muscleGroup}</p>
+                                    <p className="text-[10px] uppercase font-medium text-muted-foreground">
+                                        {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                    </p>
                                 </div>
                                 <div className="bg-brand-primary/10 p-2 rounded-lg">
                                     <Plus className="h-4 w-4 text-brand-primary" />
@@ -283,7 +291,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                         ))
                     ) : (
                         <div className="py-8 text-center text-muted-foreground text-xs italic">
-                            No hay ejercicios en esta categoría.
+                            {t('routines.no_exercises_category')}
                         </div>
                     )}
                 </div>
@@ -299,12 +307,12 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                         {isSaving ? (
                             <div className="flex items-center gap-2">
                                 <Loader2 className="h-5 w-5 animate-spin" />
-                                <span>Guardando...</span>
+                                <span>{initialRoutine ? t('routines.updating') : t('routines.creating')}</span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
                                 <Save className="h-6 w-6" />
-                                <span>{initialRoutine ? 'Actualizar Rutina' : 'Crear Rutina'}</span>
+                                <span>{initialRoutine ? t('routines.update_routine') : t('routines.save_routine')}</span>
                             </div>
                         )}
                     </button>

@@ -8,6 +8,7 @@ import { Exercise } from '../../domain/Exercise';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface RoutineSessionManagerProps {
     routines: Routine[];
@@ -19,6 +20,7 @@ export function RoutineSessionManager({ routines, exercises }: RoutineSessionMan
     const searchParams = useSearchParams();
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const hasAttemptedAutoStart = useRef(false);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const routineId = searchParams.get('routineId');
@@ -38,7 +40,7 @@ export function RoutineSessionManager({ routines, exercises }: RoutineSessionMan
             <div className="flex flex-col items-center justify-center py-40">
                 <Loader2 className="h-10 w-10 text-brand-primary animate-spin mb-4" />
                 <p className="text-muted-foreground font-medium">
-                    {isAutoStarting ? 'Iniciando entrenamiento...' : 'Cargando sesión...'}
+                    {isAutoStarting ? t('training.starting_training') : t('common.loading_session')}
                 </p>
             </div>
         );

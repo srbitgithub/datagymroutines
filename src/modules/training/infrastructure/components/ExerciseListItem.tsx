@@ -5,6 +5,7 @@ import { Exercise } from '../../domain/Exercise';
 import { Dumbbell, Edit2, Check, X, Loader2, Trash2 } from 'lucide-react';
 import { updateExerciseAction, deleteExerciseAction } from '@/app/_actions/training';
 import { CustomDialog } from '@/components/ui/CustomDialog';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface ExerciseListItemProps {
     exercise: Exercise;
@@ -20,6 +21,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
         isOpen: false,
         message: ''
     });
+    const { t } = useTranslation();
 
     const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
@@ -34,7 +36,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
         if (!result.success) {
             setErrorDialog({
                 isOpen: true,
-                message: result.error || "Error al borrar el ejercicio"
+                message: result.error || t('common.error')
             });
         }
     };
@@ -55,7 +57,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
         } else {
             setErrorDialog({
                 isOpen: true,
-                message: result.error || "Error al actualizar el ejercicio"
+                message: result.error || t('common.error')
             });
         }
     };
@@ -119,7 +121,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
-                                    title="Editar nombre"
+                                    title={t('exercises.edit_title')}
                                 >
                                     <Edit2 className="h-4 w-4" />
                                 </button>
@@ -127,14 +129,14 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                                     onClick={handleDeleteClick}
                                     disabled={isDeleting}
                                     className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
-                                    title="Borrar ejercicio"
+                                    title={t('exercises.delete_title')}
                                 >
                                     {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                 </button>
                             </>
                         ) : (
                             <span className="text-[10px] font-bold uppercase text-muted-foreground/50 border rounded px-1.5 py-0.5">
-                                Global
+                                {t('common.global')}
                             </span>
                         )}
                     </>
@@ -145,18 +147,18 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
                 onConfirm={confirmDelete}
-                title="Borrar ejercicio"
-                description={`¿Estás seguro de que quieres borrar "${exercise.name}"?`}
+                title={t('exercises.delete_title')}
+                description={t('exercises.delete_confirm', { name: exercise.name })}
                 variant="danger"
                 type="confirm"
-                confirmLabel="Borrar"
+                confirmLabel={t('common.delete')}
             />
 
             <CustomDialog
                 isOpen={errorDialog.isOpen}
                 onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
                 onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
-                title="Error"
+                title={t('common.error')}
                 description={errorDialog.message}
                 variant="danger"
                 type="alert"

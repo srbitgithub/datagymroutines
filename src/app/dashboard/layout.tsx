@@ -6,63 +6,75 @@ import { usePathname } from "next/navigation";
 import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks } from "lucide-react";
 import { logoutAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
+import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
+    const { t } = useTranslation();
 
     const navItems = [
-        { href: "/dashboard", icon: LayoutDashboard, label: "Panel" },
-        { href: "/dashboard/session", icon: PlayCircle, label: "Entrenamiento" },
-        { href: "/dashboard/routines", icon: ListChecks, label: "Rutinas" },
-        { href: "/dashboard/exercises", icon: Dumbbell, label: "Ejercicios" },
-        { href: "/dashboard/tools", icon: Wrench, label: "Herramientas" },
-        { href: "/dashboard/stats", icon: BarChart2, label: "Estadísticas" },
-        { href: "/dashboard/settings", icon: Settings, label: "Ajustes" },
+        { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
+        { href: "/dashboard/session", icon: PlayCircle, label: t('nav.training') },
+        { href: "/dashboard/routines", icon: ListChecks, label: t('nav.routines') },
+        { href: "/dashboard/exercises", icon: Dumbbell, label: t('nav.exercises') },
+        { href: "/dashboard/tools", icon: Wrench, label: t('nav.tools') },
+        { href: "/dashboard/stats", icon: BarChart2, label: t('nav.stats') },
+        { href: "/dashboard/settings", icon: Settings, label: t('nav.settings') },
     ];
 
     return (
-        <SessionProvider>
-            <div className="flex min-h-screen bg-background text-foreground">
-                {/* Sidebar Mobile (bottom) / Desktop (left) */}
-                <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-zinc-950 md:static md:w-64 md:border-r md:border-t-0">
-                    <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
-                        <div className="hidden items-center gap-2 md:flex mb-8">
-                            <Dumbbell className="h-6 w-6 text-brand-primary" />
-                            <span className="font-bold text-xl tracking-tight text-white">DataGym</span>
-                        </div>
-
-                        <nav className="flex w-full flex-row justify-around gap-2 md:flex-col md:justify-start overflow-x-auto no-scrollbar">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-sm font-medium transition-colors hover:bg-white/10 shrink-0 ${isActive ? 'text-brand-primary' : 'text-zinc-400'
-                                            }`}
-                                    >
-                                        <item.icon className={`h-5 w-5 md:h-4 md:w-4 ${isActive ? 'text-brand-primary' : 'text-white'}`} />
-                                        <span className="md:inline">{item.label}</span>
-                                    </Link>
-                                );
-                            })}
-                        </nav>
-
-                        <div className="mt-auto hidden w-full md:block">
-                            <form action={logoutAction}>
-                                <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 cursor-pointer">
-                                    <LogOut className="h-4 w-4" />
-                                    <span>Cerrar sesión</span>
-                                </button>
-                            </form>
-                        </div>
+        <div className="flex min-h-screen bg-background text-foreground">
+            {/* Sidebar Mobile (bottom) / Desktop (left) */}
+            <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-zinc-950 md:static md:w-64 md:border-r md:border-t-0">
+                <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
+                    <div className="hidden items-center gap-2 md:flex mb-8">
+                        <Dumbbell className="h-6 w-6 text-brand-primary" />
+                        <span className="font-bold text-xl tracking-tight text-white">DataGym</span>
                     </div>
-                </aside>
 
-                <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto">
+                    <nav className="flex w-full flex-row justify-around gap-2 md:flex-col md:justify-start overflow-x-auto no-scrollbar">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 rounded-lg px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-sm font-medium transition-colors hover:bg-white/10 shrink-0 ${isActive ? 'text-brand-primary' : 'text-zinc-400'
+                                        }`}
+                                >
+                                    <item.icon className={`h-5 w-5 md:h-4 md:w-4 ${isActive ? 'text-brand-primary' : 'text-white'}`} />
+                                    <span className="md:inline">{item.label}</span>
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="mt-auto hidden w-full md:block">
+                        <form action={logoutAction}>
+                            <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 cursor-pointer">
+                                <LogOut className="h-4 w-4" />
+                                <span>{t('nav.logout')}</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </aside>
+
+            <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto">
+                {children}
+            </main>
+        </div>
+    );
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+    return (
+        <SessionProvider>
+            <TranslationProvider>
+                <DashboardContent>
                     {children}
-                </main>
-            </div>
+                </DashboardContent>
+            </TranslationProvider>
         </SessionProvider>
     );
 }

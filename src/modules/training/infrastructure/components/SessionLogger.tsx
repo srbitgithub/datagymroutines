@@ -7,6 +7,7 @@ import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info
 import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 export function SessionLogger() {
     const router = useRouter();
@@ -25,6 +26,7 @@ export function SessionLogger() {
         abandonSession,
         clearSession
     } = useSession();
+    const { t } = useTranslation();
 
     const [isFinishing, setIsFinishing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -97,7 +99,7 @@ export function SessionLogger() {
             await finishSession();
             router.replace('/dashboard');
         } catch (error) {
-            alert("Error al finalizar: " + error);
+            alert(t('training.error_finishing') + ": " + error);
         } finally {
             setIsFinishing(false);
         }
@@ -108,7 +110,7 @@ export function SessionLogger() {
         setIsSaving(true);
         const result = await saveSession();
         if ('error' in result && result.error) {
-            alert("Error al guardar: " + result.error);
+            alert(t('training.error_saving') + ": " + result.error);
         } else {
             // Visual feedback
             const btn = document.getElementById('main-action-btn');
@@ -158,7 +160,7 @@ export function SessionLogger() {
             await finishSession();
             router.replace('/dashboard');
         } catch (error: any) {
-            setErrorDialog({ isOpen: true, message: error.message || "Error al guardar y salir" });
+            setErrorDialog({ isOpen: true, message: error.message || t('training.error_saving') });
         } finally {
             setIsFinishing(false);
         }
@@ -232,7 +234,7 @@ export function SessionLogger() {
         return (
             <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col pt-safe px-4">
                 <header className="p-6 border-b border-zinc-900 flex items-center justify-between bg-zinc-900 -mx-4">
-                    <h3 className="text-xl font-black uppercase tracking-tight text-white">Ajustes de Descanso</h3>
+                    <h3 className="text-xl font-black uppercase tracking-tight text-white">{t('training.rest_settings')}</h3>
                     <button
                         onClick={() => setShowConfig(false)}
                         className="p-3 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 transition-colors"
@@ -243,7 +245,7 @@ export function SessionLogger() {
 
                 <main className="flex-1 overflow-y-auto py-10 space-y-10 flex flex-col justify-center max-w-lg mx-auto w-full">
                     <section className="space-y-6">
-                        <label className="text-xs font-bold uppercase text-zinc-500 tracking-widest text-center block">Tiempo de descanso entre series</label>
+                        <label className="text-xs font-bold uppercase text-zinc-500 tracking-widest text-center block">{t('training.rest_time_hint')}</label>
                         <div className="flex items-center justify-center gap-6 bg-zinc-900/50 p-10 rounded-3xl border border-zinc-800 shadow-inner">
                             <div className="text-center">
                                 <input
@@ -259,7 +261,7 @@ export function SessionLogger() {
                                     }}
                                     className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                 />
-                                <p className="text-xs font-bold text-zinc-500 mt-2">MINUTOS</p>
+                                <p className="text-xs font-bold text-zinc-500 mt-2">{t('training.minutes')}</p>
                             </div>
                             <div className="text-5xl font-black text-zinc-800 self-start mt-2">:</div>
                             <div className="text-center">
@@ -276,7 +278,7 @@ export function SessionLogger() {
                                     }}
                                     className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
                                 />
-                                <p className="text-xs font-bold text-zinc-500 mt-2">SEGUNDOS</p>
+                                <p className="text-xs font-bold text-zinc-500 mt-2">{t('training.seconds')}</p>
                             </div>
                         </div>
                     </section>
@@ -304,7 +306,7 @@ export function SessionLogger() {
                             onClick={() => setShowConfig(false)}
                             className="w-full py-6 bg-white text-zinc-950 font-black text-xl rounded-3xl shadow-xl active:scale-95 transition-all uppercase tracking-tight"
                         >
-                            Volver al entrenamiento
+                            {t('training.back_to_training')}
                         </button>
                     </section>
                 </main>
@@ -321,7 +323,7 @@ export function SessionLogger() {
                     </div>
                     <div>
                         <p className={`text-[10px] font-bold uppercase ${isResting || isRestFinished ? 'text-white/80' : 'text-muted-foreground'}`}>
-                            {isRestFinished ? '¡DESCANSO TERMINADO!' : isResting ? 'DESCANSANDO...' : 'PREPARADO'}
+                            {isRestFinished ? t('training.rest_finished') : isResting ? t('training.resting') : t('training.ready')}
                         </p>
                         <p className="text-3xl font-black tabular-nums tracking-tight">
                             {formatTime(isResting || isRestFinished ? restTime : internalTotalRestTime)}
@@ -364,16 +366,16 @@ export function SessionLogger() {
                             <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
                                 <h3 className="font-bold flex items-center gap-2">
                                     <Dumbbell className="h-4 w-4 text-brand-primary" />
-                                    {exercise?.name || "Ejercicio"}
+                                    {exercise?.name || t('common.global')}
                                 </h3>
                             </div>
 
                             <div className="p-0">
                                 <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
-                                    <div className="text-center">SET</div>
-                                    <div className="text-center">PESO</div>
-                                    <div className="text-center">REPS</div>
-                                    <div className="text-center">ACCIÓN</div>
+                                    <div className="text-center">{t('training.set')}</div>
+                                    <div className="text-center">{t('training.weight')}</div>
+                                    <div className="text-center">{t('training.reps')}</div>
+                                    <div className="text-center">{t('training.action')}</div>
                                 </div>
                                 {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => {
                                     const isCompleted = completedSetIds.includes(set.id);
@@ -402,7 +404,7 @@ export function SessionLogger() {
                                                     onClick={() => handleToggleCompletion(set.id)}
                                                     className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
                                                 >
-                                                    {isCompleted ? 'TERMINADA' : 'FINALIZAR'}
+                                                    {isCompleted ? t('training.done') : t('training.finish')}
                                                 </button>
                                             </div>
                                         </div>
@@ -427,7 +429,7 @@ export function SessionLogger() {
                             <X className="h-4 w-4" />
                         </div>
                         <span className="tracking-tight uppercase font-black">
-                            CANCELAR
+                            {t('common.cancel')}
                         </span>
                     </button>
 
@@ -446,7 +448,7 @@ export function SessionLogger() {
                             </div>
                         )}
                         <span className="tracking-tight uppercase font-black">
-                            {allSetsCompleted ? "GUARDAR" : "GUARDAR"}
+                            {allSetsCompleted ? t('training.finish_session') : t('common.save')}
                         </span>
                     </button>
                 </div>
@@ -457,23 +459,23 @@ export function SessionLogger() {
                 isOpen={showCancelModal && cancelModalStage === 'abandon'}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={confirmAbandon}
-                title="¿Abandonar entrenamiento?"
-                description="Se perderá el progreso de esta sesión si no ha sido guardado."
+                title={t('training.abandon_title')}
+                description={t('training.abandon_desc')}
                 variant="danger"
                 type="confirm"
-                confirmLabel="Sí"
-                cancelLabel="No"
+                confirmLabel={t('common.yes')}
+                cancelLabel={t('common.no')}
             />
 
             <CustomDialog
                 isOpen={showCancelModal && cancelModalStage === 'save'}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={executeSaveAndExit}
-                title="Sesión con progreso"
-                description="Tienes series terminadas. ¿Qué quieres hacer?"
+                title={t('training.session_with_progress')}
+                description={t('training.session_with_progress_desc')}
                 type="confirm"
-                confirmLabel="Guardar"
-                cancelLabel="No Guardar"
+                confirmLabel={t('training.save_confirm')}
+                cancelLabel={t('training.no_save_confirm')}
             />
 
             {/* Special case for "Volver" in the save stage - if needed we can add a 3rd button to CustomDialog or keep it simple */}

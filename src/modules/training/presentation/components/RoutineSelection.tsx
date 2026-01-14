@@ -6,6 +6,7 @@ import { useSession } from '../contexts/SessionContext';
 import { ListChecks, Play, AlertCircle, Dumbbell } from 'lucide-react';
 import { useState } from 'react';
 import { CustomDialog } from '@/components/ui/CustomDialog';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface RoutineSelectionProps {
     routines: Routine[];
@@ -15,6 +16,7 @@ interface RoutineSelectionProps {
 export function RoutineSelection({ routines, exercises }: RoutineSelectionProps) {
     const { startNewSession, isLoading } = useSession();
     const [startingId, setStartingId] = useState<string | null>(null);
+    const { t } = useTranslation();
     const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({
         isOpen: false,
         message: ''
@@ -27,7 +29,7 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
         } catch (error: any) {
             setErrorDialog({
                 isOpen: true,
-                message: error.message || "Ocurrió un error inesperado al iniciar la sesión."
+                message: error.message || t('training.error_starting')
             });
         } finally {
             setStartingId(null);
@@ -38,9 +40,9 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Dumbbell className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                <h2 className="text-xl font-bold">No tienes rutinas todavía</h2>
+                <h2 className="text-xl font-bold">{t('training.no_routines')}</h2>
                 <p className="text-muted-foreground mb-8 max-w-xs">
-                    Crea una rutina desde el Panel Principal para empezar a entrenar.
+                    {t('training.create_routine_hint')}
                 </p>
             </div>
         );
@@ -49,8 +51,8 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
     return (
         <div className="space-y-6">
             <header>
-                <h2 className="text-2xl font-black uppercase tracking-tight">Elige tu rutina</h2>
-                <p className="text-muted-foreground">Selecciona qué vas a entrenar hoy.</p>
+                <h2 className="text-2xl font-black uppercase tracking-tight">{t('training.choose_routine')}</h2>
+                <p className="text-muted-foreground">{t('training.start_subtitle')}</p>
             </header>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -66,7 +68,7 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
                                 <ListChecks className="h-6 w-6 text-brand-primary" />
                             </div>
                             <div className="flex items-center gap-1 bg-brand-primary/5 px-2 py-1 rounded-full">
-                                <span className="text-[10px] font-black text-brand-primary uppercase">{routine.exercises.length} Ejercicios</span>
+                                <span className="text-[10px] font-black text-brand-primary uppercase">{t('training.exercises_count', { count: routine.exercises.length })}</span>
                             </div>
                         </div>
                         <h3 className="text-xl font-black group-hover:text-brand-primary transition-colors">{routine.name}</h3>
@@ -74,7 +76,7 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
                             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{routine.description}</p>
                         )}
                         <div className="mt-6 flex items-center justify-between">
-                            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Empezar ahora</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('training.start_now')}</span>
                             <div className="bg-brand-primary p-2 rounded-lg text-white shadow-lg shadow-brand-primary/20">
                                 {startingId === routine.id ? (
                                     <span className="block h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -91,7 +93,7 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
                 isOpen={errorDialog.isOpen}
                 onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
                 onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
-                title="Error al iniciar sesión"
+                title={t('training.error_starting')}
                 description={errorDialog.message}
                 type="alert"
                 variant="danger"

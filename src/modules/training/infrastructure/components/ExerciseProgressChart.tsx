@@ -9,11 +9,11 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    TooltipProps
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { Trophy, TrendingUp, Calendar } from 'lucide-react';
+import { useTranslation, Language } from '@/core/i18n/TranslationContext';
 
 interface ProgressPoint {
     date: string;
@@ -26,21 +26,22 @@ interface ExerciseProgressChartProps {
     exerciseName: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, language, t }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload as ProgressPoint;
+        const locale = language === 'es' ? es : enUS;
         return (
             <div className="bg-zinc-950/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
                 <p className="text-[10px] font-bold uppercase text-zinc-500 mb-2 flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {format(parseISO(label), "d 'de' MMMM, yyyy", { locale: es })}
+                    {format(parseISO(label), t('stats.date_format'), { locale })}
                 </p>
                 <div className="flex items-baseline gap-2">
                     <span className="text-2xl font-black text-brand-primary">{payload[0].value}</span>
                     <span className="text-sm font-bold text-zinc-400">kg</span>
                 </div>
                 <p className="text-xs text-zinc-500 mt-1 font-medium">
-                    Mejor serie: {data.reps} reps
+                    {t('stats.best_set', { reps: data.reps })}
                 </p>
             </div>
         );
@@ -50,6 +51,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressChartProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const { t, language } = useTranslation();
+    const dateLocale = language === 'es' ? es : enUS;
 
     const stats = useMemo(() => {
         if (data.length === 0) return null;
@@ -67,9 +70,9 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20">
                 <TrendingUp className="h-10 w-10 text-zinc-700 mb-4" />
-                <h3 className="text-lg font-bold text-zinc-400">Sin datos suficientes</h3>
+                <h3 className="text-lg font-bold text-zinc-400">{t('stats.not_enough_data')}</h3>
                 <p className="text-sm text-zinc-500 max-w-xs mt-1">
-                    Completa más sesiones con este ejercicio para ver tu evolución gráfica.
+                    {t('stats.not_enough_data_desc')}
                 </p>
             </div>
         );
@@ -83,7 +86,7 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                     <div className="absolute top-0 right-0 p-3 opacity-10">
                         <Trophy className="h-12 w-12 text-yellow-500" />
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Récord Personal</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t('stats.personal_record')}</p>
                     <div className="mt-1 flex items-baseline gap-1">
                         <span className="text-3xl font-black text-white">{stats?.max}</span>
                         <span className="text-xs font-bold text-zinc-500 uppercase">kg</span>
@@ -93,7 +96,7 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                     <div className="absolute top-0 right-0 p-3 opacity-10">
                         <TrendingUp className="h-12 w-12 text-brand-primary" />
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Progresión Total</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t('stats.total_progression')}</p>
                     <div className="mt-1 flex items-baseline gap-1">
                         <span className={`text-3xl font-black ${stats && stats.diff >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                             {stats && stats.diff >= 0 ? `+${stats.diff}` : stats?.diff}
@@ -110,7 +113,7 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
             <div className="relative h-[350px] w-full rounded-2xl border bg-zinc-950 p-6 shadow-2xl">
                 <div className="absolute top-6 left-6 z-10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-tighter">{exerciseName}</h3>
-                    <p className="text-[10px] font-medium text-zinc-500">Evolución del peso máximo</p>
+                    <p className="text-[10px] font-medium text-zinc-500">{t('stats.evolution_max_weight')}</p>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%">
@@ -140,7 +143,7 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }}
-                            tickFormatter={(str) => format(parseISO(str), 'd MMM', { locale: es })}
+                            tickFormatter={(str) => format(parseISO(str), 'd MMM', { locale: dateLocale })}
                             minTickGap={30}
                         />
                         <YAxis
@@ -149,7 +152,7 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                             tick={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }}
                         />
                         <Tooltip
-                            content={<CustomTooltip />}
+                            content={<CustomTooltip language={language} t={t} />}
                             cursor={{ stroke: '#facc1533', strokeWidth: 1 }}
                         />
                         <Area
