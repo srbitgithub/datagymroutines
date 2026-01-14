@@ -67,76 +67,79 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
 
     return (
         <div className="flex items-center justify-between rounded-lg border bg-card p-4 hover:border-brand-primary/50 transition-colors group">
-            <div className="flex items-center gap-3 flex-1">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="rounded-full bg-accent p-2 group-hover:bg-brand-primary/10 transition-colors shrink-0">
                     <Dumbbell className="h-4 w-4 text-muted-foreground group-hover:text-brand-primary" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     {isEditing ? (
-                        <div className="flex items-center gap-2 w-full">
-                            <input
-                                autoFocus
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') handleSave();
-                                    if (e.key === 'Escape') handleCancel();
-                                }}
-                                className="flex-1 bg-accent/20 border-none h-8 px-2 rounded font-medium text-sm focus:ring-1 focus:ring-brand-primary outline-none"
-                            />
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="p-1 text-green-500 hover:bg-green-500/10 rounded transition-colors"
-                                >
-                                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                                </button>
-                                <button
-                                    onClick={handleCancel}
-                                    disabled={isSaving}
-                                    className="p-1 text-red-500 hover:bg-red-500/10 rounded transition-colors"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
+                        <input
+                            autoFocus
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSave();
+                                if (e.key === 'Escape') handleCancel();
+                            }}
+                            className="w-full bg-accent/20 border-none h-8 px-2 rounded font-medium text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                        />
                     ) : (
-                        <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium">{exercise.name}</p>
-                            {exercise.userId && (
-                                <div className="flex items-center gap-1 ml-1">
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
-                                        title="Editar nombre"
-                                    >
-                                        <Edit2 className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        onClick={handleDeleteClick}
-                                        disabled={isDeleting}
-                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
-                                        title="Borrar ejercicio"
-                                    >
-                                        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <p className="text-sm font-medium truncate">{exercise.name}</p>
                     )}
                     {exercise.description && !isEditing && (
-                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        <p className="text-xs text-muted-foreground truncate">
                             {exercise.description}
                         </p>
                     )}
                 </div>
             </div>
-            {!exercise.userId && (
-                <span className="text-[10px] font-bold uppercase text-muted-foreground/50 border rounded px-1.5 py-0.5 shrink-0">
-                    Global
-                </span>
-            )}
+
+            <div className="flex items-center gap-1 ml-4 shrink-0">
+                {isEditing ? (
+                    <>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="p-1 text-green-500 hover:bg-green-500/10 rounded transition-colors"
+                        >
+                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                            className="p-1 text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        {exercise.userId ? (
+                            <>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
+                                    title="Editar nombre"
+                                >
+                                    <Edit2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                    onClick={handleDeleteClick}
+                                    disabled={isDeleting}
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
+                                    title="Borrar ejercicio"
+                                >
+                                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                </button>
+                            </>
+                        ) : (
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground/50 border rounded px-1.5 py-0.5">
+                                Global
+                            </span>
+                        )}
+                    </>
+                )}
+            </div>
 
             <CustomDialog
                 isOpen={showDeleteConfirm}

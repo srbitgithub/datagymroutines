@@ -43,6 +43,7 @@ export function ExerciseForm() {
                     <option value="Espalda">Espalda</option>
                     <option value="Piernas">Piernas</option>
                     <option value="Hombros">Hombros</option>
+                    <option value="Antebrazos">Antebrazos</option>
                     <option value="Bíceps">Bíceps</option>
                     <option value="Tríceps">Tríceps</option>
                     <option value="Core">Core</option>
