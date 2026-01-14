@@ -23,10 +23,10 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         const systemLang = navigator.language.split('-')[0];
-        if (systemLang === 'en') {
-            setLanguage('en');
-        } else {
+        if (systemLang === 'es') {
             setLanguage('es');
+        } else {
+            setLanguage('en');
         }
     }, []);
 
