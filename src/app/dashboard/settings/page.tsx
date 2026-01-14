@@ -1,8 +1,7 @@
 'use client';
 
-import { getProfileAction, logoutAction } from "@/app/_actions/auth";
+import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
 import { User, Mail, Weight, LogOut } from "lucide-react";
-import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
@@ -19,7 +18,7 @@ export default function SettingsPage() {
             try {
                 const [p, u] = await Promise.all([
                     getProfileAction(),
-                    new SupabaseAuthRepository().getSession()
+                    getUserSessionAction()
                 ]);
                 setProfile(p);
                 setUser(u);

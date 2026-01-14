@@ -123,3 +123,8 @@ export async function updateMonthlyGoalAction(goal: number) {
         return { error: `Error: ${error.message}` };
     }
 }
+
+export async function getUserSessionAction() {
+    const authRepository = new SupabaseAuthRepository();
+    return authRepository.getSession();
+}
