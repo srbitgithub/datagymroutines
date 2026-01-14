@@ -57,6 +57,18 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
     const handleDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
         setDropTargetIndex(index);
+
+        // Auto-scroll logic
+        const threshold = 100; // pixels from edge
+        const scrollSpeed = 15;
+        const { clientY } = e;
+        const viewportHeight = window.innerHeight;
+
+        if (clientY < threshold) {
+            window.scrollBy(0, -scrollSpeed);
+        } else if (clientY > viewportHeight - threshold) {
+            window.scrollBy(0, scrollSpeed);
+        }
     };
 
     const handleDragEnd = () => {
