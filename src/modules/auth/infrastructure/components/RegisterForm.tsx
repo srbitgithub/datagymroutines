@@ -2,9 +2,11 @@
 
 import { useActionState } from 'react';
 import { registerAction } from '@/app/_actions/auth';
-import { Mail, Lock, Loader2, User } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 export function RegisterForm() {
+    const { t } = useTranslation();
     const [state, action, isPending] = useActionState(registerAction, null);
 
     return (
@@ -12,7 +14,7 @@ export function RegisterForm() {
             <div className="space-y-4">
                 <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium leading-none">
-                        Email
+                        {t('auth.email_label')}
                     </label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -29,7 +31,7 @@ export function RegisterForm() {
 
                 <div className="space-y-2">
                     <label htmlFor="password" className="text-sm font-medium leading-none">
-                        Contraseña
+                        {t('auth.password_label')}
                     </label>
                     <div className="relative">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -52,10 +54,10 @@ export function RegisterForm() {
                 {isPending ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creando cuenta...
+                        {t('auth.registering')}
                     </>
                 ) : (
-                    "Registrarse"
+                    t('auth.register_button')
                 )}
             </button>
 
@@ -67,14 +69,14 @@ export function RegisterForm() {
 
             {state?.success && (
                 <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-500">
-                    Cuenta creada con éxito. Revisa tu email para confirmar.
+                    {t('auth.register_success')}
                 </div>
             )}
 
             <p className="text-center text-sm text-muted-foreground">
-                ¿Ya tienes cuenta?{' '}
+                {t('auth.have_account')}{' '}
                 <a href="/login" className="font-medium text-brand-primary hover:underline underline-offset-4">
-                    Inicia sesión
+                    {t('auth.login_link')}
                 </a>
             </p>
         </form>

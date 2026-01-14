@@ -70,11 +70,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
         <SessionProvider>
-            <TranslationProvider>
-                <DashboardContent>
-                    {children}
-                </DashboardContent>
-            </TranslationProvider>
+            <DashboardContent>
+                {children}
+            </DashboardContent>
         </SessionProvider>
     );
 }

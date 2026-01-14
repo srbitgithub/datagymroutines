@@ -3,8 +3,10 @@
 import { useActionState } from 'react';
 import { loginAction } from '@/app/_actions/auth';
 import { Mail, Lock, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 export function LoginForm() {
+  const { t } = useTranslation();
   const [state, action, isPending] = useActionState(loginAction, null);
   const isEnvMissing = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -12,13 +14,13 @@ export function LoginForm() {
     <form action={action} className="w-full max-w-sm space-y-6">
       {isEnvMissing && (
         <div className="rounded-md bg-amber-500/10 p-3 text-xs text-amber-600 border border-amber-500/20">
-          ⚠️ <strong>Configuración incompleta:</strong> Faltan variables de entorno de Supabase en Vercel. Verifica el Dashboard de Vercel.
+          ⚠️ <strong>{t('auth.env_missing_title')}</strong> {t('auth.env_missing_desc')}
         </div>
       )}
       <div className="space-y-4">
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Email
+            {t('auth.email_label')}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -35,7 +37,7 @@ export function LoginForm() {
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Contraseña
+            {t('auth.password_label')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -58,10 +60,10 @@ export function LoginForm() {
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Iniciando sesión...
+            {t('auth.logging_in')}
           </>
         ) : (
-          "Entrar"
+          t('auth.login_button')
         )}
       </button>
 
@@ -72,9 +74,9 @@ export function LoginForm() {
       )}
 
       <p className="text-center text-sm text-muted-foreground">
-        ¿No tienes cuenta?{' '}
+        {t('auth.no_account')}{' '}
         <a href="/register" className="font-medium text-brand-primary hover:underline underline-offset-4">
-          Regístrate
+          {t('auth.register_link')}
         </a>
       </p>
     </form>

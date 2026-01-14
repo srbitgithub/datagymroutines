@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Timer, Play, Pause, RotateCcw, Bell } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 const PRESETS = [60, 90, 120, 180];
 
 export function RestTimer() {
+    const { t } = useTranslation();
     const [timeLeft, setTimeLeft] = useState<number>(0);
     const [isActive, setIsActive] = useState(false);
     const [duration, setDuration] = useState(90);
@@ -56,8 +58,8 @@ export function RestTimer() {
                     <Timer className="h-5 w-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold">Temporizador de Descanso</h3>
-                    <p className="text-xs text-muted-foreground">Optimiza tu recuperación</p>
+                    <h3 className="font-bold">{t('tools.rest_timer.title')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('tools.rest_timer.subtitle')}</p>
                 </div>
             </header>
 

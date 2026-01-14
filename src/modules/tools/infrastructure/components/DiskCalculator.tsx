@@ -2,10 +2,12 @@
 
 import { useState, useMemo } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 const PLATE_WEIGHTS = [25, 20, 15, 10, 5, 2.5, 1.25];
 
 export function DiskCalculator() {
+    const { t } = useTranslation();
     const [targetWeight, setTargetWeight] = useState<number>(60);
     const [barbellWeight, setBarbellWeight] = useState<number>(20);
 
@@ -31,8 +33,10 @@ export function DiskCalculator() {
                     <Calculator className="h-5 w-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold">Calculadora de Discos</h3>
-                    <p className="text-xs text-muted-foreground">Discos por lado (barra de {barbellWeight}kg)</p>
+                    <h3 className="font-bold">{t('tools.disk_calculator.title')}</h3>
+                    <p className="text-xs text-muted-foreground">
+                        {t('tools.disk_calculator.subtitle', { weight: barbellWeight })}
+                    </p>
                 </div>
             </header>
 
@@ -41,13 +45,13 @@ export function DiskCalculator() {
                     onClick={() => setBarbellWeight(20)}
                     className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${barbellWeight === 20 ? 'bg-brand-primary text-white border-brand-primary' : 'bg-background hover:bg-accent border-input'}`}
                 >
-                    Barra 20Kg
+                    {t('tools.disk_calculator.bar_20')}
                 </button>
                 <button
                     onClick={() => setBarbellWeight(15)}
                     className={`flex-1 py-2 rounded-lg text-[10px] font-bold border transition-all ${barbellWeight === 15 ? 'bg-brand-primary text-white border-brand-primary' : 'bg-background hover:bg-accent border-input'}`}
                 >
-                    Barra 15Kg
+                    {t('tools.disk_calculator.bar_15')}
                 </button>
             </div>
 
@@ -58,7 +62,7 @@ export function DiskCalculator() {
                         value={targetWeight}
                         onChange={(e) => setTargetWeight(Number(e.target.value))}
                         className="flex-1 h-12 sm:h-14 rounded-xl border bg-accent/5 px-3 sm:px-4 text-lg sm:text-2xl font-black text-center focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                        placeholder="Peso total"
+                        placeholder={t('tools.disk_calculator.target_placeholder')}
                     />
                     <button
                         onClick={() => setTargetWeight(barbellWeight)}
@@ -89,7 +93,9 @@ export function DiskCalculator() {
                                 ></div>
                             ))
                         ) : (
-                            <p className="text-[10px] font-bold uppercase tracking-tighter text-muted-foreground/30">Vacía</p>
+                            <p className="text-[10px] font-bold uppercase tracking-tighter text-muted-foreground/30">
+                                {t('tools.disk_calculator.empty')}
+                            </p>
                         )}
                     </div>
                 </div>

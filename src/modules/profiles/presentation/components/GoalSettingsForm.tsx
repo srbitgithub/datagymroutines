@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { updateMonthlyGoalAction } from "@/app/_actions/auth";
 import { Target, Save, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "@/core/i18n/TranslationContext";
 
 interface GoalSettingsFormProps {
     initialGoal: number;
 }
 
 export function GoalSettingsForm({ initialGoal }: GoalSettingsFormProps) {
+    const { t } = useTranslation();
     const [goal, setGoal] = useState(initialGoal);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -19,12 +21,12 @@ export function GoalSettingsForm({ initialGoal }: GoalSettingsFormProps) {
         try {
             const result = await updateMonthlyGoalAction(goal);
             if (result.success) {
-                setMessage({ type: 'success', text: 'Objetivo actualizado correctamente' });
+                setMessage({ type: 'success', text: t('dashboard.update_success') });
             } else {
-                setMessage({ type: 'error', text: result.error || 'Error al actualizar' });
+                setMessage({ type: 'error', text: result.error || t('dashboard.update_error') });
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Error de conexión' });
+            setMessage({ type: 'error', text: t('common.connection_error') });
         } finally {
             setIsSaving(false);
             // Clear success message after 3 seconds
@@ -39,7 +41,7 @@ export function GoalSettingsForm({ initialGoal }: GoalSettingsFormProps) {
             <div className="grid gap-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                     <Target className="h-4 w-4 text-brand-secondary" />
-                    Objetivo mensual de entrenamientos
+                    {t('dashboard.goal_title')}
                 </label>
                 <div className="flex gap-2">
                     <input
@@ -60,11 +62,11 @@ export function GoalSettingsForm({ initialGoal }: GoalSettingsFormProps) {
                         ) : (
                             <Save className="h-4 w-4 mr-2" />
                         )}
-                        Guardar
+                        {t('common.save')}
                     </button>
                 </div>
                 <p className="text-[12px] text-muted-foreground">
-                    Este número se usará para calcular la barra de progreso en tu panel principal.
+                    {t('dashboard.goal_hint')}
                 </p>
             </div>
 

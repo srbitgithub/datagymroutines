@@ -3,8 +3,10 @@
 import { useActionState } from 'react';
 import { forgotPasswordAction } from '@/app/_actions/auth';
 import { Mail, Loader2, ArrowLeft } from 'lucide-react';
+import { useTranslation } from '@/core/i18n/TranslationContext';
 
 export function ForgotPasswordForm() {
+    const { t } = useTranslation();
     const [state, action, isPending] = useActionState(forgotPasswordAction, null);
 
     return (
@@ -12,7 +14,7 @@ export function ForgotPasswordForm() {
             <div className="space-y-4">
                 <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium leading-none">
-                        Email
+                        {t('auth.email_label')}
                     </label>
                     <div className="relative">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -36,10 +38,10 @@ export function ForgotPasswordForm() {
                 {isPending ? (
                     <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enviando...
+                        {t('auth.sending_reset')}
                     </>
                 ) : (
-                    "Enviar instrucciones"
+                    t('auth.reset_instructions')
                 )}
             </button>
 
@@ -51,14 +53,14 @@ export function ForgotPasswordForm() {
 
             {state?.success && (
                 <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-500">
-                    Si el email existe, recibirás instrucciones para restablecer tu contraseña.
+                    {t('auth.forgot_password_success')}
                 </div>
             )}
 
             <div className="flex justify-center">
                 <a href="/login" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="h-4 w-4" />
-                    Volver al inicio de sesión
+                    {t('auth.back_to_login')}
                 </a>
             </div>
         </form>
