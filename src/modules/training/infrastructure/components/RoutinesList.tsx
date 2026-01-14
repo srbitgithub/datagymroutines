@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Routine } from "../../domain/Routine";
 import { RoutineCardActions } from "./RoutineCardActions";
 import { updateRoutinesOrderAction } from "@/app/_actions/training";
+import { CustomDialog } from "@/components/ui/CustomDialog";
 
 interface RoutinesListProps {
     initialRoutines: Routine[];
@@ -15,6 +16,10 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
     const [routines, setRoutines] = useState(initialRoutines);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({
+        isOpen: false,
+        message: ''
+    });
 
     const handleDragStart = (index: number) => {
         setDraggedIndex(index);
@@ -56,7 +61,10 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
 
         const result = await updateRoutinesOrderAction(orders);
         if (result.error) {
-            alert(result.error);
+            setErrorDialog({
+                isOpen: true,
+                message: result.error || "Ocurrió un error al actualizar el orden de las rutinas."
+            });
             // Revert on error if necessary, but usually better to just log
             setRoutines(initialRoutines);
         }
@@ -118,6 +126,16 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
                     )}
                 </div>
             ))}
+
+            <CustomDialog
+                isOpen={errorDialog.isOpen}
+                onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                title="Error al ordenar"
+                description={errorDialog.message}
+                type="alert"
+                variant="danger"
+            />
         </div>
     );
 }

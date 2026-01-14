@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Exercise } from '../../domain/Exercise';
 import { Dumbbell, Edit2, Check, X, Loader2, Trash2 } from 'lucide-react';
 import { updateExerciseAction, deleteExerciseAction } from '@/app/_actions/training';
+import { CustomDialog } from '@/components/ui/CustomDialog';
 
 interface ExerciseListItemProps {
     exercise: Exercise;
@@ -14,16 +15,27 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
     const [newName, setNewName] = useState(exercise.name);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({
+        isOpen: false,
+        message: ''
+    });
 
-    const handleDelete = async () => {
-        if (!confirm(`¿Estás seguro de que quieres borrar "${exercise.name}"?`)) return;
+    const handleDeleteClick = () => {
+        setShowDeleteConfirm(true);
+    };
 
+    const confirmDelete = async () => {
+        setShowDeleteConfirm(false);
         setIsDeleting(true);
         const result = await deleteExerciseAction(exercise.id);
         setIsDeleting(false);
 
         if (!result.success) {
-            alert(result.error || "Error al borrar el ejercicio");
+            setErrorDialog({
+                isOpen: true,
+                message: result.error || "Error al borrar el ejercicio"
+            });
         }
     };
 
@@ -41,7 +53,10 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
         if (result.success) {
             setIsEditing(false);
         } else {
-            alert(result.error || "Error al actualizar el ejercicio");
+            setErrorDialog({
+                isOpen: true,
+                message: result.error || "Error al actualizar el ejercicio"
+            });
         }
     };
 
@@ -99,7 +114,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                                         <Edit2 className="h-4 w-4" />
                                     </button>
                                     <button
-                                        onClick={handleDelete}
+                                        onClick={handleDeleteClick}
                                         disabled={isDeleting}
                                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
                                         title="Borrar ejercicio"
@@ -122,6 +137,27 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
                     Global
                 </span>
             )}
+
+            <CustomDialog
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDelete}
+                title="Borrar ejercicio"
+                description={`¿Estás seguro de que quieres borrar "${exercise.name}"?`}
+                variant="danger"
+                type="confirm"
+                confirmLabel="Borrar"
+            />
+
+            <CustomDialog
+                isOpen={errorDialog.isOpen}
+                onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                title="Error"
+                description={errorDialog.message}
+                variant="danger"
+                type="alert"
+            />
         </div>
     );
 }

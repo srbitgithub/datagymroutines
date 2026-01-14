@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateGymAction, deleteGymAction } from '@/app/_actions/auth';
 import { MapPin, X, Loader2, Trash2 } from 'lucide-react';
 import { Gym } from '../../domain/Gym';
+import { CustomDialog } from '@/components/ui/CustomDialog';
 
 interface GymItemProps {
     gym: Gym;
@@ -13,6 +14,7 @@ export function GymItem({ gym }: GymItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isPending, setIsPending] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [name, setName] = useState(gym.name || '');
     const [description, setDescription] = useState(gym.description || '');
@@ -31,8 +33,12 @@ export function GymItem({ gym }: GymItemProps) {
         }
     };
 
-    const handleDelete = async () => {
-        if (!confirm('¿Estás seguro de que quieres eliminar este gimnasio?')) return;
+    const handleDeleteClick = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        setShowDeleteConfirm(false);
         setIsPending(true);
         try {
             await deleteGymAction(gym.id);
@@ -91,7 +97,8 @@ export function GymItem({ gym }: GymItemProps) {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setIsDeleting(true)}
+                            onClick={handleDeleteClick}
+                            disabled={isPending}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 text-red-600 hover:bg-red-50"
                         >
                             <Trash2 className="h-4 w-4" />
@@ -99,15 +106,16 @@ export function GymItem({ gym }: GymItemProps) {
                     </div>
                 </form>
 
-                {isDeleting && (
-                    <div className="pt-4 border-t border-red-100 flex flex-col gap-2">
-                        <p className="text-xs text-red-600 font-medium text-center">¿Confirmas la eliminación?</p>
-                        <div className="flex gap-2">
-                            <button onClick={handleDelete} className="flex-1 text-xs bg-red-600 text-white rounded py-1.5 font-bold">SÍ, BORRAR</button>
-                            <button onClick={() => setIsDeleting(false)} className="flex-1 text-xs bg-zinc-100 text-zinc-600 rounded py-1.5">CANCELAR</button>
-                        </div>
-                    </div>
-                )}
+                <CustomDialog
+                    isOpen={showDeleteConfirm}
+                    onClose={() => setShowDeleteConfirm(false)}
+                    onConfirm={confirmDelete}
+                    title="Eliminar Gimnasio"
+                    description="¿Estás seguro de que quieres eliminar este gimnasio?"
+                    variant="danger"
+                    type="confirm"
+                    confirmLabel="Eliminar"
+                />
             </div>
         );
     }

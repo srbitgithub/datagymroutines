@@ -5,6 +5,7 @@ import { Exercise } from '../../domain/Exercise';
 import { useSession } from '../contexts/SessionContext';
 import { ListChecks, Play, AlertCircle, Dumbbell } from 'lucide-react';
 import { useState } from 'react';
+import { CustomDialog } from '@/components/ui/CustomDialog';
 
 interface RoutineSelectionProps {
     routines: Routine[];
@@ -14,13 +15,20 @@ interface RoutineSelectionProps {
 export function RoutineSelection({ routines, exercises }: RoutineSelectionProps) {
     const { startNewSession, isLoading } = useSession();
     const [startingId, setStartingId] = useState<string | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({
+        isOpen: false,
+        message: ''
+    });
 
     const handleStart = async (routine: Routine) => {
         setStartingId(routine.id);
         try {
             await startNewSession(routine, exercises);
-        } catch (error) {
-            alert("Error al iniciar: " + error);
+        } catch (error: any) {
+            setErrorDialog({
+                isOpen: true,
+                message: error.message || "Ocurrió un error inesperado al iniciar la sesión."
+            });
         } finally {
             setStartingId(null);
         }
@@ -78,6 +86,16 @@ export function RoutineSelection({ routines, exercises }: RoutineSelectionProps)
                     </button>
                 ))}
             </div>
+
+            <CustomDialog
+                isOpen={errorDialog.isOpen}
+                onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                title="Error al iniciar sesión"
+                description={errorDialog.message}
+                type="alert"
+                variant="danger"
+            />
         </div>
     );
 }

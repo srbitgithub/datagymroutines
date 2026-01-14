@@ -6,6 +6,7 @@ import { Exercise } from '../../domain/Exercise';
 import { Routine } from '../../domain/Routine';
 import { Plus, GripVertical, Trash2, Save, Dumbbell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { CustomDialog } from '@/components/ui/CustomDialog';
 
 interface ExerciseConfig {
     exercise: Exercise;
@@ -38,6 +39,10 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
     const [selectedCategory, setSelectedCategory] = useState('Todos');
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+    const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({
+        isOpen: false,
+        message: ''
+    });
 
     const categories = ['Todos', ...Array.from(new Set(exercises.map(e => e.muscleGroup)))].sort();
 
@@ -113,7 +118,10 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
             router.push('/dashboard/routines');
             router.refresh();
         } else {
-            alert(result.error);
+            setErrorDialog({
+                isOpen: true,
+                message: result.error || "Ocurrió un error al guardar la rutina."
+            });
         }
     };
 
@@ -290,6 +298,16 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                     </button>
                 </div>
             </div>
+
+            <CustomDialog
+                isOpen={errorDialog.isOpen}
+                onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                title="Error al guardar"
+                description={errorDialog.message}
+                type="alert"
+                variant="danger"
+            />
         </form>
     );
 }

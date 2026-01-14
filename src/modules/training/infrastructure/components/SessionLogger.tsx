@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Clock, Save, X, Loader2, Settings, Bell, BellOff, PlayCircle, Check } from 'lucide-react';
+import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info } from 'lucide-react';
+import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 
@@ -31,6 +32,7 @@ export function SessionLogger() {
     // Custom Modal State
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelModalStage, setCancelModalStage] = useState<'abandon' | 'save'>('abandon');
+    const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
     // Rest Timer States - Initialized with preferredRestTime from context
     const [restTime, setRestTime] = useState(preferredRestTime);
@@ -143,8 +145,8 @@ export function SessionLogger() {
         try {
             await abandonSession();
             router.replace('/dashboard');
-        } catch (error) {
-            alert("Error al abandonar: " + error);
+        } catch (error: any) {
+            setErrorDialog({ isOpen: true, message: error.message || "Error al abandonar" });
         } finally {
             setIsFinishing(false);
         }
@@ -155,8 +157,8 @@ export function SessionLogger() {
         try {
             await finishSession();
             router.replace('/dashboard');
-        } catch (error) {
-            alert("Error al guardar y salir: " + error);
+        } catch (error: any) {
+            setErrorDialog({ isOpen: true, message: error.message || "Error al guardar y salir" });
         } finally {
             setIsFinishing(false);
         }
@@ -450,75 +452,42 @@ export function SessionLogger() {
                 </div>
             </div>
 
-            {/* Custom Cancellation Modal */}
-            {showCancelModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCancelModal(false)} />
-                    <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-                        {cancelModalStage === 'abandon' ? (
-                            <>
-                                <div className="text-center space-y-4">
-                                    <div className="w-16 h-16 bg-red-600/20 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <X className="h-8 w-8" />
-                                    </div>
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">¿Abandonar entrenamiento?</h3>
-                                    <p className="text-zinc-400 font-medium">Se perderá el progreso de esta sesión si no ha sido guardado.</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-8">
-                                    <button
-                                        onClick={() => setShowCancelModal(false)}
-                                        className="py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
-                                    >
-                                        No
-                                    </button>
-                                    <button
-                                        onClick={confirmAbandon}
-                                        className="py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl transition-all uppercase text-sm"
-                                    >
-                                        Sí
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="text-center space-y-4">
-                                    <div className="w-16 h-16 bg-brand-primary/20 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Save className="h-8 w-8" />
-                                    </div>
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">Sesión con progreso</h3>
-                                    <p className="text-zinc-400 font-medium font-semibold">Tienes series terminadas. ¿Qué quieres hacer?</p>
-                                </div>
-                                <div className="flex flex-col gap-3 mt-8">
-                                    <button
-                                        onClick={() => {
-                                            setShowCancelModal(false);
-                                            executeSaveAndExit();
-                                        }}
-                                        className="w-full py-4 bg-brand-primary text-white font-black rounded-2xl transition-all uppercase text-sm shadow-lg shadow-brand-primary/20"
-                                    >
-                                        Guardar
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowCancelModal(false);
-                                            executeAbandon();
-                                        }}
-                                        className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
-                                    >
-                                        No Guardar
-                                    </button>
-                                    <button
-                                        onClick={() => setShowCancelModal(false)}
-                                        className="w-full py-3 text-zinc-500 hover:text-white font-bold transition-all uppercase text-xs mt-2"
-                                    >
-                                        Volver
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
+            {/* Reusable CustomDialogs */}
+            <CustomDialog
+                isOpen={showCancelModal && cancelModalStage === 'abandon'}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={confirmAbandon}
+                title="¿Abandonar entrenamiento?"
+                description="Se perderá el progreso de esta sesión si no ha sido guardado."
+                variant="danger"
+                type="confirm"
+                confirmLabel="Sí"
+                cancelLabel="No"
+            />
+
+            <CustomDialog
+                isOpen={showCancelModal && cancelModalStage === 'save'}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={executeSaveAndExit}
+                title="Sesión con progreso"
+                description="Tienes series terminadas. ¿Qué quieres hacer?"
+                type="confirm"
+                confirmLabel="Guardar"
+                cancelLabel="No Guardar"
+            />
+
+            {/* Special case for "Volver" in the save stage - if needed we can add a 3rd button to CustomDialog or keep it simple */}
+            {/* For now, I'll stick to the confirm labels requested. "cancel" will be "No Guardar" */}
+
+            <CustomDialog
+                isOpen={errorDialog.isOpen}
+                onClose={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                onConfirm={() => setErrorDialog({ ...errorDialog, isOpen: false })}
+                title="Error"
+                description={errorDialog.message}
+                variant="danger"
+                type="alert"
+            />
         </div>
     );
 }
