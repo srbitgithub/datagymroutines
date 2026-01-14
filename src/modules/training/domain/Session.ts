@@ -2,7 +2,6 @@ export interface TrainingSession {
     id: string;
     userId: string;
     routineId?: string;
-    gymId?: string;
     startTime: Date;
     endTime?: Date;
     notes?: string;

@@ -1,0 +1,182 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    TooltipProps
+} from 'recharts';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Trophy, TrendingUp, Calendar } from 'lucide-react';
+
+interface ProgressPoint {
+    date: string;
+    weight: number;
+    reps: number;
+}
+
+interface ExerciseProgressChartProps {
+    data: ProgressPoint[];
+    exerciseName: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload as ProgressPoint;
+        return (
+            <div className="bg-zinc-950/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
+                <p className="text-[10px] font-bold uppercase text-zinc-500 mb-2 flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {format(parseISO(label), "d 'de' MMMM, yyyy", { locale: es })}
+                </p>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-brand-primary">{payload[0].value}</span>
+                    <span className="text-sm font-bold text-zinc-400">kg</span>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1 font-medium">
+                    Mejor serie: {data.reps} reps
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
+export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressChartProps) {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+    const stats = useMemo(() => {
+        if (data.length === 0) return null;
+        const weights = data.map(d => d.weight);
+        const max = Math.max(...weights);
+        const first = data[0].weight;
+        const last = data[data.length - 1].weight;
+        const diff = last - first;
+        const percent = first > 0 ? (diff / first) * 100 : 0;
+
+        return { max, diff, percent };
+    }, [data]);
+
+    if (data.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20">
+                <TrendingUp className="h-10 w-10 text-zinc-700 mb-4" />
+                <h3 className="text-lg font-bold text-zinc-400">Sin datos suficientes</h3>
+                <p className="text-sm text-zinc-500 max-w-xs mt-1">
+                    Completa más sesiones con este ejercicio para ver tu evolución gráfica.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="relative overflow-hidden rounded-2xl border bg-zinc-900/50 p-4 backdrop-blur-sm">
+                    <div className="absolute top-0 right-0 p-3 opacity-10">
+                        <Trophy className="h-12 w-12 text-yellow-500" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Récord Personal</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-white">{stats?.max}</span>
+                        <span className="text-xs font-bold text-zinc-500 uppercase">kg</span>
+                    </div>
+                </div>
+                <div className="relative overflow-hidden rounded-2xl border bg-zinc-900/50 p-4 backdrop-blur-sm">
+                    <div className="absolute top-0 right-0 p-3 opacity-10">
+                        <TrendingUp className="h-12 w-12 text-brand-primary" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Progresión Total</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                        <span className={`text-3xl font-black ${stats && stats.diff >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {stats && stats.diff >= 0 ? `+${stats.diff}` : stats?.diff}
+                        </span>
+                        <span className="text-xs font-bold text-zinc-500 uppercase">kg</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-zinc-500">
+                        ({stats && stats.percent >= 0 ? '+' : ''}{stats?.percent.toFixed(1)}%)
+                    </p>
+                </div>
+            </div>
+
+            {/* Main Chart Container */}
+            <div className="relative h-[350px] w-full rounded-2xl border bg-zinc-950 p-6 shadow-2xl">
+                <div className="absolute top-6 left-6 z-10">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-tighter">{exerciseName}</h3>
+                    <p className="text-[10px] font-medium text-zinc-500">Evolución del peso máximo</p>
+                </div>
+
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                        data={data}
+                        margin={{ top: 40, right: 10, left: -20, bottom: 0 }}
+                        onMouseMove={(state) => {
+                            if (state.activeTooltipIndex !== undefined) {
+                                setHoveredIndex(state.activeTooltipIndex as number);
+                            }
+                        }}
+                        onMouseLeave={() => setHoveredIndex(null)}
+                    >
+                        <defs>
+                            <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#facc15" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#facc15" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                            vertical={false}
+                            strokeDasharray="3 3"
+                            stroke="#ffffff05"
+                        />
+                        <XAxis
+                            dataKey="date"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }}
+                            tickFormatter={(str) => format(parseISO(str), 'd MMM', { locale: es })}
+                            minTickGap={30}
+                        />
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }}
+                        />
+                        <Tooltip
+                            content={<CustomTooltip />}
+                            cursor={{ stroke: '#facc1533', strokeWidth: 1 }}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="weight"
+                            stroke="#facc15"
+                            strokeWidth={4}
+                            fillOpacity={1}
+                            fill="url(#colorWeight)"
+                            animationDuration={1500}
+                            activeDot={{
+                                r: 6,
+                                stroke: '#000',
+                                strokeWidth: 2,
+                                fill: '#facc15',
+                                className: "shadow-glow"
+                            }}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+
+            <style jsx global>{`
+                .shadow-glow {
+                    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+                }
+            `}</style>
+        </div>
+    );
+}

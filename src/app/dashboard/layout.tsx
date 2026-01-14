@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, LayoutDashboard, Settings, LogOut, MapPin, Wrench, PlayCircle, ListChecks } from "lucide-react";
+import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks } from "lucide-react";
 import { logoutAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
 
@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         { href: "/dashboard/routines", icon: ListChecks, label: "Rutinas" },
         { href: "/dashboard/exercises", icon: Dumbbell, label: "Ejercicios" },
         { href: "/dashboard/tools", icon: Wrench, label: "Herramientas" },
-        { href: "/dashboard/gyms", icon: MapPin, label: "Gimnasios" },
+        { href: "/dashboard/stats", icon: BarChart2, label: "Estadísticas" },
         { href: "/dashboard/settings", icon: Settings, label: "Ajustes" },
     ];
 

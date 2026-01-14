@@ -6,7 +6,6 @@ export class SessionMapper {
             id: raw.id,
             userId: raw.user_id,
             routineId: raw.routine_id,
-            gymId: raw.gym_id,
             startTime: raw.start_time ? new Date(raw.start_time) : new Date(),
             endTime: raw.end_time ? new Date(raw.end_time) : undefined,
             notes: raw.notes,
@@ -32,7 +31,6 @@ export class SessionMapper {
             id: session.id,
             user_id: session.userId,
             routine_id: session.routineId,
-            gym_id: session.gymId,
             notes: session.notes,
         };
 

@@ -481,3 +481,37 @@ export async function updateRoutinesOrderAction(orders: { id: string, orderIndex
         return { error: `Error al actualizar el orden: ${error.message}` };
     }
 }
+export async function getExerciseProgressAction(exerciseId: string) {
+    noStore();
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return { success: false, error: "No autenticado", data: [] };
+
+        const sessionRepository = new SupabaseSessionRepository();
+        const sessions = await sessionRepository.getAllByUserId(user.id);
+
+        const progressData = sessions
+            .filter(s => s.endTime) // Solo sesiones terminadas
+            .map(session => {
+                const exerciseSets = (session.sets || []).filter(set => set.exerciseId === exerciseId);
+                if (exerciseSets.length === 0) return null;
+
+                const maxWeight = Math.max(...exerciseSets.map(set => set.weight));
+                const bestSet = exerciseSets.find(s => s.weight === maxWeight);
+
+                return {
+                    date: session.startTime.toISOString().split('T')[0],
+                    weight: maxWeight,
+                    reps: bestSet?.reps || 0
+                };
+            })
+            .filter((item): item is { date: string; weight: number; reps: number } => item !== null)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        return { success: true, data: progressData };
+    } catch (error: any) {
+        console.error("Error en getExerciseProgressAction:", error);
+        return { success: false, error: error.message, data: [] };
+    }
+}

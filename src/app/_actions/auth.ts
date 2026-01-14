@@ -5,9 +5,7 @@ import { LoginUseCase } from "@/modules/auth/application/LoginUseCase";
 import { RegisterUseCase } from "@/modules/auth/application/RegisterUseCase";
 import { ForgotPasswordUseCase } from "@/modules/auth/application/ForgotPasswordUseCase";
 import { GetProfileUseCase, UpdateProfileUseCase } from "@/modules/profiles/application/ProfileUseCases";
-import { GetGymsUseCase, CreateGymUseCase, UpdateGymUseCase, DeleteGymUseCase } from "@/modules/gyms/application/GymUseCases";
 import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/adapters/SupabaseProfileRepository";
-import { SupabaseGymRepository } from "@/modules/gyms/infrastructure/adapters/SupabaseGymRepository";
 import { AuthError } from "@/core/errors/DomainErrors";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -94,81 +92,6 @@ export async function getProfileAction() {
     return getProfileUseCase.execute(user.id);
 }
 
-export async function getGymsAction() {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-
-    if (!user) return [];
-
-    const gymRepository = new SupabaseGymRepository();
-    const getGymsUseCase = new GetGymsUseCase(gymRepository);
-
-    return getGymsUseCase.execute(user.id);
-}
-
-export async function createGymAction(prevState: any, formData: FormData) {
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const isDefault = formData.get("isDefault") === "on";
-
-    if (!name) return { error: "El nombre es requerido" };
-
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-    if (!user) return { error: "No autenticado" };
-
-    const gymRepository = new SupabaseGymRepository();
-    const createGymUseCase = new CreateGymUseCase(gymRepository);
-
-    try {
-        await createGymUseCase.execute({
-            id: crypto.randomUUID(),
-            userId: user.id,
-            name,
-            description,
-            isDefault,
-            createdAt: new Date(),
-        });
-        revalidatePath("/dashboard/gyms");
-        return { success: true };
-    } catch (error) {
-        return { error: "Error al crear el gimnasio" };
-    }
-}
-
-export async function updateGymAction(id: string, name: string, description: string, isDefault: boolean) {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-    if (!user) return { error: "No autenticado" };
-
-    const gymRepository = new SupabaseGymRepository();
-    const updateGymUseCase = new UpdateGymUseCase(gymRepository);
-
-    try {
-        await updateGymUseCase.execute(id, { name, description, isDefault });
-        revalidatePath("/dashboard/gyms");
-        return { success: true };
-    } catch (error) {
-        return { error: "Error al actualizar el gimnasio" };
-    }
-}
-
-export async function deleteGymAction(id: string) {
-    const authRepository = new SupabaseAuthRepository();
-    const user = await authRepository.getSession();
-    if (!user) return { error: "No autenticado" };
-
-    const gymRepository = new SupabaseGymRepository();
-    const deleteGymUseCase = new DeleteGymUseCase(gymRepository);
-
-    try {
-        await deleteGymUseCase.execute(id);
-        revalidatePath("/dashboard/gyms");
-        return { success: true };
-    } catch (error) {
-        return { error: "Error al eliminar el gimnasio" };
-    }
-}
 
 export async function logoutAction() {
     const authRepository = new SupabaseAuthRepository();
