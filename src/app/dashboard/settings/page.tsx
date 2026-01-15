@@ -1,11 +1,10 @@
 'use client';
 
 import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
-import { User, Mail, Weight, LogOut } from "lucide-react";
+import { User, Mail, Weight, LogOut, Loader2, Shield } from "lucide-react";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
-import { Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -57,7 +56,14 @@ export default function SettingsPage() {
                             )}
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>
+                                {profile?.role === 'Elite' && (
+                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-brand-primary text-white rounded-full uppercase tracking-widest animate-pulse">
+                                        Elite
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-sm text-muted-foreground">{user?.email || t('common.loading')}</p>
                         </div>
                     </div>
@@ -89,6 +95,16 @@ export default function SettingsPage() {
                                     </label>
                                     <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20 capitalize">
                                         {t(`common.units.${profile.weightUnit}`)}
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <label className="text-sm font-medium flex items-center gap-2">
+                                        <Shield className="h-4 w-4" />
+                                        {t('settings.role_label')}
+                                    </label>
+                                    <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
+                                        {t(`settings.plans.${profile.role?.toLowerCase() || 'rookie'}`)}
                                     </div>
                                 </div>
 

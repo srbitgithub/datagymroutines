@@ -207,7 +207,13 @@ export const es = {
         username_label: "Nombre de usuario",
         weight_unit_label: "Unidad de peso",
         danger_zone: "Zona de Peligro",
-        danger_zone_desc: "Si cierras la sesión tendrás que volver a introducir tus credenciales para acceder a tus datos.",
+        role_label: "Plan Actual",
+        plans: {
+            elite: "Élite",
+            athlete: "Athlete",
+            rookie: "Rookie"
+        },
+        danger_zone_desc: "Si cierras sesión, tendrás que volver a introducir tus credenciales para acceder a tus datos.",
     },
     tools: {
         title: "Herramientas",

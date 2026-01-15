@@ -5,6 +5,7 @@ export interface Profile {
     avatarUrl?: string;
     weightUnit: 'kg' | 'lbs';
     monthlyGoal?: number;
+    role: 'Rookie' | 'Athlete' | 'Elite';
     updatedAt: Date;
 }
 

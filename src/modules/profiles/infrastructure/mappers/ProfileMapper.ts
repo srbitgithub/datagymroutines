@@ -9,6 +9,7 @@ export class ProfileMapper {
             avatarUrl: raw.avatar_url,
             weightUnit: raw.weight_unit as 'kg' | 'lbs',
             monthlyGoal: raw.monthly_goal,
+            role: raw.role as 'Rookie' | 'Athlete' | 'Elite',
             updatedAt: new Date(raw.updated_at),
         };
     }
@@ -21,6 +22,7 @@ export class ProfileMapper {
             avatar_url: profile.avatarUrl,
             weight_unit: profile.weightUnit,
             monthly_goal: profile.monthlyGoal,
+            role: profile.role,
             updated_at: profile.updatedAt.toISOString(),
         };
     }
@@ -32,6 +34,7 @@ export class ProfileMapper {
         if (profile.avatarUrl !== undefined) persistence.avatar_url = profile.avatarUrl;
         if (profile.weightUnit !== undefined) persistence.weight_unit = profile.weightUnit;
         if (profile.monthlyGoal !== undefined) persistence.monthly_goal = profile.monthlyGoal;
+        if (profile.role !== undefined) persistence.role = profile.role;
         if (profile.updatedAt !== undefined) persistence.updated_at = profile.updatedAt.toISOString();
         return persistence;
     }
