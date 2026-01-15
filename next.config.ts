@@ -1,4 +1,11 @@
 import type { NextConfig } from "next";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  cacheOnFrontEndNav: true,
+});
 
 const nextConfig: NextConfig = {
   env: {
@@ -7,4 +14,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);

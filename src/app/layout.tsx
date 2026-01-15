@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DataGym | Cuaderno Digital de Fuerza",
   description: "Tecnología invisible para atletas de alto rendimiento.",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "DataGym",
+  },
 };
 
 export default function RootLayout({
