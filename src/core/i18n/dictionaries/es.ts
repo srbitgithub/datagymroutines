@@ -159,6 +159,11 @@ export const es = {
         date_format: "d 'de' MMMM, yyyy",
         loading_data: "Cargando datos...",
         processing_history: "Procesando historial...",
+        filter_all: "Todo",
+        filter_month: "Este mes",
+        filter_3_months: "3 meses",
+        filter_6_months: "6 meses",
+        filter_year: "1 año",
     },
     landing: {
         hero_title: "DataGym",

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getExercisesAction, getExerciseProgressAction } from '@/app/_actions/training';
 import { Exercise } from '@/modules/training/domain/Exercise';
 import { ExerciseProgressChart } from '@/modules/training/infrastructure/components/ExerciseProgressChart';
-import { BarChart2, Search, Dumbbell, Loader2, ChevronRight, Activity } from 'lucide-react';
+import { BarChart2, Search, Dumbbell, Loader2, ChevronRight, Activity, ChevronLeft, Calendar } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
+import { subMonths, startOfMonth, isAfter, parseISO } from 'date-fns';
 
 export default function StatsPage() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -14,6 +15,7 @@ export default function StatsPage() {
     const [loading, setLoading] = useState(true);
     const [loadingChart, setLoadingChart] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [timeRange, setTimeRange] = useState('all');
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -34,6 +36,32 @@ export default function StatsPage() {
         }
         setLoadingChart(false);
     };
+
+    const filteredData = useMemo(() => {
+        if (timeRange === 'all' || !progressData) return progressData;
+
+        const now = new Date();
+        let startDate: Date;
+
+        switch (timeRange) {
+            case 'month':
+                startDate = startOfMonth(now);
+                break;
+            case '3months':
+                startDate = subMonths(now, 3);
+                break;
+            case '6months':
+                startDate = subMonths(now, 6);
+                break;
+            case 'year':
+                startDate = subMonths(now, 12);
+                break;
+            default:
+                return progressData;
+        }
+
+        return progressData.filter(point => isAfter(parseISO(point.date), startDate));
+    }, [progressData, timeRange]);
 
     const filteredExercises = exercises.filter(e =>
         e.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -99,12 +127,30 @@ export default function StatsPage() {
                 </div>
             ) : (
                 <div className="space-y-8 animate-in zoom-in-95 duration-300">
-                    <button
-                        onClick={() => setSelectedExercise(null)}
-                        className="text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors flex items-center gap-2"
-                    >
-                        {t('stats.back_to_list')}
-                    </button>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <button
+                            onClick={() => setSelectedExercise(null)}
+                            className="flex items-center w-fit gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all border border-zinc-700 shadow-lg group"
+                        >
+                            <ChevronLeft className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
+                            {t('stats.back_to_list')}
+                        </button>
+
+                        <div className="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-xl border border-zinc-800">
+                            <Calendar className="h-4 w-4 ml-2 text-zinc-500" />
+                            <select
+                                value={timeRange}
+                                onChange={(e) => setTimeRange(e.target.value)}
+                                className="bg-transparent border-none text-zinc-300 text-[10px] font-black uppercase tracking-widest px-2 py-1 outline-none cursor-pointer hover:text-white transition-colors"
+                            >
+                                <option value="month" className="bg-zinc-900">{t('stats.filter_month')}</option>
+                                <option value="3months" className="bg-zinc-900">{t('stats.filter_3_months')}</option>
+                                <option value="6months" className="bg-zinc-900">{t('stats.filter_6_months')}</option>
+                                <option value="year" className="bg-zinc-900">{t('stats.filter_year')}</option>
+                                <option value="all" className="bg-zinc-900">{t('stats.filter_all')}</option>
+                            </select>
+                        </div>
+                    </div>
 
                     {loadingChart ? (
                         <div className="flex flex-col items-center justify-center py-20">
@@ -113,7 +159,7 @@ export default function StatsPage() {
                         </div>
                     ) : (
                         <ExerciseProgressChart
-                            data={progressData}
+                            data={filteredData}
                             exerciseName={selectedExercise.name}
                         />
                     )}
