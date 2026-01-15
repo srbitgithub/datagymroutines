@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info } from 'lucide-react';
+import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy } from 'lucide-react';
 import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
@@ -35,6 +35,25 @@ export function SessionLogger() {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancelModalStage, setCancelModalStage] = useState<'abandon' | 'save'>('abandon');
     const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+    const [showCongratsModal, setShowCongratsModal] = useState(false);
+    const [congratsPhrase, setCongratsPhrase] = useState('');
+
+    const congratsPhrases = [
+        t('training.congrats_1') || '¡Increíble trabajo! Has completado tu rutina.',
+        t('training.congrats_2') || '¡Enhorabuena! Un paso más cerca de tus objetivos.',
+        t('training.congrats_3') || '¡Excelente sesión! Sigue así.',
+        t('training.congrats_4') || '¡Rutina finalizada! Tu cuerpo te lo agradecerá.',
+        t('training.congrats_5') || '¡Lo lograste! Gran esfuerzo hoy.',
+        t('training.congrats_6') || '¡Eres una máquina! Entrenamiento completado.',
+        t('training.congrats_7') || '¡Felicidades! Has dado el 100% hoy.',
+        t('training.congrats_8') || '¡Misión cumplida! Disfruta de tu descanso.',
+        t('training.congrats_9') || '¡Brutal! Has superado otro entrenamiento.',
+        t('training.congrats_10') || '¡En racha! Sigue dándolo todo.',
+        t('training.congrats_11') || '¡Imparable! Has terminado con éxito.',
+        t('training.congrats_12') || '¡Muy bien hecho! Cada gota de sudor cuenta.'
+    ];
+
+    const nextSetRef = useRef<HTMLDivElement>(null);
 
     // Rest Timer States - Initialized with preferredRestTime from context
     const [restTime, setRestTime] = useState(preferredRestTime);
@@ -68,11 +87,47 @@ export function SessionLogger() {
         return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const handleToggleCompletion = (setId: string) => {
-        toggleSetCompletion(setId);
+    const handleToggleCompletion = async (setId: string) => {
         const wasCompleted = completedSetIds.includes(setId);
+        toggleSetCompletion(setId);
+
         if (!wasCompleted) {
             resetRestTimer();
+
+            // Auto-save logic if all sets are completed
+            const setsAfterToggle = [...completedSetIds, setId];
+            if (setsAfterToggle.length === sessionSets.length) {
+                // All sets completed! Prepare congratulations and save
+                const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
+                setCongratsPhrase(randomPhrase);
+
+                // We delay slightly to let the UI update (move the last set) before showing modal
+                setTimeout(async () => {
+                    setIsFinishing(true);
+                    try {
+                        await finishSession();
+                        setShowCongratsModal(true);
+                    } catch (error) {
+                        setErrorDialog({ isOpen: true, message: t('training.error_finishing') + ": " + error });
+                        setIsFinishing(false);
+                    }
+                }, 500);
+            } else {
+                // Auto-scroll to next active set
+                setTimeout(() => {
+                    const nextActiveSetElement = document.querySelector('[data-next-set="true"]');
+                    if (nextActiveSetElement) {
+                        const headerOffset = 120; // Estimate for sticky header height
+                        const elementPosition = nextActiveSetElement.getBoundingClientRect().top + window.pageYOffset;
+                        const offsetPosition = elementPosition - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+            }
         } else {
             stopRestTimer();
         }
@@ -358,62 +413,119 @@ export function SessionLogger() {
             </header>
 
             <div className="space-y-6">
-                {allUniqueExerciseIds.map((exerciseId) => {
-                    const exercise = exerciseMap[exerciseId];
-                    const exerciseSets = groupedSets[exerciseId] || [];
-                    return (
-                        <div key={exerciseId} className="rounded-2xl border bg-card overflow-hidden shadow-sm">
-                            <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
-                                <h3 className="font-bold flex items-center gap-2">
-                                    <Dumbbell className="h-4 w-4 text-brand-primary" />
-                                    {exercise?.name || t('common.global')}
-                                </h3>
-                            </div>
+                {allUniqueExerciseIds
+                    .sort((a, b) => {
+                        // Sort exercises: uncompleted ones first
+                        const aSets = groupedSets[a] || [];
+                        const bSets = groupedSets[b] || [];
+                        const aCompleted = aSets.length > 0 && aSets.every(s => completedSetIds.includes(s.id));
+                        const bCompleted = bSets.length > 0 && bSets.every(s => completedSetIds.includes(s.id));
 
-                            <div className="p-0">
-                                <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
-                                    <div className="text-center">{t('training.set')}</div>
-                                    <div className="text-center">{t('training.weight')}</div>
-                                    <div className="text-center">{t('training.reps')}</div>
-                                    <div className="text-center">{t('training.action')}</div>
+                        if (aCompleted && !bCompleted) return 1;
+                        if (!aCompleted && bCompleted) return -1;
+                        return 0;
+                    })
+                    .map((exerciseId) => {
+                        const exercise = exerciseMap[exerciseId];
+                        const exerciseSets = [...(groupedSets[exerciseId] || [])].sort((a, b) => {
+                            // Sort sets: uncompleted first, then by original order
+                            const aDone = completedSetIds.includes(a.id);
+                            const bDone = completedSetIds.includes(b.id);
+                            if (aDone && !bDone) return 1;
+                            if (!aDone && bDone) return -1;
+                            return a.orderIndex - b.orderIndex;
+                        });
+
+                        // Find the very first uncompleted set across all exercises for auto-scroll target
+                        const findFirstUncompletedSet = () => {
+                            // This is a bit expensive to run in map, but small lists are fine
+                            // We need to identify WHICH set is the one the user should focus on next
+                            const allUncompleted = sessionSets
+                                .filter(s => !completedSetIds.includes(s.id))
+                                .sort((a, b) => {
+                                    // Should match the logic of exercise sorting + set sorting
+                                    // but for brevity we'll just use a simpler marker logic
+                                    return 0;
+                                });
+                            return allUncompleted[0]?.id;
+                        };
+
+                        const firstUncompletedId = sessionSets
+                            .filter(s => !completedSetIds.includes(s.id))
+                            .sort((a, b) => {
+                                // Find which exercise this belongs to
+                                const exA = a.exerciseId;
+                                const exB = b.exerciseId;
+                                // Get completion status of those exercises
+                                const exASets = groupedSets[exA] || [];
+                                const exBSets = groupedSets[exB] || [];
+                                const exAAllDone = exASets.every(s => completedSetIds.includes(s.id));
+                                const exBAllDone = exBSets.every(s => completedSetIds.includes(s.id));
+
+                                if (exAAllDone && !exBAllDone) return 1;
+                                if (!exAAllDone && exBAllDone) return -1;
+                                return a.orderIndex - b.orderIndex;
+                            })[0]?.id;
+
+                        return (
+                            <div key={exerciseId} className="rounded-2xl border bg-card overflow-hidden shadow-sm">
+                                <div className="p-4 bg-accent/5 border-b flex justify-between items-center">
+                                    <h3 className="font-bold flex items-center gap-2">
+                                        <Dumbbell className="h-4 w-4 text-brand-primary" />
+                                        {exercise?.name || t('common.global')}
+                                    </h3>
                                 </div>
-                                {exerciseSets.sort((a, b) => a.orderIndex - b.orderIndex).map((set, idx) => {
-                                    const isCompleted = completedSetIds.includes(set.id);
-                                    return (
-                                        <div key={set.id} className="grid grid-cols-4 items-center border-b last:border-0 hover:bg-accent/5 transition-colors p-3 gap-2">
-                                            <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
-                                            <div className="flex justify-center">
-                                                <input
-                                                    type="number"
-                                                    step="0.5"
-                                                    value={set.weight}
-                                                    onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
-                                                    className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                                />
+
+                                <div className="p-0">
+                                    <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
+                                        <div className="text-center">{t('training.set')}</div>
+                                        <div className="text-center">{t('training.weight')}</div>
+                                        <div className="text-center">{t('training.reps')}</div>
+                                        <div className="text-center">{t('training.action')}</div>
+                                    </div>
+                                    {exerciseSets.map((set, idx) => {
+                                        const isCompleted = completedSetIds.includes(set.id);
+                                        const isNextActive = set.id === firstUncompletedId;
+
+                                        return (
+                                            <div
+                                                key={set.id}
+                                                data-next-set={isNextActive ? "true" : "false"}
+                                                className={`grid grid-cols-4 items-center border-b last:border-0 transition-colors p-3 gap-2 ${isNextActive ? 'bg-brand-primary/5 ring-1 ring-inset ring-brand-primary/20' : 'hover:bg-accent/5'}`}
+                                            >
+                                                <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
+                                                <div className="flex justify-center">
+                                                    <input
+                                                        type="number"
+                                                        step="0.5"
+                                                        value={set.weight}
+                                                        onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
+                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <input
+                                                        type="number"
+                                                        value={set.reps}
+                                                        onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
+                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        onClick={() => handleToggleCompletion(set.id)}
+                                                        className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                                                    >
+                                                        {isCompleted ? t('training.done') : t('training.finish')}
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="flex justify-center">
-                                                <input
-                                                    type="number"
-                                                    value={set.reps}
-                                                    onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
-                                                    className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                                />
-                                            </div>
-                                            <div className="flex justify-center">
-                                                <button
-                                                    onClick={() => handleToggleCompletion(set.id)}
-                                                    className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
-                                                >
-                                                    {isCompleted ? t('training.done') : t('training.finish')}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
             </div>
 
             {/* Floating Action Button Group */}
@@ -480,6 +592,23 @@ export function SessionLogger() {
 
             {/* Special case for "Volver" in the save stage - if needed we can add a 3rd button to CustomDialog or keep it simple */}
             {/* For now, I'll stick to the confirm labels requested. "cancel" will be "No Guardar" */}
+
+            <CustomDialog
+                isOpen={showCongratsModal}
+                onClose={() => {
+                    setShowCongratsModal(false);
+                    router.replace('/dashboard');
+                }}
+                onConfirm={() => {
+                    setShowCongratsModal(false);
+                    router.replace('/dashboard');
+                }}
+                title={t('training.congrats_title') || '¡Enhorabuena!'}
+                description={congratsPhrase}
+                variant="success"
+                type="alert"
+                confirmLabel={t('common.ok') || 'OK'}
+            />
 
             <CustomDialog
                 isOpen={errorDialog.isOpen}
