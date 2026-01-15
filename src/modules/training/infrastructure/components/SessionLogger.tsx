@@ -378,8 +378,8 @@ export function SessionLogger() {
     }
 
     return (
-        <div className="space-y-6 pb-60">
-            <header className={`sticky top-0 z-30 flex items-center justify-between border-b p-4 -mx-6 md:mx-0 md:rounded-xl md:border mb-6 transition-all duration-500 backdrop-blur-md ${isRestFinished ? 'bg-red-600/90 text-white shadow-[0_0_30px_rgba(220,38,38,0.5)] border-red-400' : isResting ? 'bg-brand-primary/90 text-white shadow-lg' : 'bg-background/80'}`}>
+        <div className="space-y-6 pb-60 pt-24 md:pt-28">
+            <header className={`fixed top-0 left-0 right-0 z-30 flex items-center justify-between border-b p-4 transition-all duration-500 backdrop-blur-md ${isRestFinished ? 'bg-red-600/90 text-white shadow-[0_0_30px_rgba(220,38,38,0.5)] border-red-400' : isResting ? 'bg-brand-primary/90 text-white shadow-lg' : 'bg-background/80'} md:max-w-4xl md:mx-auto md:left-auto md:right-auto md:rounded-b-2xl md:border-x md:border-b`}>
                 <div className="flex items-center gap-4">
                     <div className={`rounded-full p-2 ${isResting || isRestFinished ? 'bg-white/20' : 'bg-brand-primary/10'}`}>
                         <Clock className={`h-5 w-5 ${isResting || isRestFinished ? 'text-white' : 'text-brand-primary'}`} />
@@ -530,8 +530,8 @@ export function SessionLogger() {
             </div>
 
             {/* Floating Action Button Group */}
-            <div className="fixed bottom-24 left-6 right-6 z-50 flex items-center justify-between gap-3 pointer-events-none">
-                <div className="flex w-full items-center justify-between pointer-events-auto">
+            <div className="fixed bottom-24 left-0 right-0 z-50 px-6 pointer-events-none">
+                <div className="flex w-full items-center justify-between pointer-events-auto max-w-4xl mx-auto">
                     {/* Cancel Button - Left */}
                     <button
                         onClick={handleCancel}
