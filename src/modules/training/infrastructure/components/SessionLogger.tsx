@@ -113,20 +113,29 @@ export function SessionLogger() {
                     }
                 }, 500);
             } else {
-                // Auto-scroll to next active set
-                setTimeout(() => {
-                    const nextActiveSetElement = document.querySelector('[data-next-set="true"]');
-                    if (nextActiveSetElement) {
-                        const headerOffset = 120; // Estimate for sticky header height
-                        const elementPosition = nextActiveSetElement.getBoundingClientRect().top + window.pageYOffset;
-                        const offsetPosition = elementPosition - headerOffset;
+                // Auto-scroll ONLY if the entire exercise is completed
+                const currentSet = sessionSets.find(s => s.id === setId);
+                const exerciseId = currentSet?.exerciseId;
+                const exerciseSets = sessionSets.filter(s => s.exerciseId === exerciseId);
+                const isExerciseCompleted = exerciseSets.every(s =>
+                    s.id === setId ? true : completedSetIds.includes(s.id)
+                );
 
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: 'smooth'
-                        });
-                    }
-                }, 100);
+                if (isExerciseCompleted) {
+                    setTimeout(() => {
+                        const nextActiveSetElement = document.querySelector('[data-next-set="true"]');
+                        if (nextActiveSetElement) {
+                            const headerOffset = 120; // Estimate for sticky header height
+                            const elementPosition = nextActiveSetElement.getBoundingClientRect().top + window.pageYOffset;
+                            const offsetPosition = elementPosition - headerOffset;
+
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 100);
+                }
             }
         } else {
             stopRestTimer();
