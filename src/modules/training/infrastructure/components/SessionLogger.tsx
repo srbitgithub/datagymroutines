@@ -436,14 +436,7 @@ export function SessionLogger() {
                     })
                     .map((exerciseId) => {
                         const exercise = exerciseMap[exerciseId];
-                        const exerciseSets = [...(groupedSets[exerciseId] || [])].sort((a, b) => {
-                            // Sort sets: uncompleted first, then by original order
-                            const aDone = completedSetIds.includes(a.id);
-                            const bDone = completedSetIds.includes(b.id);
-                            if (aDone && !bDone) return 1;
-                            if (!aDone && bDone) return -1;
-                            return a.orderIndex - b.orderIndex;
-                        });
+                        const exerciseSets = [...(groupedSets[exerciseId] || [])].sort((a, b) => a.orderIndex - b.orderIndex);
 
                         // Find the very first uncompleted set across all exercises for auto-scroll target
                         const findFirstUncompletedSet = () => {
