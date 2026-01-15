@@ -207,7 +207,7 @@ export function SessionLogger() {
         setIsFinishing(true);
         try {
             await abandonSession();
-            router.replace('/dashboard');
+            // No longer navigating to dashboard, RoutineSessionManager will show selection
         } catch (error: any) {
             setErrorDialog({ isOpen: true, message: error.message || "Error al abandonar" });
         } finally {
@@ -220,7 +220,7 @@ export function SessionLogger() {
         setIsFinishing(true);
         try {
             await finishSession();
-            router.replace('/dashboard');
+            // No longer navigating to dashboard, RoutineSessionManager will show selection
         } catch (error: any) {
             setErrorDialog({ isOpen: true, message: error.message || t('training.error_saving') });
         } finally {
@@ -572,12 +572,12 @@ export function SessionLogger() {
                 isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={confirmCancel}
-                title={completedSetIds.length > 0 ? t('training.session_with_progress') || "¿Quieres guardar la sesión?" : t('training.abandon_title') || "¿Quieres abandonar este entrenamiento?"}
-                description={completedSetIds.length > 0 ? t('training.session_with_progress_desc') || "Tienes progreso realizado. ¿Deseas guardarlo antes de salir?" : t('training.abandon_desc') || "Perderás el progreso si no has guardado."}
+                title={completedSetIds.length > 0 ? "¿Guardar las series terminadas?" : "¿Quieres abandonar este entrenamiento?"}
+                description=""
                 variant={completedSetIds.length > 0 ? "info" : "danger"}
                 type="confirm"
-                confirmLabel={completedSetIds.length > 0 ? t('common.yes') : t('common.yes')}
-                cancelLabel={completedSetIds.length > 0 ? t('common.no') : t('common.no')}
+                confirmLabel={t('common.yes')}
+                cancelLabel={t('common.no')}
                 onCancelClick={completedSetIds.length > 0 ? executeAbandon : undefined}
             />
 
@@ -588,11 +588,9 @@ export function SessionLogger() {
                 isOpen={showCongratsModal}
                 onClose={() => {
                     setShowCongratsModal(false);
-                    router.replace('/dashboard');
                 }}
                 onConfirm={() => {
                     setShowCongratsModal(false);
-                    router.replace('/dashboard');
                 }}
                 title={t('training.congrats_title') || '¡Enhorabuena!'}
                 description={congratsPhrase}
