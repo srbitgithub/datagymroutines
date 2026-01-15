@@ -125,7 +125,7 @@ export function SessionLogger() {
                     setTimeout(() => {
                         const nextActiveSetElement = document.querySelector('[data-next-set="true"]');
                         if (nextActiveSetElement) {
-                            const headerOffset = 120; // Estimate for sticky header height
+                            const headerOffset = 150; // Increase to 150 to avoid overlap with fixed header
                             const elementPosition = nextActiveSetElement.getBoundingClientRect().top + window.pageYOffset;
                             const offsetPosition = elementPosition - headerOffset;
 
