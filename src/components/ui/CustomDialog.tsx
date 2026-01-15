@@ -14,6 +14,7 @@ interface CustomDialogProps {
     variant?: 'info' | 'success' | 'danger' | 'warning';
     confirmLabel?: string;
     cancelLabel?: string;
+    onCancelClick?: () => void;
 }
 export function CustomDialog({
     isOpen,
@@ -24,7 +25,8 @@ export function CustomDialog({
     type = 'confirm',
     variant = 'info',
     confirmLabel,
-    cancelLabel
+    cancelLabel,
+    onCancelClick
 }: CustomDialogProps) {
     const { t } = useTranslation();
     const finalConfirmLabel = confirmLabel || t('common.confirm');
@@ -74,7 +76,13 @@ export function CustomDialog({
                 <div className={`grid ${type === 'confirm' ? 'grid-cols-2' : 'grid-cols-1'} gap-4 mt-8`}>
                     {type === 'confirm' && (
                         <button
-                            onClick={onClose}
+                            onClick={() => {
+                                if (onCancelClick) {
+                                    onCancelClick();
+                                } else {
+                                    onClose();
+                                }
+                            }}
                             className="py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
                         >
                             {finalCancelLabel}

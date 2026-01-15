@@ -191,18 +191,15 @@ export function SessionLogger() {
 
     const handleCancel = async () => {
         if (isFinishing || isSaving) return;
-        setCancelModalStage('abandon');
         setShowCancelModal(true);
     };
 
-    const confirmAbandon = async () => {
+    const confirmCancel = async () => {
         const hasFinishedSets = completedSetIds.length > 0;
-
-        if (!hasFinishedSets) {
-            setShowCancelModal(false);
-            executeAbandon();
+        if (hasFinishedSets) {
+            executeSaveAndExit();
         } else {
-            setCancelModalStage('save');
+            executeAbandon();
         }
     };
 
@@ -215,6 +212,7 @@ export function SessionLogger() {
             setErrorDialog({ isOpen: true, message: error.message || "Error al abandonar" });
         } finally {
             setIsFinishing(false);
+            setShowCancelModal(false);
         }
     };
 
@@ -227,6 +225,7 @@ export function SessionLogger() {
             setErrorDialog({ isOpen: true, message: error.message || t('training.error_saving') });
         } finally {
             setIsFinishing(false);
+            setShowCancelModal(false);
         }
     };
 
@@ -570,26 +569,16 @@ export function SessionLogger() {
 
             {/* Reusable CustomDialogs */}
             <CustomDialog
-                isOpen={showCancelModal && cancelModalStage === 'abandon'}
+                isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
-                onConfirm={confirmAbandon}
-                title={t('training.abandon_title')}
-                description={t('training.abandon_desc')}
-                variant="danger"
+                onConfirm={confirmCancel}
+                title={completedSetIds.length > 0 ? t('training.session_with_progress') || "¿Quieres guardar la sesión?" : t('training.abandon_title') || "¿Quieres abandonar este entrenamiento?"}
+                description={completedSetIds.length > 0 ? t('training.session_with_progress_desc') || "Tienes progreso realizado. ¿Deseas guardarlo antes de salir?" : t('training.abandon_desc') || "Perderás el progreso si no has guardado."}
+                variant={completedSetIds.length > 0 ? "info" : "danger"}
                 type="confirm"
-                confirmLabel={t('common.yes')}
-                cancelLabel={t('common.no')}
-            />
-
-            <CustomDialog
-                isOpen={showCancelModal && cancelModalStage === 'save'}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={executeSaveAndExit}
-                title={t('training.session_with_progress')}
-                description={t('training.session_with_progress_desc')}
-                type="confirm"
-                confirmLabel={t('training.save_confirm')}
-                cancelLabel={t('training.no_save_confirm')}
+                confirmLabel={completedSetIds.length > 0 ? t('common.yes') : t('common.yes')}
+                cancelLabel={completedSetIds.length > 0 ? t('common.no') : t('common.no')}
+                onCancelClick={completedSetIds.length > 0 ? executeAbandon : undefined}
             />
 
             {/* Special case for "Volver" in the save stage - if needed we can add a 3rd button to CustomDialog or keep it simple */}
