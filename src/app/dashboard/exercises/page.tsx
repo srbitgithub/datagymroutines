@@ -13,13 +13,14 @@ export default function ExercisesPage() {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
 
+    const refreshExercises = async () => {
+        const data = await getExercisesAction();
+        setExercises(data);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const load = async () => {
-            const data = await getExercisesAction();
-            setExercises(data);
-            setLoading(false);
-        };
-        load();
+        refreshExercises();
     }, []);
 
     if (loading) {
@@ -56,7 +57,7 @@ export default function ExercisesPage() {
                     </div>
                     {t('exercises.new_exercise')}
                 </h2>
-                <ExerciseForm />
+                <ExerciseForm onSuccess={refreshExercises} />
             </div>
 
             <div className="space-y-12">
@@ -70,7 +71,11 @@ export default function ExercisesPage() {
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             {groupExercises.map((exercise) => (
-                                <ExerciseListItem key={exercise.id} exercise={exercise} />
+                                <ExerciseListItem
+                                    key={exercise.id}
+                                    exercise={exercise}
+                                    onRefresh={refreshExercises}
+                                />
                             ))}
                         </div>
                     </section>

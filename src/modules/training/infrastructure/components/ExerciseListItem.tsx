@@ -9,9 +9,10 @@ import { useTranslation } from '@/core/i18n/TranslationContext';
 
 interface ExerciseListItemProps {
     exercise: Exercise;
+    onRefresh?: () => void;
 }
 
-export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
+export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState(exercise.name);
     const [isSaving, setIsSaving] = useState(false);
@@ -33,7 +34,9 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
         const result = await deleteExerciseAction(exercise.id);
         setIsDeleting(false);
 
-        if (!result.success) {
+        if (result.success) {
+            if (onRefresh) onRefresh();
+        } else {
             setErrorDialog({
                 isOpen: true,
                 message: result.error || t('common.error')
@@ -54,6 +57,7 @@ export function ExerciseListItem({ exercise }: ExerciseListItemProps) {
 
         if (result.success) {
             setIsEditing(false);
+            if (onRefresh) onRefresh();
         } else {
             setErrorDialog({
                 isOpen: true,

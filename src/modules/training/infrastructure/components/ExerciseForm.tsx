@@ -5,7 +5,7 @@ import { createExerciseAction } from '@/app/_actions/training';
 import { Plus, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 
-export function ExerciseForm() {
+export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
     const [state, action, isPending] = useActionState(createExerciseAction, null);
     const [name, setName] = useState('');
     const [muscleGroup, setMuscleGroup] = useState('Pecho');
@@ -14,8 +14,9 @@ export function ExerciseForm() {
     useEffect(() => {
         if (state?.success) {
             setName('');
+            if (onSuccess) onSuccess();
         }
-    }, [state]);
+    }, [state, onSuccess]);
 
     return (
         <form action={action} className="grid gap-4 md:grid-cols-[1fr_1fr_auto] items-end">
