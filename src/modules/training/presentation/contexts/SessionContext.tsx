@@ -174,8 +174,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const finishSession = async () => {
         const result = await saveSession(true);
-        if (result.success) {
-            clearSession();
+        if (!result.success) {
+            throw new Error(result.error || "Error al finalizar sesión");
         }
     };
 

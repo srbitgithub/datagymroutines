@@ -143,8 +143,9 @@ export function SessionLogger() {
                         await finishSession();
                     } catch (error) {
                         setErrorDialog({ isOpen: true, message: t('training.error_finishing') + ": " + error });
-                        setIsFinishing(false);
                         setShowCongratsModal(false);
+                    } finally {
+                        setIsFinishing(false);
                     }
                 }, 500);
             } else {
@@ -258,11 +259,14 @@ export function SessionLogger() {
 
     const executeSaveAndExit = async () => {
         setIsFinishing(true);
+        const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
+        setCongratsPhrase(randomPhrase);
+        setShowCongratsModal(true);
         try {
             await finishSession();
-            // No longer navigating to dashboard, RoutineSessionManager will show selection
         } catch (error: any) {
             setErrorDialog({ isOpen: true, message: error.message || t('training.error_saving') });
+            setShowCongratsModal(false);
         } finally {
             setIsFinishing(false);
             setShowCancelModal(false);
@@ -630,20 +634,21 @@ export function SessionLogger() {
                     // Prevent closing via backdrop if still finishing
                     if (!isFinishing) {
                         setShowCongratsModal(false);
-                        router.replace('/dashboard');
+                        clearSession();
                     }
                 }}
                 onConfirm={() => {
                     if (!isFinishing) {
                         setShowCongratsModal(false);
-                        router.replace('/dashboard');
+                        clearSession();
                     }
                 }}
                 title={t('training.congrats_title') || '¡Muy Bien!'}
                 description={congratsPhrase}
                 variant="success"
                 type="alert"
-                confirmLabel={isFinishing ? t('common.saving') || 'Guardando...' : 'Continuar'}
+                confirmLabel={isFinishing ? "Guardando datos..." : "Aceptar"}
+                isConfirmDisabled={isFinishing}
             />
 
             <CustomDialog

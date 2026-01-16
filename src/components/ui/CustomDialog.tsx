@@ -15,6 +15,7 @@ interface CustomDialogProps {
     confirmLabel?: string;
     cancelLabel?: string;
     onCancelClick?: () => void;
+    isConfirmDisabled?: boolean;
 }
 export function CustomDialog({
     isOpen,
@@ -26,7 +27,8 @@ export function CustomDialog({
     variant = 'info',
     confirmLabel,
     cancelLabel,
-    onCancelClick
+    onCancelClick,
+    isConfirmDisabled
 }: CustomDialogProps) {
     const { t } = useTranslation();
     const finalConfirmLabel = confirmLabel || t('common.confirm');
@@ -93,7 +95,8 @@ export function CustomDialog({
                             onConfirm();
                             if (type === 'alert') onClose();
                         }}
-                        className={`py-4 ${getConfirmBtnClass()} text-white font-black rounded-2xl transition-all uppercase text-sm shadow-lg`}
+                        disabled={isConfirmDisabled}
+                        className={`py-4 ${getConfirmBtnClass()} text-white font-black rounded-2xl transition-all uppercase text-sm shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                         {finalConfirmLabel}
                     </button>
