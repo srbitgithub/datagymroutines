@@ -41,6 +41,9 @@ create policy "Users can insert their own exercises." on exercises
 create policy "Users can update their own exercises." on exercises
   for update using (auth.uid() = user_id);
 
+create policy "Users can delete their own exercises." on exercises
+  for delete using (auth.uid() = user_id);
+
 -- Routine (Template) table
 create table routines (
   id uuid default gen_random_uuid() primary key,
