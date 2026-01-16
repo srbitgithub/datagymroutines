@@ -30,7 +30,7 @@ export function GenderSettingsForm({ initialGender = 'male' }: GenderSettingsFor
         <div className="grid gap-2">
             <label className="text-sm font-medium flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Género (para frases motivacionales)
+                Género
             </label>
             <div className="flex gap-2 p-1 bg-muted/20 rounded-lg border border-input">
                 <button

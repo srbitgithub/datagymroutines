@@ -137,13 +137,14 @@ export function SessionLogger() {
 
                 // We delay slightly to let the UI update (move the last set) before showing modal
                 setTimeout(async () => {
+                    setShowCongratsModal(true);
                     setIsFinishing(true);
                     try {
                         await finishSession();
-                        setShowCongratsModal(true);
                     } catch (error) {
                         setErrorDialog({ isOpen: true, message: t('training.error_finishing') + ": " + error });
                         setIsFinishing(false);
+                        setShowCongratsModal(false);
                     }
                 }, 500);
             } else {
@@ -192,12 +193,17 @@ export function SessionLogger() {
 
     const handleSaveAndExit = async () => {
         if (isFinishing) return;
+
+        const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
+        setCongratsPhrase(randomPhrase);
+        setShowCongratsModal(true);
         setIsFinishing(true);
+
         try {
             await finishSession();
-            router.replace('/dashboard');
         } catch (error) {
             alert(t('training.error_finishing') + ": " + error);
+            setShowCongratsModal(false);
         } finally {
             setIsFinishing(false);
         }
@@ -621,16 +627,23 @@ export function SessionLogger() {
             <CustomDialog
                 isOpen={showCongratsModal}
                 onClose={() => {
-                    setShowCongratsModal(false);
+                    // Prevent closing via backdrop if still finishing
+                    if (!isFinishing) {
+                        setShowCongratsModal(false);
+                        router.replace('/dashboard');
+                    }
                 }}
                 onConfirm={() => {
-                    setShowCongratsModal(false);
+                    if (!isFinishing) {
+                        setShowCongratsModal(false);
+                        router.replace('/dashboard');
+                    }
                 }}
-                title={t('training.congrats_title') || '¡Enhorabuena!'}
+                title={t('training.congrats_title') || '¡Muy Bien!'}
                 description={congratsPhrase}
                 variant="success"
                 type="alert"
-                confirmLabel={t('common.ok') || 'OK'}
+                confirmLabel={isFinishing ? t('common.saving') || 'Guardando...' : 'Continuar'}
             />
 
             <CustomDialog
