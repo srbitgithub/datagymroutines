@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getExercisesAction } from "@/app/_actions/training";
 import { ExerciseForm } from "@/modules/training/infrastructure/components/ExerciseForm";
 import { ExerciseListItem } from "@/modules/training/infrastructure/components/ExerciseListItem";
@@ -13,11 +13,11 @@ export default function ExercisesPage() {
     const [loading, setLoading] = useState(true);
     const { t } = useTranslation();
 
-    const refreshExercises = async () => {
+    const refreshExercises = useCallback(async () => {
         const data = await getExercisesAction();
         setExercises(data);
         setLoading(false);
-    };
+    }, []);
 
     useEffect(() => {
         refreshExercises();
