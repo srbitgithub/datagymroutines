@@ -7,6 +7,7 @@ create table profiles (
   avatar_url text,
   weight_unit text default 'kg' check (weight_unit in ('kg', 'lbs')),
   language text default 'es',
+  gender text default 'male' check (gender in ('male', 'female', 'other')),
 
   constraint username_length check (char_length(username) >= 3)
 );

@@ -4,7 +4,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Routine } from '../../domain/Routine';
 import { Exercise } from '../../domain/Exercise';
+import { Profile } from '@/modules/profiles/domain/Profile';
 import { saveSessionBatchAction, startSessionAction, abandonSessionAction } from '@/app/_actions/training';
+import { getProfileAction } from '@/app/_actions/auth';
 
 interface SessionContextType {
     activeSession: TrainingSession | null;
@@ -21,7 +23,7 @@ interface SessionContextType {
     saveSession: () => Promise<{ success: boolean; error?: string }>;
     finishSession: () => Promise<void>;
     abandonSession: () => Promise<void>;
-    clearSession: () => void;
+    userProfile?: Profile | null;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -36,9 +38,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [preferredRestTime, setPreferredRestTimeState] = useState(120);
     const [isLoading, setIsLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState<Profile | null>(null);
 
     // Load from localStorage on mount
     useEffect(() => {
+        getProfileAction().then(setUserProfile);
+
         const saved = localStorage.getItem(STORAGE_KEY);
         const savedRest = localStorage.getItem('ironmetric_preferred_rest');
 
@@ -214,7 +219,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             saveSession,
             finishSession,
             abandonSession,
-            clearSession
+            clearSession,
+            userProfile
         }}>
             {children}
         </SessionContext.Provider>

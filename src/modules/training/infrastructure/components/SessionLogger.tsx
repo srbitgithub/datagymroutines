@@ -38,20 +38,54 @@ export function SessionLogger() {
     const [showCongratsModal, setShowCongratsModal] = useState(false);
     const [congratsPhrase, setCongratsPhrase] = useState('');
 
-    const congratsPhrases = [
-        t('training.congrats_1') || '¡Increíble trabajo! Has completado tu rutina.',
-        t('training.congrats_2') || '¡Enhorabuena! Un paso más cerca de tus objetivos.',
-        t('training.congrats_3') || '¡Excelente sesión! Sigue así.',
-        t('training.congrats_4') || '¡Rutina finalizada! Tu cuerpo te lo agradecerá.',
-        t('training.congrats_5') || '¡Lo lograste! Gran esfuerzo hoy.',
-        t('training.congrats_6') || '¡Eres una máquina! Entrenamiento completado.',
-        t('training.congrats_7') || '¡Felicidades! Has dado el 100% hoy.',
-        t('training.congrats_8') || '¡Misión cumplida! Disfruta de tu descanso.',
-        t('training.congrats_9') || '¡Brutal! Has superado otro entrenamiento.',
-        t('training.congrats_10') || '¡En racha! Sigue dándolo todo.',
-        t('training.congrats_11') || '¡Imparable! Has terminado con éxito.',
-        t('training.congrats_12') || '¡Muy bien hecho! Cada gota de sudor cuenta.'
-    ];
+    const userGender = useSession().userProfile?.gender || 'male';
+
+    const getPhrases = (gender: string) => {
+        const basePhrases = [
+            t('training.congrats_1') || '¡Increíble trabajo! Has completado tu rutina.',
+            t('training.congrats_3') || '¡Excelente sesión! Sigue así.',
+            t('training.congrats_4') || '¡Rutina finalizada! Tu cuerpo te lo agradecerá.',
+            t('training.congrats_8') || '¡Misión cumplida! Disfruta de tu descanso.',
+            t('training.congrats_9') || '¡Brutal! Has superado otro entrenamiento.',
+            t('training.congrats_12') || '¡Muy bien hecho! Cada gota de sudor cuenta.'
+        ];
+
+        const malePhrases = [
+            ...basePhrases,
+            t('training.congrats_2_male') || '¡Enhorabuena, tío! Un paso más cerca de tus objetivos.',
+            t('training.congrats_5_male') || '¡Lo lograste, bestia! Gran esfuerzo hoy.',
+            t('training.congrats_6_male') || '¡Eres una máquina! Entrenamiento completado.',
+            t('training.congrats_7_male') || '¡Felicidades, jefe! Has dado el 100% hoy.',
+            t('training.congrats_10_male') || '¡En racha, campeón! Sigue dándolo todo.',
+            t('training.congrats_11_male') || '¡Imparable! Has terminado con éxito.',
+        ];
+
+        const femalePhrases = [
+            ...basePhrases,
+            t('training.congrats_2_female') || '¡Enhorabuena, guerrera! Un paso más cerca de tus objetivos.',
+            t('training.congrats_5_female') || '¡Lo lograste! Gran esfuerzo hoy.',
+            t('training.congrats_6_female') || '¡Eres una máquina! Entrenamiento completado.',
+            t('training.congrats_7_female') || '¡Felicidades, jefa! Has dado el 100% hoy.',
+            t('training.congrats_10_female') || '¡En racha, campeona! Sigue dándolo todo.',
+            t('training.congrats_11_female') || '¡Imparable! Has terminado con éxito.',
+        ];
+
+        const neutralPhrases = [
+            ...basePhrases,
+            t('training.congrats_2') || '¡Enhorabuena! Un paso más cerca de tus objetivos.',
+            t('training.congrats_5') || '¡Lo lograste! Gran esfuerzo hoy.',
+            t('training.congrats_6') || '¡Eres increíble! Entrenamiento completado.',
+            t('training.congrats_7') || '¡Felicidades! Has dado el 100% hoy.',
+            t('training.congrats_10') || '¡En racha! Sigue dándolo todo.',
+            t('training.congrats_11') || '¡Imparable! Has terminado con éxito.',
+        ];
+
+        if (gender === 'female') return femalePhrases;
+        if (gender === 'other') return neutralPhrases;
+        return malePhrases;
+    };
+
+    const congratsPhrases = getPhrases(userGender);
 
     const nextSetRef = useRef<HTMLDivElement>(null);
 

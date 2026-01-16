@@ -3,6 +3,7 @@
 import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
 import { User, Mail, Weight, LogOut, Loader2, Shield } from "lucide-react";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
+import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 
@@ -106,6 +107,10 @@ export default function SettingsPage() {
                                     <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
                                         {t(`settings.plans.${profile.role?.toLowerCase() || 'rookie'}`)}
                                     </div>
+                                </div>
+
+                                <div className="pt-4 border-t">
+                                    <GenderSettingsForm initialGender={profile.gender || 'male'} />
                                 </div>
 
                                 <div className="pt-4 border-t">

@@ -124,6 +124,27 @@ export async function updateMonthlyGoalAction(goal: number) {
     }
 }
 
+export async function updateGenderAction(gender: 'male' | 'female' | 'other') {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
+
+    try {
+        await updateProfileUseCase.execute(user.id, {
+            gender: gender,
+            updatedAt: new Date()
+        });
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error al actualizar el género:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}
+
 export async function getUserSessionAction() {
     const authRepository = new SupabaseAuthRepository();
     return authRepository.getSession();
