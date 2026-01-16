@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TranslationProvider } from "@/core/i18n/TranslationContext";
+import { PWAUpdateToast } from "@/components/pwa/PWAUpdateToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <TranslationProvider>
           {children}
+          <PWAUpdateToast />
         </TranslationProvider>
       </body>
     </html>
