@@ -1,3 +1,24 @@
+-- Exercise catalog for seeding new users
+create table base_exercises (
+  id uuid default gen_random_uuid() primary key,
+  name jsonb not null,
+  muscle_group jsonb,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Seed data for exercise catalog
+insert into base_exercises (name, muscle_group) values
+('{"en": "Bench Press", "es": "Press de Banca"}', '{"en": "Chest", "es": "Pecho"}'),
+('{"en": "Squat", "es": "Sentadilla Libre"}', '{"en": "Legs", "es": "Piernas"}'),
+('{"en": "Deadlift", "es": "Peso Muerto"}', '{"en": "Back/Legs", "es": "Espalda/Piernas"}'),
+('{"en": "Military Press", "es": "Press Militar"}', '{"en": "Shoulders", "es": "Hombros"}'),
+('{"en": "Pull Ups", "es": "Dominadas"}', '{"en": "Back", "es": "Espalda"}'),
+('{"en": "Barbell Row", "es": "Remo con Barra"}', '{"en": "Back", "es": "Espalda"}'),
+('{"en": "Lunges", "es": "Zancadas"}', '{"en": "Legs", "es": "Piernas"}'),
+('{"en": "French Press", "es": "Press Francés"}', '{"en": "Triceps", "es": "Tríceps"}'),
+('{"en": "Bicep Curl", "es": "Curl de Bíceps"}', '{"en": "Biceps", "es": "Bíceps"}'),
+('{"en": "Plank", "es": "Plancha Abdominal"}', '{"en": "Core", "es": "Core"}');
+
 -- Exercise table
 create table exercises (
   id uuid default gen_random_uuid() primary key,
@@ -44,7 +65,6 @@ create table training_sessions (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users on delete cascade not null,
   routine_id uuid references routines on delete set null,
-  gym_id uuid references gyms on delete set null,
   start_time timestamp with time zone default timezone('utc'::text, now()) not null,
   end_time timestamp with time zone,
   notes text
@@ -78,15 +98,3 @@ create policy "Users can manage their own sets." on exercise_sets for all using 
   exists (select 1 from training_sessions where id = session_id and user_id = auth.uid())
 );
 
--- Base Exercises Seed data
-insert into exercises (name, muscle_group) values
-('Press de Banca', 'Pecho'),
-('Sentadilla Libre', 'Piernas'),
-('Peso Muerto', 'Espalda/Piernas'),
-('Press Militar', 'Hombros'),
-('Dominadas', 'Espalda'),
-('Remo con Barra', 'Espalda'),
-('Zancadas', 'Piernas'),
-('Press Francés', 'Tríceps'),
-('Curl de Bíceps', 'Bíceps'),
-('Plancha Abdominal', 'Core');

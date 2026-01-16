@@ -26,7 +26,7 @@ interface SessionContextType {
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'datagym_active_session';
+const STORAGE_KEY = 'ironmetric_active_session';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
     const [activeSession, setActiveSession] = useState<TrainingSession | null>(null);
@@ -40,7 +40,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
-        const savedRest = localStorage.getItem('datagym_preferred_rest');
+        const savedRest = localStorage.getItem('ironmetric_preferred_rest');
 
         if (savedRest) {
             setPreferredRestTimeState(parseInt(savedRest));
@@ -76,7 +76,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const setPreferredRestTime = (time: number) => {
         setPreferredRestTimeState(time);
-        localStorage.setItem('datagym_preferred_rest', time.toString());
+        localStorage.setItem('ironmetric_preferred_rest', time.toString());
     };
 
     // Save to localStorage on change

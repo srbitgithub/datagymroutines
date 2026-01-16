@@ -11,8 +11,8 @@ export default function Home() {
     <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center space-y-8">
       <div className="space-y-4">
         <div className="flex justify-center">
-          <div className="rounded-full bg-brand-primary/10 p-4">
-            <Dumbbell className="h-12 w-12 text-brand-primary" />
+          <div className="rounded-full overflow-hidden w-24 h-24 bg-brand-primary/10 flex items-center justify-center">
+            <img src="/icons/icon-512x512.png" alt="IronMetric Logo" className="w-20 h-20 object-contain" />
           </div>
         </div>
         <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl">

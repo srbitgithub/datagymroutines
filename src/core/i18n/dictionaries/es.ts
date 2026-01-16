@@ -40,7 +40,7 @@ export const es = {
         logout: "Cerrar sesión",
     },
     dashboard: {
-        title: "DataGym",
+        title: "IronMetric",
         subtitle: "Tu cuaderno de fuerza inteligente.",
         weekly_activity: "Actividad Semanal",
         monthly_summary: "Resumen {{month}}",
@@ -166,7 +166,7 @@ export const es = {
         filter_year: "1 año",
     },
     landing: {
-        hero_title: "DataGym",
+        hero_title: "IronMetric",
         hero_subtitle: "La tecnología invisible para atletas de alto rendimiento. Registro de fuerza puro, sin distracciones.",
         start_training: "Empezar a entrenar",
         create_account: "Crear cuenta",

@@ -40,7 +40,7 @@ export const en = {
         logout: "Logout",
     },
     dashboard: {
-        title: "DataGym",
+        title: "IronMetric",
         subtitle: "Your smart strength notebook.",
         weekly_activity: "Weekly Activity",
         monthly_summary: "{{month}} Summary",
@@ -166,7 +166,7 @@ export const en = {
         filter_year: "1 year",
     },
     landing: {
-        hero_title: "DataGym",
+        hero_title: "IronMetric",
         hero_subtitle: "The invisible technology for high-performance athletes. Pure strength logging, no distractions.",
         start_training: "Start training",
         create_account: "Create account",

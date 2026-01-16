@@ -28,8 +28,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
             <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-zinc-950 md:static md:w-64 md:border-r md:border-t-0">
                 <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
                     <div className="hidden items-center gap-2 md:flex mb-8">
-                        <Dumbbell className="h-6 w-6 text-brand-primary" />
-                        <span className="font-bold text-xl tracking-tight text-white">DataGym</span>
+                        <img src="/icons/icon-192x192.png" alt="IronMetric Logo" className="h-8 w-8 object-contain" />
+                        <span className="font-bold text-xl tracking-tight text-white">IronMetric</span>
                     </div>
 
                     <nav className="flex w-full flex-row justify-around gap-2 md:flex-col md:justify-start overflow-x-auto no-scrollbar">

@@ -6,6 +6,7 @@ create table profiles (
   full_name text,
   avatar_url text,
   weight_unit text default 'kg' check (weight_unit in ('kg', 'lbs')),
+  language text default 'es',
 
   constraint username_length check (char_length(username) >= 3)
 );
@@ -23,39 +24,28 @@ create policy "Users can insert their own profile." on profiles
 create policy "Users can update their own profile." on profiles
   for update using (auth.uid() = id);
 
--- Create a table for gyms
-create table gyms (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade not null,
-  name text not null,
-  description text,
-  is_default boolean default false,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- RLS for gyms
-alter table gyms
-  enable row level security;
-
-create policy "Users can view their own gyms." on gyms
-  for select using (auth.uid() = user_id);
-
-create policy "Users can insert their own gyms." on gyms
-  for insert with check (auth.uid() = user_id);
-
-create policy "Users can update their own gyms." on gyms
-  for update using (auth.uid() = user_id);
-
-create policy "Users can delete their own gyms." on gyms
-  for delete using (auth.uid() = user_id);
 
 -- This trigger automatically creates a profile entry when a new user signs up via Supabase Auth
 -- Note: Remember to run this in the SQL Editor of your Supabase Dashboard
 create function public.handle_new_user()
 returns trigger as $$
+declare
+  user_lang text;
 begin
-  insert into public.profiles (id, full_name, avatar_url, username)
-  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', new.email);
+  -- Get language from metadata or default to 'es'
+  user_lang := coalesce(new.raw_user_meta_data->>'language', 'es');
+
+  insert into public.profiles (id, full_name, avatar_url, username, language)
+  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', new.email, user_lang);
+
+  -- Seed initial exercises for the user from the catalog
+  insert into public.exercises (user_id, name, muscle_group)
+  select 
+    new.id, 
+    (name->>user_lang), 
+    (muscle_group->>user_lang)
+  from public.base_exercises;
+
   return new;
 end;
 $$ language plpgsql security definer;

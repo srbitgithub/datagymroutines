@@ -1,6 +1,6 @@
 {
-    "name": "DataGym",
-    "short_name": "DataGym",
+    "name": "IronMetric",
+    "short_name": "IronMetric",
     "description": "Cuaderno Digital de Fuerza de Alto Rendimiento",
     "start_url": "/dashboard",
     "display": "standalone",
