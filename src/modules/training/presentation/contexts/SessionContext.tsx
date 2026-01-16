@@ -23,6 +23,7 @@ interface SessionContextType {
     saveSession: () => Promise<{ success: boolean; error?: string }>;
     finishSession: () => Promise<void>;
     abandonSession: () => Promise<void>;
+    clearSession: () => void;
     userProfile?: Profile | null;
 }
 

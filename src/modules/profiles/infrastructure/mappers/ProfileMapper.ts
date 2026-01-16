@@ -10,6 +10,7 @@ export class ProfileMapper {
             weightUnit: raw.weight_unit as 'kg' | 'lbs',
             monthlyGoal: raw.monthly_goal,
             role: raw.role as 'Rookie' | 'Athlete' | 'Elite',
+            gender: raw.gender as 'male' | 'female' | 'other',
             updatedAt: new Date(raw.updated_at),
         };
     }
@@ -23,6 +24,7 @@ export class ProfileMapper {
             weight_unit: profile.weightUnit,
             monthly_goal: profile.monthlyGoal,
             role: profile.role,
+            gender: profile.gender,
             updated_at: profile.updatedAt.toISOString(),
         };
     }
@@ -35,6 +37,7 @@ export class ProfileMapper {
         if (profile.weightUnit !== undefined) persistence.weight_unit = profile.weightUnit;
         if (profile.monthlyGoal !== undefined) persistence.monthly_goal = profile.monthlyGoal;
         if (profile.role !== undefined) persistence.role = profile.role;
+        if (profile.gender !== undefined) persistence.gender = profile.gender;
         if (profile.updatedAt !== undefined) persistence.updated_at = profile.updatedAt.toISOString();
         return persistence;
     }
