@@ -62,9 +62,25 @@ export async function getAdminStatsAction(months: number = 12) {
 
         const profilesMap = new Map(profiles.map(p => [p.id, p]));
 
-        // Filtrar usuarios por fecha
-        const filteredUsers = users.users.filter(u => new Date(u.created_at) >= startDate);
-        const totalUsers = users.users.length;
+        // Filtrar usuarios: Solo contamos aquellos que tienen un perfil creado (usuarios reales)
+        const validUsers = users.users.filter(u => profilesMap.has(u.id));
+
+        // Lista detallada para el admin
+        const usersList = validUsers.map(u => {
+            const p = profilesMap.get(u.id);
+            return {
+                id: u.id,
+                email: u.email,
+                username: p?.username,
+                fullName: p?.fullName,
+                gender: p?.gender,
+                role: p?.role,
+                createdAt: u.created_at
+            };
+        });
+
+        const filteredUsers = validUsers.filter(u => new Date(u.created_at) >= startDate);
+        const totalUsers = validUsers.length;
         const periodUsers = filteredUsers.length;
 
         // Desglose por género en el periodo
@@ -173,6 +189,7 @@ export async function getAdminStatsAction(months: number = 12) {
                 exercisesGenderStats,
                 totalTonnage: Math.round(totalTonnage),
                 topExercises,
+                usersList,
                 lastUpdate: new Date().toISOString()
             }
         };

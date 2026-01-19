@@ -9,7 +9,9 @@ import {
     LogOut,
     Calendar,
     ChevronDown,
-    Award
+    Award,
+    Search,
+    UserCheck
 } from "lucide-react";
 import {
     BarChart,
@@ -252,10 +254,67 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                 </div>
             </div>
 
+            {/* User Management Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h3 className="text-xl font-black uppercase italic tracking-tight">Gestión de Usuarios</h3>
+                        <p className="text-sm text-zinc-500 font-medium">Listado detallado de miembros registrados (con perfil)</p>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                                <th className="pb-4 px-4">Usuario</th>
+                                <th className="pb-4 px-4">Email</th>
+                                <th className="pb-4 px-4">Género</th>
+                                <th className="pb-4 px-4">Rol</th>
+                                <th className="pb-4 px-4 text-right">Registro</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                            {stats.usersList?.map((user: any) => (
+                                <tr key={user.id} className="text-sm hover:bg-zinc-800/20 transition-all">
+                                    <td className="py-4 px-4">
+                                        <div className="font-bold text-white">{user.username || 'Sin usuario'}</div>
+                                        <div className="text-[10px] text-zinc-500 font-mono">{user.fullName || '-'}</div>
+                                    </td>
+                                    <td className="py-4 px-4 text-zinc-400 font-medium">{user.email}</td>
+                                    <td className="py-4 px-4 uppercase text-[10px] font-black tracking-widest">
+                                        <span className={`inline-block px-2 py-0.5 rounded-md ${user.gender === 'male' ? 'bg-blue-500/10 text-blue-500' :
+                                                user.gender === 'female' ? 'bg-pink-500/10 text-pink-500' :
+                                                    'bg-purple-500/10 text-purple-500'
+                                            }`}>
+                                            {user.gender === 'male' ? 'Hombre' : user.gender === 'female' ? 'Mujer' : 'Otro'}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4 uppercase text-[10px] font-black tracking-widest">
+                                        <span className="flex items-center gap-1.5 text-zinc-300">
+                                            <UserCheck className="h-3 w-3 text-brand-primary" />
+                                            {user.role}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4 text-right text-zinc-500 font-mono text-xs">
+                                        {new Date(user.createdAt).toLocaleDateString()}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {(!stats.usersList || stats.usersList.length === 0) && (
+                        <div className="text-center py-10 text-zinc-500 font-bold uppercase tracking-widest bg-zinc-800/10 rounded-2xl mt-4">
+                            No se han encontrado usuarios
+                        </div>
+                    )}
+                </div>
+            </div>
+
             <footer className="text-center text-zinc-700 text-[10px] font-black uppercase tracking-[0.2em] pt-10">
                 DataGymRoutines Enterprise Dashboard - Propiedad de srbit
             </footer>
-        </div>
+        </div >
     );
 }
 
