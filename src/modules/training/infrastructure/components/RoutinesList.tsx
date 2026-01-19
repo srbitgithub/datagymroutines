@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ListChecks, Play, GripVertical } from "lucide-react";
 import Link from "next/link";
 import { Routine } from "../../domain/Routine";
@@ -22,6 +22,11 @@ export function RoutinesList({ initialRoutines }: RoutinesListProps) {
         message: ''
     });
     const { t } = useTranslation();
+
+    // Sync local state when server props change (e.g. after duplication/refresh)
+    useEffect(() => {
+        setRoutines(initialRoutines);
+    }, [initialRoutines]);
 
     const handleDeleteLocally = (id: string) => {
         setRoutines(prev => prev.filter(r => r.id !== id));
