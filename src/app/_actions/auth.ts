@@ -145,6 +145,27 @@ export async function updateGenderAction(gender: 'male' | 'female' | 'other') {
     }
 }
 
+export async function updateUsernameAction(username: string) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
+
+    try {
+        await updateProfileUseCase.execute(user.id, {
+            username: username,
+            updatedAt: new Date()
+        });
+        revalidatePath("/dashboard/settings");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error al actualizar el nombre de usuario:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}
+
 export async function getUserSessionAction() {
     const authRepository = new SupabaseAuthRepository();
     return authRepository.getSession();

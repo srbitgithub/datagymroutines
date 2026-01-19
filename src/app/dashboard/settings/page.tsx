@@ -4,6 +4,7 @@ import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_act
 import { User, Mail, Weight, LogOut, Loader2, Shield } from "lucide-react";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
+import { UsernameSettingsForm } from "@/modules/profiles/presentation/components/UsernameSettingsForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 
@@ -87,11 +88,8 @@ export default function SettingsPage() {
 
                         {profile && (
                             <>
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium">{t('settings.username_label')}</label>
-                                    <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
-                                        {profile.username || t('common.not_set')}
-                                    </div>
+                                <div className="pt-4">
+                                    <UsernameSettingsForm initialUsername={profile.username || ''} />
                                 </div>
 
                                 <div className="grid gap-2">
