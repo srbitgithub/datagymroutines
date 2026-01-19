@@ -27,7 +27,7 @@ export function UsernameSettingsForm({ initialUsername }: UsernameSettingsFormPr
         try {
             const result = await updateUsernameAction(username);
             if (result.success) {
-                setMessage({ type: 'success', text: t('dashboard.update_success') });
+                setMessage({ type: 'success', text: t('settings.username_success') });
                 setTimeout(() => setMessage(null), 3000);
             } else {
                 setMessage({ type: 'error', text: result.error || t('dashboard.update_error') });

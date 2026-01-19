@@ -241,6 +241,7 @@ export const es = {
             free4ever: "Free4Ever"
         },
         danger_zone_desc: "Si cierras sesión, tendrás que volver a introducir tus credenciales para acceder a tus datos.",
+        username_success: "Nombre de usuario actualizado correctamente",
     },
     tools: {
         title: "Herramientas",
