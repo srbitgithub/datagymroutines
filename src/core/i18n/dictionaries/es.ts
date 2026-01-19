@@ -236,7 +236,8 @@ export const es = {
         plans: {
             elite: "Élite",
             athlete: "Athlete",
-            rookie: "Rookie"
+            rookie: "Rookie",
+            free4ever: "Free4Ever"
         },
         danger_zone_desc: "Si cierras sesión, tendrás que volver a introducir tus credenciales para acceder a tus datos.",
     },

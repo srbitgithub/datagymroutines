@@ -6,7 +6,7 @@ export interface Profile {
     weightUnit: 'kg' | 'lbs';
     monthlyGoal?: number;
     gender: 'male' | 'female' | 'other';
-    role: 'Rookie' | 'Athlete' | 'Elite';
+    role: 'Rookie' | 'Athlete' | 'Elite' | 'Free4Ever';
     updatedAt: Date;
 }
 

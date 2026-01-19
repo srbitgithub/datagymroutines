@@ -9,7 +9,7 @@ export class ProfileMapper {
             avatarUrl: raw.avatar_url,
             weightUnit: raw.weight_unit as 'kg' | 'lbs',
             monthlyGoal: raw.monthly_goal,
-            role: raw.role as 'Rookie' | 'Athlete' | 'Elite',
+            role: raw.role as 'Rookie' | 'Athlete' | 'Elite' | 'Free4Ever',
             gender: raw.gender as 'male' | 'female' | 'other',
             updatedAt: new Date(raw.updated_at),
         };

@@ -64,6 +64,11 @@ export default function SettingsPage() {
                                         Elite
                                     </span>
                                 )}
+                                {profile?.role === 'Free4Ever' && (
+                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                        Free4Ever
+                                    </span>
+                                )}
                             </div>
                             <p className="text-sm text-muted-foreground">{user?.email || t('common.loading')}</p>
                         </div>

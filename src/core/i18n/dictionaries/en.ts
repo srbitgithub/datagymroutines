@@ -236,7 +236,8 @@ export const en = {
         plans: {
             elite: "Elite",
             athlete: "Athlete",
-            rookie: "Rookie"
+            rookie: "Rookie",
+            free4ever: "Free4Ever"
         },
         danger_zone_desc: "If you log out, you will have to enter your credentials again to access your data.",
     },
