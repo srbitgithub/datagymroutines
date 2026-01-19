@@ -32,5 +32,11 @@ export const DEFAULT_EXERCISES_DATA: Omit<Exercise, 'id' | 'createdAt'>[] = [
 
     // Core
     { name: "Plancha Abdominal", muscleGroup: "Core", description: "Isométrico para zona media." },
-    { name: "Crunch Abdominal", muscleGroup: "Core", description: "Flexión de tronco." }
+    { name: "Crunch Abdominal", muscleGroup: "Core", description: "Flexión de tronco." },
+
+    // Glúteos
+    { name: "Hip Thrust", muscleGroup: "Glúteos", description: "Ejercicio fundamental para hipertrofia de glúteos." },
+    { name: "Puente de Glúteo", muscleGroup: "Glúteos", description: "Extensión de cadera en suelo." },
+    { name: "Patada de Glúteo (Polea)", muscleGroup: "Glúteos", description: "Extensión de cadera aislada." },
+    { name: "Abducción de Cadera (Máquina)", muscleGroup: "Glúteos", description: "Enfocado en glúteo medio y menor." }
 ];

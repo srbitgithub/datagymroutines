@@ -77,6 +77,7 @@ export const en = {
             Bíceps: "Biceps",
             Tríceps: "Triceps",
             Core: "Core",
+            Glúteos: "Glutes",
             Otros: "Others"
         }
     },

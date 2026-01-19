@@ -77,6 +77,7 @@ export const es = {
             Bíceps: "Bíceps",
             Tríceps: "Tríceps",
             Core: "Core",
+            Glúteos: "Glúteos",
             Otros: "Otros"
         }
     },
