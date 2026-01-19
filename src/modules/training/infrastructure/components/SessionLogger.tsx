@@ -96,6 +96,8 @@ export function SessionLogger() {
     const [isAlarmEnabled, setIsAlarmEnabled] = useState(true);
     const [showConfig, setShowConfig] = useState(false);
     const [isRestFinished, setIsRestFinished] = useState(false);
+    const [restEndTime, setRestEndTime] = useState<number | null>(null);
+    const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Sync internal state when preferredRestTime changes
     useEffect(() => {
@@ -275,24 +277,68 @@ export function SessionLogger() {
 
     // Rest Timer logic
     useEffect(() => {
-        if (!isResting || isFinishing) return;
+        if (!isResting || isFinishing || !restEndTime) {
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+                timerIntervalRef.current = null;
+            }
+            return;
+        }
 
-        const timer = setInterval(() => {
-            setRestTime((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
+        const updateTimer = () => {
+            const now = Date.now();
+            const remaining = Math.max(0, Math.ceil((restEndTime - now) / 1000));
+
+            setRestTime(remaining);
+
+            if (remaining <= 0) {
+                if (timerIntervalRef.current) {
+                    clearInterval(timerIntervalRef.current);
+                    timerIntervalRef.current = null;
+                }
+                setIsResting(false);
+                setRestEndTime(null);
+                setIsRestFinished(true);
+                if (isAlarmEnabled) {
+                    playAlarm();
+                }
+            }
+        };
+
+        // Initial update
+        updateTimer();
+
+        timerIntervalRef.current = setInterval(updateTimer, 1000);
+
+        return () => {
+            if (timerIntervalRef.current) {
+                clearInterval(timerIntervalRef.current);
+            }
+        };
+    }, [isResting, isFinishing, isAlarmEnabled, restEndTime]);
+
+    // Handle background/foreground sync
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && isResting && restEndTime) {
+                const now = Date.now();
+                const remaining = Math.max(0, Math.ceil((restEndTime - now) / 1000));
+                setRestTime(remaining);
+
+                if (remaining <= 0) {
                     setIsResting(false);
+                    setRestEndTime(null);
                     setIsRestFinished(true);
                     if (isAlarmEnabled) {
                         playAlarm();
                     }
-                    return 0;
                 }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [isResting, isFinishing, isAlarmEnabled]);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [isResting, restEndTime, isAlarmEnabled]);
 
     const playAlarm = () => {
         try {
@@ -317,6 +363,8 @@ export function SessionLogger() {
     };
 
     const resetRestTimer = () => {
+        const endTime = Date.now() + (internalTotalRestTime * 1000);
+        setRestEndTime(endTime);
         setRestTime(internalTotalRestTime);
         setIsResting(true);
         setIsRestFinished(false);
@@ -324,6 +372,7 @@ export function SessionLogger() {
 
     const stopRestTimer = () => {
         setIsResting(false);
+        setRestEndTime(null);
         setRestTime(internalTotalRestTime);
         setIsRestFinished(false);
     };
