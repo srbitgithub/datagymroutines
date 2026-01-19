@@ -30,14 +30,15 @@ export async function getExercisesAction(includeDefaults: boolean = false) {
         // Add default exercises, but only those that don't already exist for the user (by name)
         const userExerciseNames = new Set(userExercises.map(e => e.name.toLowerCase()));
         const appExercises: Exercise[] = DEFAULT_EXERCISES_DATA
+            .map((de, originalIndex) => ({ ...de, originalIndex }))
             .filter(de => !userExerciseNames.has(de.name.toLowerCase()))
-            .map((de, index) => ({
-                id: `default-${index}`,
+            .map(de => ({
+                id: `default-${de.originalIndex}`,
                 name: de.name,
                 muscleGroup: de.muscleGroup,
                 description: de.description,
                 createdAt: new Date(),
-            } as any as Exercise));
+            }));
 
         return [...userExercises, ...appExercises];
     } catch (error) {
