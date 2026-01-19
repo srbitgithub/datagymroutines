@@ -10,7 +10,10 @@ import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/ada
 import { SupabaseSessionRepository } from "@/modules/training/infrastructure/adapters/SupabaseSessionRepository";
 import { revalidatePath } from "next/cache";
 
-export async function getExercisesAction() {
+import { DEFAULT_EXERCISES_DATA } from "@/modules/training/domain/DefaultExercises";
+import { Exercise } from "@/modules/training/domain/Exercise";
+
+export async function getExercisesAction(includeDefaults: boolean = false) {
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
@@ -20,7 +23,23 @@ export async function getExercisesAction() {
         const exerciseRepository = new SupabaseExerciseRepository();
         const getExercisesUseCase = new GetExercisesUseCase(exerciseRepository);
 
-        return await getExercisesUseCase.execute(user.id);
+        const userExercises = await getExercisesUseCase.execute(user.id);
+
+        if (!includeDefaults) return userExercises;
+
+        // Add default exercises, but only those that don't already exist for the user (by name)
+        const userExerciseNames = new Set(userExercises.map(e => e.name.toLowerCase()));
+        const appExercises: Exercise[] = DEFAULT_EXERCISES_DATA
+            .filter(de => !userExerciseNames.has(de.name.toLowerCase()))
+            .map((de, index) => ({
+                id: `default-${index}`,
+                name: de.name,
+                muscleGroup: de.muscleGroup,
+                description: de.description,
+                createdAt: new Date(),
+            } as any as Exercise));
+
+        return [...userExercises, ...appExercises];
     } catch (error) {
         console.error("Error en getExercisesAction:", error);
         return [];
@@ -186,6 +205,36 @@ export async function createRoutineAction(
     const createRoutineUseCase = new CreateRoutineUseCase(routineRepository);
 
     try {
+        const exerciseRepository = new SupabaseExerciseRepository();
+        const createdExercisesMap = new Map<string, string>();
+
+        const exercisesData = [];
+        for (const config of exercisesConfigs) {
+            let exerciseId = config.id;
+
+            // Materialize default exercises
+            if (exerciseId.startsWith('default-')) {
+                // Check if already created in this batch
+                if (createdExercisesMap.has(exerciseId)) {
+                    exerciseId = createdExercisesMap.get(exerciseId)!;
+                } else {
+                    const defaultEx = DEFAULT_EXERCISES_DATA[parseInt(exerciseId.replace('default-', ''))];
+                    const newExId = crypto.randomUUID();
+                    await exerciseRepository.save({
+                        id: newExId,
+                        userId: user.id,
+                        name: defaultEx.name,
+                        muscleGroup: defaultEx.muscleGroup,
+                        description: defaultEx.description,
+                        createdAt: new Date(),
+                    });
+                    createdExercisesMap.set(config.id, newExId);
+                    exerciseId = newExId;
+                }
+            }
+            exercisesData.push({ ...config, id: exerciseId });
+        }
+
         const routineId = crypto.randomUUID();
         await createRoutineUseCase.execute({
             id: routineId,
@@ -193,7 +242,7 @@ export async function createRoutineAction(
             name,
             description,
             createdAt: new Date(),
-            exercises: exercisesConfigs.map((config, index) => ({
+            exercises: exercisesData.map((config, index) => ({
                 id: crypto.randomUUID(),
                 exerciseId: config.id,
                 orderIndex: index,
@@ -223,12 +272,41 @@ export async function updateRoutineAction(
     if (!user) return { error: "No autenticado" };
 
     const routineRepository = new SupabaseRoutineRepository();
+    const exerciseRepository = new SupabaseExerciseRepository();
 
     try {
+        const createdExercisesMap = new Map<string, string>();
+        const exercisesData = [];
+
+        for (const config of exercisesConfigs) {
+            let exerciseId = config.id;
+
+            // Materialize default exercises
+            if (exerciseId.startsWith('default-')) {
+                if (createdExercisesMap.has(exerciseId)) {
+                    exerciseId = createdExercisesMap.get(exerciseId)!;
+                } else {
+                    const defaultEx = DEFAULT_EXERCISES_DATA[parseInt(exerciseId.replace('default-', ''))];
+                    const newExId = crypto.randomUUID();
+                    await exerciseRepository.save({
+                        id: newExId,
+                        userId: user.id,
+                        name: defaultEx.name,
+                        muscleGroup: defaultEx.muscleGroup,
+                        description: defaultEx.description,
+                        createdAt: new Date(),
+                    });
+                    createdExercisesMap.set(config.id, newExId);
+                    exerciseId = newExId;
+                }
+            }
+            exercisesData.push({ ...config, id: exerciseId });
+        }
+
         await routineRepository.update(id, {
             name,
             description,
-            exercises: exercisesConfigs.map((config, index) => ({
+            exercises: exercisesData.map((config, index) => ({
                 id: crypto.randomUUID(),
                 exerciseId: config.id,
                 orderIndex: index,

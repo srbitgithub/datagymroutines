@@ -2,7 +2,7 @@ import { getExercisesAction } from "@/app/_actions/training";
 import { RoutineBuilderForm } from "@/modules/training/infrastructure/components/RoutineBuilderForm";
 
 export default async function NewRoutinePage() {
-    const exercises = await getExercisesAction();
+    const exercises = await getExercisesAction(true);
 
     return (
         <div className="max-w-2xl mx-auto space-y-8">

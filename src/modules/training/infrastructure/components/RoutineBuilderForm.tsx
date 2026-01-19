@@ -46,11 +46,18 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
         message: ''
     });
 
+    const userExercises = exercises.filter(e => !e.id.startsWith('default-'));
+    const appExercises = exercises.filter(e => e.id.startsWith('default-'));
+
     const categories = ['Todos', ...Array.from(new Set(exercises.map(e => e.muscleGroup)))].sort();
 
-    const filteredExercises = selectedCategory === 'Todos'
-        ? exercises
-        : exercises.filter(e => e.muscleGroup === selectedCategory);
+    const filteredUserExercises = selectedCategory === 'Todos'
+        ? userExercises
+        : userExercises.filter(e => e.muscleGroup === selectedCategory);
+
+    const filteredAppExercises = selectedCategory === 'Todos'
+        ? appExercises
+        : appExercises.filter(e => e.muscleGroup === selectedCategory);
 
     const handleDragStart = (index: number) => {
         setDraggedIndex(index);
@@ -270,25 +277,60 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                 </div>
 
                 <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[350px] border rounded-xl p-3 bg-accent/5 shadow-inner">
-                    {filteredExercises.length > 0 ? (
-                        filteredExercises.map((exercise) => (
-                            <button
-                                key={exercise.id}
-                                type="button"
-                                onClick={() => addExercise(exercise)}
-                                className="flex items-center justify-between rounded-xl border bg-card p-4 text-left hover:border-brand-primary/50 hover:shadow-md transition-all active:scale-[0.98] animate-in fade-in duration-200"
-                            >
-                                <div>
-                                    <p className="text-sm font-bold">{exercise.name}</p>
-                                    <p className="text-[10px] uppercase font-medium text-muted-foreground">
-                                        {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
-                                    </p>
+                    {(filteredUserExercises.length > 0 || filteredAppExercises.length > 0) ? (
+                        <>
+                            {filteredUserExercises.length > 0 && (
+                                <div className="space-y-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2 py-1 bg-muted/20 rounded-md">
+                                        {t('exercises.my_exercises') || 'Mis Ejercicios'}
+                                    </h3>
+                                    {filteredUserExercises.map((exercise) => (
+                                        <button
+                                            key={exercise.id}
+                                            type="button"
+                                            onClick={() => addExercise(exercise)}
+                                            className="flex w-full items-center justify-between rounded-xl border bg-card p-4 text-left hover:border-brand-primary/50 hover:shadow-md transition-all active:scale-[0.98] animate-in fade-in duration-200"
+                                        >
+                                            <div>
+                                                <p className="text-sm font-bold">{exercise.name}</p>
+                                                <p className="text-[10px] uppercase font-medium text-muted-foreground">
+                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                                </p>
+                                            </div>
+                                            <div className="bg-brand-primary/10 p-2 rounded-lg">
+                                                <Plus className="h-4 w-4 text-brand-primary" />
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
-                                <div className="bg-brand-primary/10 p-2 rounded-lg">
-                                    <Plus className="h-4 w-4 text-brand-primary" />
+                            )}
+
+                            {filteredAppExercises.length > 0 && (
+                                <div className="space-y-2 mt-4">
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2 py-1 bg-muted/20 rounded-md">
+                                        {t('exercises.app_exercises') || 'De la Aplicación'}
+                                    </h3>
+                                    {filteredAppExercises.map((exercise) => (
+                                        <button
+                                            key={exercise.id}
+                                            type="button"
+                                            onClick={() => addExercise(exercise)}
+                                            className="flex w-full items-center justify-between rounded-xl border bg-card p-4 text-left hover:border-brand-primary/50 hover:shadow-md transition-all active:scale-[0.98] animate-in fade-in duration-200"
+                                        >
+                                            <div>
+                                                <p className="text-sm font-bold">{exercise.name}</p>
+                                                <p className="text-[10px] uppercase font-medium text-muted-foreground">
+                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                                </p>
+                                            </div>
+                                            <div className="bg-brand-primary/10 p-2 rounded-lg">
+                                                <Plus className="h-4 w-4 text-brand-primary" />
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
-                            </button>
-                        ))
+                            )}
+                        </>
                     ) : (
                         <div className="py-8 text-center text-muted-foreground text-xs italic">
                             {t('routines.no_exercises_category')}

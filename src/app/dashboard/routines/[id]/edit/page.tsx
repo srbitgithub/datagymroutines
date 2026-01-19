@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 export default async function EditRoutinePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const [exercises, routine] = await Promise.all([
-        getExercisesAction(),
+        getExercisesAction(true),
         getRoutineByIdAction(id)
     ]);
 
