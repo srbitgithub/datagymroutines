@@ -261,14 +261,21 @@ export function SessionLogger() {
 
     const executeSaveAndExit = async () => {
         setIsFinishing(true);
-        const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
-        setCongratsPhrase(randomPhrase);
-        setShowCongratsModal(true);
         try {
+            // Se marca como finalizada la sesión en el servidor para que cuente como día entrenado
             await finishSession();
+
+            // Si se completó toda la rutina, mostramos el modal motivacional
+            if (allSetsCompleted) {
+                const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
+                setCongratsPhrase(randomPhrase);
+                setShowCongratsModal(true);
+            } else {
+                // Si es parcial, simplemente limpiamos y salimos directamente
+                clearSession();
+            }
         } catch (error: any) {
             setErrorDialog({ isOpen: true, message: error.message || t('training.error_saving') });
-            setShowCongratsModal(false);
         } finally {
             setIsFinishing(false);
             setShowCancelModal(false);
@@ -665,8 +672,8 @@ export function SessionLogger() {
                 isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={confirmCancel}
-                title={completedSetIds.length > 0 ? "¿Guardar las series terminadas?" : "¿Quieres abandonar este entrenamiento?"}
-                description=""
+                title={completedSetIds.length > 0 ? "¿Deseas finalizar el entrenamiento y guardar tu progreso?" : "¿Quieres abandonar este entrenamiento?"}
+                description={completedSetIds.length > 0 ? "Se guardarán las series que has completado hasta ahora." : "No se guardará ninguna serie."}
                 variant={completedSetIds.length > 0 ? "info" : "danger"}
                 type="confirm"
                 confirmLabel={t('common.yes')}
