@@ -242,6 +242,12 @@ export const en = {
         },
         danger_zone_desc: "If you log out, you will have to enter your credentials again to access your data.",
         username_success: "Username updated successfully",
+        appearance: {
+            title: "Appearance",
+            light: "Day Mode",
+            dark: "Night Mode",
+            subtitle: "Customize the look and feel of the app"
+        },
     },
     tools: {
         title: "Tools",
