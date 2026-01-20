@@ -242,6 +242,12 @@ export const es = {
         },
         danger_zone_desc: "Si cierras sesión, tendrás que volver a introducir tus credenciales para acceder a tus datos.",
         username_success: "Nombre de usuario actualizado correctamente",
+        appearance: {
+            title: "Apariencia",
+            light: "Modo Día",
+            dark: "Modo Noche",
+            subtitle: "Personaliza el aspecto de la aplicación"
+        },
     },
     tools: {
         title: "Herramientas",

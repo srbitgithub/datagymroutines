@@ -124,7 +124,7 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
                             <>
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-zinc-800 transition-colors"
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent hover:bg-muted transition-colors"
                                     title={t('exercises.edit_title')}
                                 >
                                     <Edit2 className="h-4 w-4" />

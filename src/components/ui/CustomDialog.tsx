@@ -66,13 +66,13 @@ export function CustomDialog({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="relative bg-card border border-border rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="text-center space-y-4">
                     <div className={`w-16 h-16 ${getIconBg()} rounded-full flex items-center justify-center mx-auto mb-4`}>
                         {getIcon()}
                     </div>
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight">{title}</h3>
-                    <p className="text-zinc-400 font-medium">{description}</p>
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">{title}</h3>
+                    <p className="text-muted-foreground font-medium">{description}</p>
                 </div>
 
                 <div className={`grid ${type === 'confirm' ? 'grid-cols-2' : 'grid-cols-1'} gap-4 mt-8`}>
@@ -85,7 +85,7 @@ export function CustomDialog({
                                     onClose();
                                 }
                             }}
-                            className="py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black rounded-2xl transition-all uppercase text-sm"
+                            className="py-4 bg-muted hover:bg-muted/80 text-foreground font-black rounded-2xl transition-all uppercase text-sm"
                         >
                             {finalCancelLabel}
                         </button>

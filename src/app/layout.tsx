@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TranslationProvider } from "@/core/i18n/TranslationContext";
+import { ThemeProvider } from "@/core/theme/ThemeContext";
 import { PWAUpdateToast } from "@/components/pwa/PWAUpdateToast";
 
 const geistSans = Geist({
@@ -32,12 +33,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `(function() {
+            try {
+              var theme = localStorage.getItem('theme');
+              if (theme === 'light') {
+                document.documentElement.classList.add('light');
+              }
+            } catch (e) {}
+          })()`
+        }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <TranslationProvider>
-          {children}
-          <PWAUpdateToast />
-        </TranslationProvider>
+        <ThemeProvider>
+          <TranslationProvider>
+            {children}
+            <PWAUpdateToast />
+          </TranslationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

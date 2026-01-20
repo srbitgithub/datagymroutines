@@ -395,12 +395,12 @@ export function SessionLogger() {
 
     if (showConfig) {
         return (
-            <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col pt-safe px-4">
-                <header className="p-6 border-b border-zinc-900 flex items-center justify-between bg-zinc-900 -mx-4">
-                    <h3 className="text-xl font-black uppercase tracking-tight text-white">{t('training.rest_settings')}</h3>
+            <div className="fixed inset-0 z-50 bg-background flex flex-col pt-safe px-4">
+                <header className="p-6 border-b border-border flex items-center justify-between bg-card -mx-4">
+                    <h3 className="text-xl font-black uppercase tracking-tight text-foreground">{t('training.rest_settings')}</h3>
                     <button
                         onClick={() => setShowConfig(false)}
-                        className="p-3 rounded-full bg-zinc-800 text-white hover:bg-zinc-700 transition-colors"
+                        className="p-3 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-colors"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -408,8 +408,8 @@ export function SessionLogger() {
 
                 <main className="flex-1 overflow-y-auto py-10 space-y-10 flex flex-col justify-center max-w-lg mx-auto w-full">
                     <section className="space-y-6">
-                        <label className="text-xs font-bold uppercase text-zinc-500 tracking-widest text-center block">{t('training.rest_time_hint')}</label>
-                        <div className="flex items-center justify-center gap-6 bg-zinc-900/50 p-10 rounded-3xl border border-zinc-800 shadow-inner">
+                        <label className="text-xs font-bold uppercase text-muted-foreground tracking-widest text-center block">{t('training.rest_time_hint')}</label>
+                        <div className="flex items-center justify-center gap-6 bg-muted/50 p-10 rounded-3xl border border-border shadow-inner">
                             <div className="text-center">
                                 <input
                                     type="number"
@@ -422,11 +422,11 @@ export function SessionLogger() {
                                         setInternalTotalRestTime(newTotal);
                                         setPreferredRestTime(newTotal);
                                     }}
-                                    className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
+                                    className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-foreground"
                                 />
-                                <p className="text-xs font-bold text-zinc-500 mt-2">{t('training.minutes')}</p>
+                                <p className="text-xs font-bold text-muted-foreground mt-2">{t('training.minutes')}</p>
                             </div>
-                            <div className="text-5xl font-black text-zinc-800 self-start mt-2">:</div>
+                            <div className="text-5xl font-black text-muted-foreground/30 self-start mt-2">:</div>
                             <div className="text-center">
                                 <input
                                     type="number"
@@ -439,21 +439,21 @@ export function SessionLogger() {
                                         setInternalTotalRestTime(newTotal);
                                         setPreferredRestTime(newTotal);
                                     }}
-                                    className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-white"
+                                    className="w-24 text-6xl font-black bg-transparent text-center outline-none focus:text-brand-primary text-foreground"
                                 />
-                                <p className="text-xs font-bold text-zinc-500 mt-2">{t('training.seconds')}</p>
+                                <p className="text-xs font-bold text-muted-foreground mt-2">{t('training.seconds')}</p>
                             </div>
                         </div>
                     </section>
 
-                    <section className="flex items-center justify-between bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-lg">
+                    <section className="flex items-center justify-between bg-card border border-border p-6 rounded-3xl shadow-lg">
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl ${isAlarmEnabled ? 'bg-brand-primary/20 text-brand-primary' : 'bg-zinc-800 text-zinc-600'}`}>
+                            <div className={`p-3 rounded-2xl ${isAlarmEnabled ? 'bg-brand-primary/20 text-brand-primary' : 'bg-muted text-muted-foreground'}`}>
                                 {isAlarmEnabled ? <Bell className="h-6 w-6" /> : <BellOff className="h-6 w-6" />}
                             </div>
                             <div>
-                                <p className="font-black text-lg text-white">Alarma Sonora</p>
-                                <p className="text-sm text-zinc-500 font-medium">Emitir sonido al terminar</p>
+                                <p className="font-black text-lg text-foreground">Alarma Sonora</p>
+                                <p className="text-sm text-muted-foreground font-medium">Emitir sonido al terminar</p>
                             </div>
                         </div>
                         <button
@@ -467,7 +467,7 @@ export function SessionLogger() {
                     <section className="pt-6 space-y-4">
                         <button
                             onClick={() => setShowConfig(false)}
-                            className="w-full py-6 bg-white text-zinc-950 font-black text-xl rounded-3xl shadow-xl active:scale-95 transition-all uppercase tracking-tight"
+                            className="w-full py-6 bg-foreground text-background font-black text-xl rounded-3xl shadow-xl active:scale-95 transition-all uppercase tracking-tight"
                         >
                             {t('training.back_to_training')}
                         </button>
@@ -651,7 +651,7 @@ export function SessionLogger() {
                         id="main-action-btn"
                         onClick={handleMainAction}
                         disabled={isFinishing || isSaving}
-                        className={`flex items-center gap-2 rounded-2xl px-4 py-4 text-xs font-black text-white shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 ${allSetsCompleted ? 'bg-brand-primary shadow-brand-primary/30' : 'bg-zinc-900 border border-zinc-800 shadow-black/50'}`}
+                        className={`flex items-center gap-2 rounded-2xl px-4 py-4 text-xs font-black text-white shadow-2xl transition-all hover:translate-y-[-2px] active:scale-95 disabled:opacity-50 ${allSetsCompleted ? 'bg-brand-primary shadow-brand-primary/30' : 'bg-card border border-border shadow-black/50'}`}
                     >
                         {isFinishing || isSaving ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

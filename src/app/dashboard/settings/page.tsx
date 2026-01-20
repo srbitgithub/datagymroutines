@@ -1,7 +1,8 @@
 'use client';
 
 import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
-import { User, Mail, Weight, LogOut, Loader2, Shield } from "lucide-react";
+import { User, Mail, Weight, LogOut, Loader2, Shield, Sun, Moon, Palette } from "lucide-react";
+import { useTheme } from "@/core/theme/ThemeContext";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
 import { UsernameSettingsForm } from "@/modules/profiles/presentation/components/UsernameSettingsForm";
@@ -10,6 +11,7 @@ import { useTranslation } from "@/core/i18n/TranslationContext";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
     const [profile, setProfile] = useState<any>(null);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -124,7 +126,40 @@ export default function SettingsPage() {
                     </div>
                 </section>
 
-                <section className="rounded-xl border border-red-200 bg-red-50/50 p-6 shadow-sm">
+                <section className="rounded-xl border bg-card p-6 shadow-sm">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                            <Palette className="h-6 w-6 text-brand-primary" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-semibold">{t('settings.appearance.title')}</h2>
+                            <p className="text-sm text-muted-foreground">{t('settings.appearance.subtitle')}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border">
+                        <div className="flex items-center gap-3">
+                            {theme === 'dark' ? (
+                                <Moon className="h-5 w-5 text-brand-primary" />
+                            ) : (
+                                <Sun className="h-5 w-5 text-brand-primary" />
+                            )}
+                            <div>
+                                <p className="text-sm font-medium">
+                                    {theme === 'dark' ? t('settings.appearance.dark') : t('settings.appearance.light')}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={toggleTheme}
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-brand-primary text-white shadow hover:bg-brand-primary/90 h-9 px-4 py-2 cursor-pointer"
+                        >
+                            {t('common.edit')}
+                        </button>
+                    </div>
+                </section>
+
+                <section className="rounded-xl border border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900/50 p-6 shadow-sm">
                     <h2 className="text-xl font-semibold text-red-900 mb-4 flex items-center gap-2">
                         <LogOut className="h-5 w-5" />
                         {t('settings.danger_zone')}

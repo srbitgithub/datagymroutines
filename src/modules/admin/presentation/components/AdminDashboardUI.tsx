@@ -85,20 +85,20 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                         <select
                             value={period}
                             onChange={(e) => handlePeriodChange(Number(e.target.value))}
-                            className="appearance-none bg-zinc-900 border border-zinc-800 text-white pl-10 pr-10 py-3 rounded-2xl font-bold text-sm focus:ring-2 focus:ring-brand-primary outline-none cursor-pointer transition-all"
+                            className="appearance-none bg-card border border-border text-foreground pl-10 pr-10 py-3 rounded-2xl font-bold text-sm focus:ring-2 focus:ring-brand-primary outline-none cursor-pointer transition-all"
                         >
                             <option value={1}>Último mes</option>
                             <option value={3}>Últimos 3 meses</option>
                             <option value={6}>Últimos 6 meses</option>
                             <option value={12}>Último año</option>
                         </select>
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
 
                     <button
                         onClick={handleLogout}
-                        className="bg-zinc-900 hover:bg-zinc-800 p-3 rounded-2xl border border-zinc-800 transition-all text-red-500"
+                        className="bg-card hover:bg-muted p-3 rounded-2xl border border-border transition-all text-red-500"
                         title="Cerrar sesión"
                     >
                         <LogOut className="h-5 w-5" />
@@ -138,11 +138,11 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
             {/* Main Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* User Growth / Gender Chart */}
-                <div className="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+                <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-xl font-black uppercase italic tracking-tight">Distribución por Género</h3>
-                            <p className="text-sm text-zinc-500 font-medium">Usuarios registrados en el periodo seleccionado</p>
+                            <p className="text-sm text-muted-foreground font-medium">Usuarios registrados en el periodo seleccionado</p>
                         </div>
                     </div>
                     <div className="h-80 w-full">
@@ -172,14 +172,14 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                 </div>
 
                 {/* Secondary Stats */}
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 flex flex-col justify-between">
+                <div className="bg-card border border-border rounded-3xl p-8 flex flex-col justify-between">
                     <div>
                         <h3 className="text-xl font-black uppercase italic tracking-tight mb-6">Métricas del Mes</h3>
                         <div className="space-y-6">
                             <StatRow
                                 label="Nuevas Rutinas"
                                 value={stats.routinesCount}
-                                icon={<Award className="h-5 w-5 text-zinc-400" />}
+                                icon={<Award className="h-5 w-5 text-muted-foreground" />}
                                 breakdown={stats.routinesGenderStats}
                             />
                             <StatRow
@@ -255,18 +255,18 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
             </div>
 
             {/* User Management Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8">
+            <div className="bg-card border border-border rounded-3xl p-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
                         <h3 className="text-xl font-black uppercase italic tracking-tight">Gestión de Usuarios</h3>
-                        <p className="text-sm text-zinc-500 font-medium">Listado detallado de miembros registrados (con perfil)</p>
+                        <p className="text-sm text-muted-foreground font-medium">Listado detallado de miembros registrados (con perfil)</p>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                            <tr className="border-b border-border text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                                 <th className="pb-4 px-4">Usuario</th>
                                 <th className="pb-4 px-4">Email</th>
                                 <th className="pb-4 px-4">Género</th>
@@ -274,18 +274,18 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                                 <th className="pb-4 px-4 text-right">Registro</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-zinc-800/50">
+                        <tbody className="divide-y divide-border/50">
                             {stats.usersList?.map((user: any) => (
-                                <tr key={user.id} className="text-sm hover:bg-zinc-800/20 transition-all">
+                                <tr key={user.id} className="text-sm hover:bg-muted/20 transition-all">
                                     <td className="py-4 px-4">
-                                        <div className="font-bold text-white">{user.username || 'Sin usuario'}</div>
-                                        <div className="text-[10px] text-zinc-500 font-mono">{user.fullName || '-'}</div>
+                                        <div className="font-bold text-foreground">{user.username || 'Sin usuario'}</div>
+                                        <div className="text-[10px] text-muted-foreground font-mono">{user.fullName || '-'}</div>
                                     </td>
-                                    <td className="py-4 px-4 text-zinc-400 font-medium">{user.email}</td>
+                                    <td className="py-4 px-4 text-muted-foreground font-medium">{user.email}</td>
                                     <td className="py-4 px-4 uppercase text-[10px] font-black tracking-widest">
                                         <span className={`inline-block px-2 py-0.5 rounded-md ${user.gender === 'male' ? 'bg-blue-500/10 text-blue-500' :
-                                                user.gender === 'female' ? 'bg-pink-500/10 text-pink-500' :
-                                                    'bg-purple-500/10 text-purple-500'
+                                            user.gender === 'female' ? 'bg-pink-500/10 text-pink-500' :
+                                                'bg-purple-500/10 text-purple-500'
                                             }`}>
                                             {user.gender === 'male' ? 'Hombre' : user.gender === 'female' ? 'Mujer' : 'Otro'}
                                         </span>
@@ -320,15 +320,15 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
 
 function Card({ title, value, icon, description, isPremium }: any) {
     return (
-        <div className={`relative overflow-hidden bg-zinc-900/50 border ${isPremium ? 'border-brand-primary' : 'border-zinc-800'} rounded-3xl p-6 transition-all hover:scale-[1.02] hover:shadow-xl`}>
+        <div className={`relative overflow-hidden bg-card border ${isPremium ? 'border-brand-primary' : 'border-border'} rounded-3xl p-6 transition-all hover:scale-[1.02] hover:shadow-xl`}>
             {isPremium && (
                 <div className="absolute -right-8 -top-8 w-24 h-24 bg-brand-primary/10 rounded-full blur-2xl" />
             )}
             <div className="flex items-center gap-4 mb-4">
-                <div className={`p-3 rounded-2xl ${isPremium ? 'bg-brand-primary/20' : 'bg-zinc-800'}`}>
+                <div className={`p-3 rounded-2xl ${isPremium ? 'bg-brand-primary/20' : 'bg-muted'}`}>
                     {icon}
                 </div>
-                <h4 className="text-xs font-black text-zinc-500 uppercase tracking-widest">{title}</h4>
+                <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">{title}</h4>
             </div>
             <div className="space-y-1">
                 <div className="text-4xl font-black tracking-tighter">{value}</div>
@@ -340,11 +340,11 @@ function Card({ title, value, icon, description, isPremium }: any) {
 
 function StatRow({ label, value, icon, breakdown }: any) {
     return (
-        <div className="space-y-2 p-4 bg-zinc-800/30 rounded-2xl border border-zinc-800/50">
+        <div className="space-y-2 p-4 bg-muted/30 rounded-2xl border border-border">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     {icon}
-                    <span className="text-sm font-bold text-zinc-400">{label}</span>
+                    <span className="text-sm font-bold text-muted-foreground">{label}</span>
                 </div>
                 <span className="text-lg font-black">{value}</span>
             </div>
