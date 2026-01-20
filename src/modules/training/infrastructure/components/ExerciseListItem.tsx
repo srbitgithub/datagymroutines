@@ -90,10 +90,10 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
                             className="w-full bg-accent/20 border-none h-8 px-2 rounded font-medium text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                         />
                     ) : (
-                        <p className="text-sm font-medium truncate">{exercise.name}</p>
+                        <p className="text-sm font-medium line-clamp-2 whitespace-normal">{exercise.name}</p>
                     )}
                     {exercise.description && !isEditing && (
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground line-clamp-2 whitespace-normal">
                             {exercise.description}
                         </p>
                     )}
