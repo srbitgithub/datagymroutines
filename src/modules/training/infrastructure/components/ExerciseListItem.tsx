@@ -113,7 +113,7 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
                             <select
                                 value={newLoggingType}
                                 onChange={(e) => setNewLoggingType(e.target.value as any)}
-                                className="w-full bg-accent/20 border-none h-8 px-2 rounded font-medium text-xs focus:ring-1 focus:ring-brand-primary outline-none"
+                                className="w-full bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700 h-8 px-2 rounded font-medium text-xs focus:ring-1 focus:ring-brand-primary outline-none"
                             >
                                 <option value="strength">{t('exercises.logging_types.strength')}</option>
                                 <option value="time">{t('exercises.logging_types.time')}</option>

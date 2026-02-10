@@ -47,7 +47,7 @@ export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
                     name="muscleGroup"
                     value={muscleGroup}
                     onChange={(e) => setMuscleGroup(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-white"
+                    className="flex h-9 w-full rounded-md border border-input bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-zinc-900 dark:text-white"
                 >
                     <option value="Pecho">{t('exercises.muscle_groups.Pecho')}</option>
                     <option value="Espalda">{t('exercises.muscle_groups.Espalda')}</option>
@@ -68,7 +68,7 @@ export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
                     name="loggingType"
                     value={loggingType}
                     onChange={(e) => setLoggingType(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-white font-medium"
+                    className="flex h-9 w-full rounded-md border border-input bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-zinc-900 dark:text-white font-medium"
                 >
                     <option value="strength">{t('exercises.logging_types.strength')}</option>
                     <option value="time">{t('exercises.logging_types.time')}</option>
