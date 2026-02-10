@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy } from 'lucide-react';
+import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy, Plus } from 'lucide-react';
 import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
@@ -24,6 +24,7 @@ export function SessionLogger() {
         saveSession,
         finishSession,
         abandonSession,
+        addExerciseSet,
         clearSession
     } = useSession();
     const { t } = useTranslation();
@@ -575,6 +576,13 @@ export function SessionLogger() {
                                         <Dumbbell className="h-4 w-4 text-brand-primary" />
                                         {exercise?.name || t('common.global')}
                                     </h3>
+                                    <button
+                                        onClick={() => addExerciseSet(exerciseId)}
+                                        className="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors active:scale-90"
+                                        title={t('training.add_set') || "Añadir serie"}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </button>
                                 </div>
 
                                 <div className="p-0">

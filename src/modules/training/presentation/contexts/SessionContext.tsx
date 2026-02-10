@@ -23,6 +23,7 @@ interface SessionContextType {
     saveSession: () => Promise<{ success: boolean; error?: string }>;
     finishSession: () => Promise<void>;
     abandonSession: () => Promise<void>;
+    addExerciseSet: (exerciseId: string) => void;
     clearSession: () => void;
     userProfile?: Profile | null;
 }
@@ -147,6 +148,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setSessionSets(prev => prev.map(s => s.id === setId ? { ...s, [field]: value } : s));
     };
 
+    const addExerciseSet = (exerciseId: string) => {
+        setSessionSets(prev => {
+            const exerciseSets = prev.filter(s => s.exerciseId === exerciseId);
+            const lastSet = exerciseSets.length > 0
+                ? [...exerciseSets].sort((a, b) => b.orderIndex - a.orderIndex)[0]
+                : null;
+
+            const newOrderIndex = lastSet ? lastSet.orderIndex + 1 : 0;
+
+            const newSet: ExerciseSet = {
+                id: crypto.randomUUID(),
+                sessionId: activeSession?.id || '',
+                exerciseId: exerciseId,
+                weight: lastSet?.weight || 0,
+                reps: lastSet?.reps || 0,
+                type: 'normal',
+                orderIndex: newOrderIndex,
+                createdAt: new Date()
+            };
+
+            return [...prev, newSet];
+        });
+    };
+
     const toggleSetCompletion = (setId: string) => {
         setCompletedSetIds(prev => {
             const next = [...prev];
@@ -221,6 +246,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             saveSession,
             finishSession,
             abandonSession,
+            addExerciseSet,
             clearSession,
             userProfile
         }}>
