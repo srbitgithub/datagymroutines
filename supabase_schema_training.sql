@@ -3,6 +3,7 @@ create table base_exercises (
   id uuid default gen_random_uuid() primary key,
   name jsonb not null,
   muscle_group jsonb,
+  logging_type text default 'strength',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -19,6 +20,9 @@ insert into base_exercises (name, muscle_group) values
 ('{"en": "Bicep Curl", "es": "Curl de Bíceps"}', '{"en": "Biceps", "es": "Bíceps"}'),
 ('{"en": "Plank", "es": "Plancha Abdominal"}', '{"en": "Core", "es": "Core"}');
 
+update base_exercises set logging_type = 'time' where name->>'en' = 'Plank';
+update base_exercises set logging_type = 'bodyweight' where name->>'en' = 'Pull Ups';
+
 -- Exercise table
 create table exercises (
   id uuid default gen_random_uuid() primary key,
@@ -26,6 +30,7 @@ create table exercises (
   name text not null,
   muscle_group text,
   description text,
+  logging_type text default 'strength',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -60,6 +65,9 @@ create table routine_exercises (
   routine_id uuid references routines on delete cascade not null,
   exercise_id uuid references exercises on delete cascade not null,
   order_index int not null,
+  series int default 3 not null,
+  target_reps int,
+  target_weight numeric,
   notes text
 );
 

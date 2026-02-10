@@ -40,11 +40,12 @@ begin
   values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url', new.email, user_lang);
 
   -- Seed initial exercises for the user from the catalog
-  insert into public.exercises (user_id, name, muscle_group)
+  insert into public.exercises (user_id, name, muscle_group, logging_type)
   select 
     new.id, 
     (name->>user_lang), 
-    (muscle_group->>user_lang)
+    (muscle_group->>user_lang),
+    logging_type
   from public.base_exercises;
 
   return new;
