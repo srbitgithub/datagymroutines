@@ -15,6 +15,7 @@ interface ExerciseListItemProps {
 export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [newName, setNewName] = useState(exercise.name);
+    const [newLoggingType, setNewLoggingType] = useState(exercise.loggingType || 'strength');
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -45,14 +46,23 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
     };
 
     const handleSave = async () => {
-        if (!newName.trim() || newName === exercise.name) {
+        if (!newName.trim()) {
             setIsEditing(false);
             setNewName(exercise.name);
+            setNewLoggingType(exercise.loggingType || 'strength');
+            return;
+        }
+
+        if (newName === exercise.name && newLoggingType === exercise.loggingType) {
+            setIsEditing(false);
             return;
         }
 
         setIsSaving(true);
-        const result = await updateExerciseAction(exercise.id, newName.trim());
+        const result = await updateExerciseAction(exercise.id, {
+            name: newName.trim(),
+            loggingType: newLoggingType as any
+        });
         setIsSaving(false);
 
         if (result.success) {
@@ -69,6 +79,7 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
     const handleCancel = () => {
         setIsEditing(false);
         setNewName(exercise.name);
+        setNewLoggingType(exercise.loggingType || 'strength');
     };
 
     return (
@@ -90,7 +101,25 @@ export function ExerciseListItem({ exercise, onRefresh }: ExerciseListItemProps)
                             className="w-full bg-accent/20 border-none h-8 px-2 rounded font-medium text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                         />
                     ) : (
-                        <p className="text-sm font-medium line-clamp-2 whitespace-normal">{exercise.name}</p>
+                        <div>
+                            <p className="text-sm font-medium line-clamp-2 whitespace-normal">{exercise.name}</p>
+                            <span className="text-[10px] font-bold uppercase text-brand-primary/60 bg-brand-primary/5 px-1.5 py-0.5 rounded border border-brand-primary/10">
+                                {t(`exercises.logging_types.${exercise.loggingType || 'strength'}`)}
+                            </span>
+                        </div>
+                    )}
+                    {isEditing && (
+                        <div className="mt-2">
+                            <select
+                                value={newLoggingType}
+                                onChange={(e) => setNewLoggingType(e.target.value as any)}
+                                className="w-full bg-accent/20 border-none h-8 px-2 rounded font-medium text-xs focus:ring-1 focus:ring-brand-primary outline-none"
+                            >
+                                <option value="strength">{t('exercises.logging_types.strength')}</option>
+                                <option value="time">{t('exercises.logging_types.time')}</option>
+                                <option value="bodyweight">{t('exercises.logging_types.bodyweight')}</option>
+                            </select>
+                        </div>
                     )}
                     {exercise.description && !isEditing && (
                         <p className="text-xs text-muted-foreground line-clamp-2 whitespace-normal">

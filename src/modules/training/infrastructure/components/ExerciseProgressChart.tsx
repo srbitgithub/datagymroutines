@@ -19,17 +19,26 @@ interface ProgressPoint {
     date: string;
     weight: number;
     reps: number;
+    maxReps?: number;
 }
 
 interface ExerciseProgressChartProps {
     data: ProgressPoint[];
     exerciseName: string;
+    loggingType: 'strength' | 'time' | 'bodyweight';
 }
 
-const CustomTooltip = ({ active, payload, label, language, t }: any) => {
+const CustomTooltip = ({ active, payload, label, language, t, loggingType }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload as ProgressPoint;
         const locale = language === 'es' ? es : enUS;
+
+        const formatTime = (seconds: number) => {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        };
+
         return (
             <div className="bg-zinc-950/90 backdrop-blur-md border border-white/10 p-4 rounded-xl shadow-2xl">
                 <p className="text-[10px] font-bold uppercase text-zinc-500 mb-2 flex items-center gap-1">
@@ -37,11 +46,17 @@ const CustomTooltip = ({ active, payload, label, language, t }: any) => {
                     {format(parseISO(label), t('stats.date_format'), { locale })}
                 </p>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-brand-primary">{payload[0].value}</span>
-                    <span className="text-sm font-bold text-zinc-400">kg</span>
+                    <span className="text-2xl font-black text-brand-primary">
+                        {loggingType === 'time' ? formatTime(payload[0].value) : payload[0].value}
+                    </span>
+                    <span className="text-sm font-bold text-zinc-400">
+                        {loggingType === 'time' ? '' : 'kg'}
+                    </span>
                 </div>
                 <p className="text-xs text-zinc-500 mt-1 font-medium">
-                    {t('stats.best_set', { reps: data.reps })}
+                    {loggingType === 'time'
+                        ? (data.weight > 0 ? `${t('training.weight')}: ${data.weight}kg` : '')
+                        : t('stats.best_set', { reps: data.reps })}
                 </p>
             </div>
         );
@@ -49,22 +64,31 @@ const CustomTooltip = ({ active, payload, label, language, t }: any) => {
     return null;
 };
 
-export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressChartProps) {
+export function ExerciseProgressChart({ data, exerciseName, loggingType }: ExerciseProgressChartProps) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const { t, language } = useTranslation();
     const dateLocale = language === 'es' ? es : enUS;
 
     const stats = useMemo(() => {
         if (data.length === 0) return null;
-        const weights = data.map(d => d.weight);
-        const max = Math.max(...weights);
-        const first = data[0].weight;
-        const last = data[data.length - 1].weight;
+
+        const mainDataKey = loggingType === 'time' ? 'maxReps' : 'weight';
+        const values = data.map(d => (d as any)[mainDataKey] || 0);
+
+        const max = Math.max(...values);
+        const first = values[0];
+        const last = values[values.length - 1];
         const diff = last - first;
         const percent = first > 0 ? (diff / first) * 100 : 0;
 
         return { max, diff, percent };
-    }, [data]);
+    }, [data, loggingType]);
+
+    const formatTimeFull = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
 
     if (data.length === 0) {
         return (
@@ -88,8 +112,12 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t('stats.personal_record')}</p>
                     <div className="mt-1 flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">{stats?.max}</span>
-                        <span className="text-xs font-bold text-zinc-500 uppercase">kg</span>
+                        <span className="text-3xl font-black text-white">
+                            {loggingType === 'time' ? formatTimeFull(stats?.max || 0) : stats?.max}
+                        </span>
+                        <span className="text-xs font-bold text-zinc-500 uppercase">
+                            {loggingType === 'time' ? '' : 'kg'}
+                        </span>
                     </div>
                 </div>
                 <div className="relative overflow-hidden rounded-2xl border bg-zinc-900/50 p-4 backdrop-blur-sm">
@@ -99,9 +127,13 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{t('stats.total_progression')}</p>
                     <div className="mt-1 flex items-baseline gap-1">
                         <span className={`text-3xl font-black ${stats && stats.diff >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {stats && stats.diff >= 0 ? `+${stats.diff}` : stats?.diff}
+                            {loggingType === 'time'
+                                ? `${stats && stats.diff >= 0 ? '+' : ''}${formatTimeFull(Math.abs(stats?.diff || 0))}`
+                                : `${stats && stats.diff >= 0 ? '+' : ''}${stats?.diff}`}
                         </span>
-                        <span className="text-xs font-bold text-zinc-500 uppercase">kg</span>
+                        <span className="text-xs font-bold text-zinc-500 uppercase">
+                            {loggingType === 'time' ? '' : 'kg'}
+                        </span>
                     </div>
                     <p className="text-[10px] font-bold text-zinc-500">
                         ({stats && stats.percent >= 0 ? '+' : ''}{stats?.percent.toFixed(1)}%)
@@ -113,7 +145,9 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
             <div className="relative h-[350px] w-full rounded-2xl border bg-zinc-950 p-6 shadow-2xl">
                 <div className="absolute top-6 left-6 z-10">
                     <h3 className="text-sm font-bold text-white uppercase tracking-tighter">{exerciseName}</h3>
-                    <p className="text-[10px] font-medium text-zinc-500">{t('stats.evolution_max_weight')}</p>
+                    <p className="text-[10px] font-medium text-zinc-500">
+                        {loggingType === 'time' ? t('stats.evolution_time') : t('stats.evolution_max_weight')}
+                    </p>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%">
@@ -152,12 +186,12 @@ export function ExerciseProgressChart({ data, exerciseName }: ExerciseProgressCh
                             tick={{ fill: '#71717a', fontSize: 10, fontWeight: 600 }}
                         />
                         <Tooltip
-                            content={<CustomTooltip language={language} t={t} />}
+                            content={<CustomTooltip language={language} t={t} loggingType={loggingType} />}
                             cursor={{ stroke: '#facc1533', strokeWidth: 1 }}
                         />
                         <Area
                             type="monotone"
-                            dataKey="weight"
+                            dataKey={loggingType === 'time' ? 'maxReps' : 'weight'}
                             stroke="#facc15"
                             strokeWidth={4}
                             fillOpacity={1}

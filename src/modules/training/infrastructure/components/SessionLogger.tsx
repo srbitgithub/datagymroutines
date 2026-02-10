@@ -181,8 +181,8 @@ export function SessionLogger() {
         }
     };
 
-    const handleUpdateSet = (setId: string, field: 'weight' | 'reps', value: string) => {
-        const numValue = parseFloat(value);
+    const handleUpdateSet = (setId: string, field: 'weight' | 'reps', value: number | string) => {
+        const numValue = typeof value === 'string' ? parseFloat(value) : value;
         if (isNaN(numValue)) return;
         updateSet(setId, field, numValue);
     };
@@ -588,8 +588,12 @@ export function SessionLogger() {
                                 <div className="p-0">
                                     <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
                                         <div className="text-center">{t('training.set')}</div>
-                                        <div className="text-center">{t('training.weight')}</div>
-                                        <div className="text-center">{t('training.reps')}</div>
+                                        <div className="text-center">
+                                            {exercise?.loggingType === 'bodyweight' ? 'Lastre' : t('training.weight')}
+                                        </div>
+                                        <div className="text-center">
+                                            {exercise?.loggingType === 'time' ? t('training.time') : t('training.reps')}
+                                        </div>
                                         <div className="text-center">{t('training.action')}</div>
                                     </div>
                                     {exerciseSets.map((set, idx) => {
@@ -613,12 +617,41 @@ export function SessionLogger() {
                                                     />
                                                 </div>
                                                 <div className="flex justify-center">
-                                                    <input
-                                                        type="number"
-                                                        value={set.reps}
-                                                        onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
-                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                                                    />
+                                                    {exercise?.loggingType === 'time' ? (
+                                                        <div className="flex items-center gap-0.5 h-10 px-1 bg-accent/20 rounded-lg justify-center transition-all focus-within:ring-2 focus-within:ring-brand-primary">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={Math.floor((set.reps || 0) / 60)}
+                                                                onChange={(e) => {
+                                                                    const mins = parseInt(e.target.value || '0');
+                                                                    const secs = (set.reps || 0) % 60;
+                                                                    handleUpdateSet(set.id, 'reps', mins * 60 + secs);
+                                                                }}
+                                                                className="w-6 bg-transparent text-right font-bold text-xs outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            />
+                                                            <span className="text-muted-foreground font-bold text-[10px]">:</span>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                max="59"
+                                                                value={(set.reps || 0) % 60}
+                                                                onChange={(e) => {
+                                                                    const mins = Math.floor((set.reps || 0) / 60);
+                                                                    const secs = parseInt(e.target.value || '0');
+                                                                    handleUpdateSet(set.id, 'reps', mins * 60 + (secs > 59 ? 59 : secs));
+                                                                }}
+                                                                className="w-6 bg-transparent text-left font-bold text-xs outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <input
+                                                            type="number"
+                                                            value={set.reps}
+                                                            onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
+                                                            className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="flex justify-center">
                                                     <button

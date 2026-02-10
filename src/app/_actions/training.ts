@@ -38,6 +38,7 @@ export async function getExercisesAction(includeDefaults: boolean = false) {
                 name: de.name,
                 muscleGroup: de.muscleGroup,
                 description: de.description,
+                loggingType: de.loggingType,
                 createdAt: new Date(),
             }));
 
@@ -48,14 +49,14 @@ export async function getExercisesAction(includeDefaults: boolean = false) {
     }
 }
 
-export async function updateExerciseAction(id: string, name: string) {
+export async function updateExerciseAction(id: string, data: Partial<Exercise>) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
 
     const exerciseRepository = new SupabaseExerciseRepository();
     try {
-        await exerciseRepository.update(id, { name });
+        await exerciseRepository.update(id, data);
         revalidatePath("/dashboard/exercises");
         return { success: true };
     } catch (error: any) {
@@ -85,6 +86,7 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
     const name = formData.get("name") as string;
     const muscleGroup = formData.get("muscleGroup") as string;
     const description = formData.get("description") as string;
+    const loggingType = (formData.get("loggingType") as any) || 'strength';
 
     if (!name) return { error: "El nombre es requerido" };
 
@@ -102,6 +104,7 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
             name,
             muscleGroup,
             description,
+            loggingType,
             createdAt: new Date(),
         });
         revalidatePath("/dashboard");
@@ -579,14 +582,16 @@ export async function getExerciseProgressAction(exerciseId: string) {
 
                 const maxWeight = Math.max(...exerciseSets.map(set => set.weight));
                 const bestSet = exerciseSets.find(s => s.weight === maxWeight);
+                const maxReps = Math.max(...exerciseSets.map(set => set.reps));
 
                 return {
                     date: session.startTime.toISOString().split('T')[0],
                     weight: maxWeight,
-                    reps: bestSet?.reps || 0
+                    reps: bestSet?.reps || 0,
+                    maxReps: maxReps
                 };
             })
-            .filter((item): item is { date: string; weight: number; reps: number } => item !== null)
+            .filter((item): item is { date: string; weight: number; reps: number; maxReps: number } => item !== null)
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         return { success: true, data: progressData };

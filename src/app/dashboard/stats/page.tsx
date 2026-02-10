@@ -184,6 +184,7 @@ export default function StatsPage() {
                         <ExerciseProgressChart
                             data={filteredData}
                             exerciseName={selectedExercise.name}
+                            loggingType={selectedExercise.loggingType || 'strength'}
                         />
                     )}
                 </div>

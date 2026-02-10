@@ -9,6 +9,7 @@ export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
     const [state, action, isPending] = useActionState(createExerciseAction, null);
     const [name, setName] = useState('');
     const [muscleGroup, setMuscleGroup] = useState('Pecho');
+    const [loggingType, setLoggingType] = useState('strength');
     const { t } = useTranslation();
 
     const onSuccessRef = useRef(onSuccess);
@@ -25,7 +26,7 @@ export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
     }, [state]);
 
     return (
-        <form action={action} className="grid gap-4 md:grid-cols-[1fr_1fr_auto] items-end">
+        <form action={action} className="grid gap-4 md:grid-cols-[2fr_1fr_1.5fr_auto] items-end">
             <div className="space-y-2">
                 <label htmlFor="name" className="text-xs font-bold uppercase text-muted-foreground">{t('exercises.name_label')}</label>
                 <input
@@ -57,6 +58,21 @@ export function ExerciseForm({ onSuccess }: { onSuccess?: () => void }) {
                     <option value="Tríceps">{t('exercises.muscle_groups.Tríceps')}</option>
                     <option value="Core">{t('exercises.muscle_groups.Core')}</option>
                     <option value="Otros">{t('exercises.muscle_groups.Otros')}</option>
+                </select>
+            </div>
+
+            <div className="space-y-2">
+                <label htmlFor="loggingType" className="text-xs font-bold uppercase text-muted-foreground">{t('exercises.logging_type_label')}</label>
+                <select
+                    id="loggingType"
+                    name="loggingType"
+                    value={loggingType}
+                    onChange={(e) => setLoggingType(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-zinc-800 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-white font-medium"
+                >
+                    <option value="strength">{t('exercises.logging_types.strength')}</option>
+                    <option value="time">{t('exercises.logging_types.time')}</option>
+                    <option value="bodyweight">{t('exercises.logging_types.bodyweight')}</option>
                 </select>
             </div>
 

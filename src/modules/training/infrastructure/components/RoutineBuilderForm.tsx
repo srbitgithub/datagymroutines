@@ -221,16 +221,49 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">{t('training.reps')}</label>
-                                            <input
-                                                type="number"
-                                                value={item.targetReps}
-                                                onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
-                                                className="w-full h-10 bg-muted/50 border border-border rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
-                                            />
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">
+                                                {item.exercise.loggingType === 'time' ? t('training.time') : t('training.reps')}
+                                            </label>
+                                            {item.exercise.loggingType === 'time' ? (
+                                                <div className="flex items-center gap-1 h-10 px-2 bg-muted/50 border border-border rounded-lg justify-center transition-all focus-within:ring-1 focus-within:ring-brand-primary">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={Math.floor(item.targetReps / 60)}
+                                                        onChange={(e) => {
+                                                            const mins = parseInt(e.target.value || '0');
+                                                            const secs = item.targetReps % 60;
+                                                            updateConfig(index, 'targetReps', mins * 60 + secs);
+                                                        }}
+                                                        className="w-7 bg-transparent text-right font-bold text-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    />
+                                                    <span className="text-muted-foreground font-bold">:</span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="59"
+                                                        value={item.targetReps % 60}
+                                                        onChange={(e) => {
+                                                            const mins = Math.floor(item.targetReps / 60);
+                                                            const secs = parseInt(e.target.value || '0');
+                                                            updateConfig(index, 'targetReps', mins * 60 + (secs > 59 ? 59 : secs));
+                                                        }}
+                                                        className="w-7 bg-transparent text-left font-bold text-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <input
+                                                    type="number"
+                                                    value={item.targetReps}
+                                                    onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
+                                                    className="w-full h-10 bg-muted/50 border border-border rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                                />
+                                            )}
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">{t('training.weight')} (kg)</label>
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block text-center">
+                                                {item.exercise.loggingType === 'bodyweight' ? 'Lastre (kg)' : `${t('training.weight')} (kg)`}
+                                            </label>
                                             <input
                                                 type="number"
                                                 step="0.5"
