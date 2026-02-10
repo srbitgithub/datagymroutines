@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getExercisesAction, getExerciseProgressAction } from '@/app/_actions/training';
+import { getExercisesWithDataAction, getExerciseProgressAction } from '@/app/_actions/training';
 import { Exercise } from '@/modules/training/domain/Exercise';
 import { ExerciseProgressChart } from '@/modules/training/infrastructure/components/ExerciseProgressChart';
 import { BarChart2, Search, Dumbbell, Loader2, ChevronRight, Activity, ChevronLeft, Calendar } from 'lucide-react';
@@ -20,9 +20,15 @@ export default function StatsPage() {
 
     useEffect(() => {
         const loadExercises = async () => {
-            const data = await getExercisesAction();
-            setExercises(data);
-            setLoading(false);
+            setLoading(true);
+            try {
+                const data = await getExercisesWithDataAction();
+                setExercises(data);
+            } catch (error) {
+                console.error("Error loading exercises for stats:", error);
+            } finally {
+                setLoading(false);
+            }
         };
         loadExercises();
     }, []);

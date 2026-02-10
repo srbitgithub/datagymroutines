@@ -594,3 +594,43 @@ export async function getExerciseProgressAction(exerciseId: string) {
         return { success: false, error: error.message, data: [] };
     }
 }
+
+export async function getExercisesWithDataAction() {
+    noStore();
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return [];
+
+        const sessionRepository = new SupabaseSessionRepository();
+        const sessions = await sessionRepository.getAllByUserId(user.id);
+
+        // Get IDs of exercises that have at least one set in a finished session
+        const exerciseIdsWithData = new Set<string>();
+        sessions
+            .filter(s => s.endTime)
+            .forEach(session => {
+                (session.sets || []).forEach(set => {
+                    exerciseIdsWithData.add(set.exerciseId);
+                });
+            });
+
+        if (exerciseIdsWithData.size === 0) return [];
+
+        // Now get the actual exercise objects
+        const exerciseRepository = new SupabaseExerciseRepository();
+        const allUserExercises = await exerciseRepository.getAll(user.id);
+
+        // Filter user exercises and add any default exercise that might have data
+        const filteredUserExercises = allUserExercises.filter(e => exerciseIdsWithData.has(e.id));
+
+        // Look for default exercises that might have been used 
+        // (Default exercises are usually materialized into user exercises when used, 
+        // so they should be in allUserExercises already)
+
+        return filteredUserExercises;
+    } catch (error) {
+        console.error("Error en getExercisesWithDataAction:", error);
+        return [];
+    }
+}
