@@ -9,6 +9,7 @@ import { ExerciseSet } from "@/modules/training/domain/Session";
 import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/adapters/SupabaseRoutineRepository";
 import { SupabaseSessionRepository } from "@/modules/training/infrastructure/adapters/SupabaseSessionRepository";
 import { revalidatePath } from "next/cache";
+import { subMonths, startOfMonth } from "date-fns";
 
 import { DEFAULT_EXERCISES_DATA } from "@/modules/training/domain/DefaultExercises";
 import { Exercise } from "@/modules/training/domain/Exercise";
@@ -595,7 +596,7 @@ export async function getExerciseProgressAction(exerciseId: string) {
     }
 }
 
-export async function getExercisesWithDataAction() {
+export async function getExercisesWithDataAction(timeRange: string = 'all') {
     noStore();
     try {
         const authRepository = new SupabaseAuthRepository();
@@ -605,15 +606,37 @@ export async function getExercisesWithDataAction() {
         const sessionRepository = new SupabaseSessionRepository();
         const sessions = await sessionRepository.getAllByUserId(user.id);
 
-        // Get IDs of exercises that have at least one set in a finished session
+        let filteredSessions = sessions.filter(s => s.endTime);
+
+        if (timeRange !== 'all') {
+            const now = new Date();
+            let startDate: Date;
+            switch (timeRange) {
+                case 'month':
+                    startDate = startOfMonth(now);
+                    break;
+                case '3months':
+                    startDate = subMonths(now, 3);
+                    break;
+                case '6months':
+                    startDate = subMonths(now, 6);
+                    break;
+                case 'year':
+                    startDate = subMonths(now, 12);
+                    break;
+                default:
+                    startDate = new Date(0);
+            }
+            filteredSessions = filteredSessions.filter(s => s.startTime >= startDate);
+        }
+
+        // Get IDs of exercises that have at least one set in a filtered session
         const exerciseIdsWithData = new Set<string>();
-        sessions
-            .filter(s => s.endTime)
-            .forEach(session => {
-                (session.sets || []).forEach(set => {
-                    exerciseIdsWithData.add(set.exerciseId);
-                });
+        filteredSessions.forEach(session => {
+            (session.sets || []).forEach(set => {
+                exerciseIdsWithData.add(set.exerciseId);
             });
+        });
 
         if (exerciseIdsWithData.size === 0) return [];
 
@@ -623,10 +646,6 @@ export async function getExercisesWithDataAction() {
 
         // Filter user exercises and add any default exercise that might have data
         const filteredUserExercises = allUserExercises.filter(e => exerciseIdsWithData.has(e.id));
-
-        // Look for default exercises that might have been used 
-        // (Default exercises are usually materialized into user exercises when used, 
-        // so they should be in allUserExercises already)
 
         return filteredUserExercises;
     } catch (error) {

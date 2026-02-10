@@ -15,14 +15,14 @@ export default function StatsPage() {
     const [loading, setLoading] = useState(true);
     const [loadingChart, setLoadingChart] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [timeRange, setTimeRange] = useState('all');
+    const [timeRange, setTimeRange] = useState('month');
     const { t } = useTranslation();
 
     useEffect(() => {
         const loadExercises = async () => {
             setLoading(true);
             try {
-                const data = await getExercisesWithDataAction();
+                const data = await getExercisesWithDataAction(timeRange);
                 setExercises(data);
             } catch (error) {
                 console.error("Error loading exercises for stats:", error);
@@ -31,7 +31,7 @@ export default function StatsPage() {
             }
         };
         loadExercises();
-    }, []);
+    }, [timeRange]);
 
     const handleSelectExercise = async (exercise: Exercise) => {
         setSelectedExercise(exercise);
@@ -97,15 +97,32 @@ export default function StatsPage() {
 
             {!selectedExercise ? (
                 <div className="space-y-6">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
-                        <input
-                            type="text"
-                            placeholder={t('stats.search_placeholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full h-14 pl-12 pr-4 bg-zinc-900 border-zinc-800 rounded-2xl text-lg font-semibold focus:ring-2 focus:ring-brand-primary transition-all outline-none text-white"
-                        />
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                            <input
+                                type="text"
+                                placeholder={t('stats.search_placeholder')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full h-14 pl-12 pr-4 bg-zinc-900 border-zinc-800 rounded-2xl text-lg font-semibold focus:ring-2 focus:ring-brand-primary transition-all outline-none text-white"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-zinc-900 shadow-sm px-4 rounded-2xl border border-zinc-800 h-14">
+                            <Calendar className="h-5 w-5 text-zinc-500" />
+                            <select
+                                value={timeRange}
+                                onChange={(e) => setTimeRange(e.target.value)}
+                                className="bg-transparent border-none text-zinc-300 text-xs font-black uppercase tracking-widest py-1 outline-none cursor-pointer hover:text-white transition-colors"
+                            >
+                                <option value="month" className="bg-zinc-900">{t('stats.filter_month')}</option>
+                                <option value="3months" className="bg-zinc-900">{t('stats.filter_3_months')}</option>
+                                <option value="6months" className="bg-zinc-900">{t('stats.filter_6_months')}</option>
+                                <option value="year" className="bg-zinc-900">{t('stats.filter_year')}</option>
+                                <option value="all" className="bg-zinc-900">{t('stats.filter_all')}</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
