@@ -157,7 +157,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                         onChange={(e) => setName(e.target.value)}
                         required
                         placeholder={t('routines.name_placeholder')}
-                        className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-lg font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
+                        className="flex h-12 w-full rounded-md border border-border bg-muted/50 px-4 py-2 text-lg font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary placeholder:text-muted-foreground"
                     />
                 </div>
                 <div className="space-y-2">
@@ -168,7 +168,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                         onChange={(e) => setDescription(e.target.value)}
                         rows={2}
                         placeholder={t('routines.desc_placeholder')}
-                        className="flex h-12 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary"
+                        className="flex h-12 w-full rounded-md border border-border bg-muted/50 px-4 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary placeholder:text-muted-foreground"
                     />
                 </div>
             </div>
@@ -217,7 +217,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                                 type="number"
                                                 value={item.series}
                                                 onChange={(e) => updateConfig(index, 'series', parseInt(e.target.value || '0'))}
-                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                                className="w-full h-10 bg-muted/50 border border-border rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -226,7 +226,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                                 type="number"
                                                 value={item.targetReps}
                                                 onChange={(e) => updateConfig(index, 'targetReps', parseInt(e.target.value || '0'))}
-                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                                className="w-full h-10 bg-muted/50 border border-border rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -236,7 +236,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                                 step="0.5"
                                                 value={item.targetWeight}
                                                 onChange={(e) => updateConfig(index, 'targetWeight', parseFloat(e.target.value || '0'))}
-                                                className="w-full h-10 bg-zinc-900 border border-zinc-800 rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
+                                                className="w-full h-10 bg-muted/50 border border-border rounded-lg text-center font-bold text-sm focus:ring-1 focus:ring-brand-primary outline-none"
                                             />
                                         </div>
                                     </div>
@@ -265,7 +265,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                             id="category-filter"
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="flex h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary text-white"
+                            className="flex h-10 w-full rounded-lg border border-border bg-muted/50 px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary text-foreground"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
