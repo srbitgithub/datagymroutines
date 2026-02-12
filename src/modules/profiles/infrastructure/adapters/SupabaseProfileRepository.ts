@@ -37,9 +37,14 @@ export class SupabaseProfileRepository extends SupabaseRepository implements Pro
 
     async uploadAvatar(userId: string, imageData: Blob): Promise<string> {
         const client = await this.getClient();
+
+        // 1. Get current profile to check if there's an old avatar
+        const currentProfile = await this.getById(userId);
+        const oldAvatarUrl = currentProfile?.avatarUrl;
+
         const fileName = `${userId}/avatar-${Date.now()}.webp`;
 
-        // 1. Upload to Storage
+        // 2. Upload new image to Storage
         const { error: uploadError } = await client.storage
             .from('avatars')
             .upload(fileName, imageData, {
@@ -52,13 +57,32 @@ export class SupabaseProfileRepository extends SupabaseRepository implements Pro
             throw new Error(`Error al subir imagen: ${uploadError.message}`);
         }
 
-        // 2. Get Public URL
+        // 3. Get Public URL of the new image
         const { data: { publicUrl } } = client.storage
             .from('avatars')
             .getPublicUrl(fileName);
 
-        // 3. Update Profile record
+        // 4. Update Profile record
         await this.update(userId, { avatarUrl: publicUrl });
+
+        // 5. Clean up old avatar from Storage if it existed and is different
+        if (oldAvatarUrl && oldAvatarUrl.includes('/avatars/')) {
+            try {
+                // Extract relative path from URL (e.g., "userId/avatar-123.webp")
+                const urlParts = oldAvatarUrl.split('/avatars/');
+                const oldPath = urlParts[urlParts.length - 1];
+
+                // Only delete if it's in the same bucket structure
+                if (oldPath) {
+                    await client.storage
+                        .from('avatars')
+                        .remove([oldPath]);
+                }
+            } catch (cleanupError) {
+                // We don't throw here to avoid failing the whole process if cleanup fails
+                console.error("Cleanup error (non-fatal):", cleanupError);
+            }
+        }
 
         return publicUrl;
     }
