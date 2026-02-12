@@ -170,3 +170,23 @@ export async function getUserSessionAction() {
     const authRepository = new SupabaseAuthRepository();
     return authRepository.getSession();
 }
+
+export async function updateAvatarAction(formData: FormData) {
+    const avatarFile = formData.get('avatar') as Blob;
+    if (!avatarFile) return { error: "No se proporcionó ninguna imagen" };
+
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+
+    try {
+        const publicUrl = await profileRepository.uploadAvatar(user.id, avatarFile);
+        revalidatePath("/dashboard/settings");
+        return { success: true, avatarUrl: publicUrl };
+    } catch (error: any) {
+        console.error("Error al actualizar el avatar:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}

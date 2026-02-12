@@ -14,4 +14,5 @@ export interface ProfileRepository {
     getById(id: string): Promise<Profile | null>;
     save(profile: Profile): Promise<void>;
     update(id: string, profile: Partial<Profile>): Promise<void>;
+    uploadAvatar(userId: string, imageData: Blob): Promise<string>;
 }

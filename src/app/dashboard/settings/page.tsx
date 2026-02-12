@@ -8,6 +8,7 @@ import { GenderSettingsForm } from "@/modules/profiles/presentation/components/G
 import { UsernameSettingsForm } from "@/modules/profiles/presentation/components/UsernameSettingsForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
+import { AvatarUpload } from "@/modules/profiles/presentation/components/AvatarUpload";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -51,14 +52,11 @@ export default function SettingsPage() {
 
             <div className="grid gap-6">
                 <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
-                            {user?.avatarUrl ? (
-                                <img src={user.avatarUrl} alt="Avatar" className="h-12 w-12 rounded-full object-cover" />
-                            ) : (
-                                <User className="h-6 w-6 text-brand-primary" />
-                            )}
-                        </div>
+                    <div className="flex items-center gap-6 mb-8">
+                        <AvatarUpload
+                            currentAvatarUrl={profile?.avatarUrl}
+                            onSuccess={(newUrl) => setProfile({ ...profile, avatarUrl: newUrl })}
+                        />
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>

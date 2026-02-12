@@ -34,4 +34,32 @@ export class SupabaseProfileRepository extends SupabaseRepository implements Pro
 
         if (error) throw new Error(error.message);
     }
+
+    async uploadAvatar(userId: string, imageData: Blob): Promise<string> {
+        const client = await this.getClient();
+        const fileName = `${userId}/avatar-${Date.now()}.webp`;
+
+        // 1. Upload to Storage
+        const { error: uploadError } = await client.storage
+            .from('avatars')
+            .upload(fileName, imageData, {
+                contentType: 'image/webp',
+                upsert: true
+            });
+
+        if (uploadError) {
+            console.error("Storage upload error:", uploadError);
+            throw new Error(`Error al subir imagen: ${uploadError.message}`);
+        }
+
+        // 2. Get Public URL
+        const { data: { publicUrl } } = client.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+
+        // 3. Update Profile record
+        await this.update(userId, { avatarUrl: publicUrl });
+
+        return publicUrl;
+    }
 }
