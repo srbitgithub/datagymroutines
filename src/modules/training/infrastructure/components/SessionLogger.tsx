@@ -671,7 +671,7 @@ export function SessionLogger() {
                                                     <button
                                                         onClick={() => !isCompleted && handleToggleCompletion(set.id)}
                                                         disabled={isCompleted}
-                                                        className={`h-9 w-full rounded-lg text-[9px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white cursor-not-allowed opacity-80' : 'bg-red-600 text-white'}`}
+                                                        className={`h-9 w-full rounded-lg text-[9px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600/50 text-white cursor-not-allowed' : 'bg-red-600 text-white'}`}
                                                     >
                                                         {isCompleted ? t('training.done') : t('training.finish')}
                                                     </button>
@@ -737,7 +737,7 @@ export function SessionLogger() {
                 isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={confirmCancel}
-                title={completedSetIds.length > 0 ? "Se va a cancelar el entrenamiento sin llegar al final. ¿Quieres guardar las sesiones finalizadas?" : "¿Quieres abandonar este entrenamiento?"}
+                title={completedSetIds.length > 0 ? "Se va a cancelar el entrenamiento sin llegar al final. ¿Quieres guardar las series finalizadas?" : "¿Quieres abandonar este entrenamiento?"}
                 description={completedSetIds.length > 0 ? "Se guardarán las series que has completado hasta ahora." : "No se guardará ninguna serie."}
                 variant={completedSetIds.length > 0 ? "info" : "danger"}
                 type="confirm"
