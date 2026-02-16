@@ -20,15 +20,34 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
 
     async getByUser(userId: string): Promise<SocialGroup[]> {
         const client = await this.getClient();
-        // Get groups where user is a member or creator
+        // PostgREST doesn't support subqueries in 'or'. 
+        // We use !inner to filter the main resource by the embedded resource.
         const { data, error } = await client
             .from("social_groups")
-            .select("*, members:social_members(profile:profiles(*))")
-            .or(`creator_id.eq.${userId},id.in.(select group_id from social_members where user_id = '${userId}')`);
+            .select(`
+                *,
+                members:social_members!inner(profile:profiles(*))
+            `)
+            .eq("social_members.user_id", userId);
 
         if (error || !data) return [];
 
-        return data.map(group => SocialMapper.toGroupDomain(group, group.members));
+        // Now we also need to get ALL members for these groups, 
+        // because !inner with eq filtered the 'members' array to only the current user.
+        // So we do a second fetch or we change the approach.
+        // Actually, the best way is to fetch the group IDs first or use a join that doesn't filter the embed.
+
+        const groupIds = data.map(g => g.id);
+        if (groupIds.length === 0) return [];
+
+        const { data: fullData, error: fullError } = await client
+            .from("social_groups")
+            .select("*, members:social_members(profile:profiles(*))")
+            .in("id", groupIds);
+
+        if (fullError || !fullData) return [];
+
+        return fullData.map(group => SocialMapper.toGroupDomain(group, group.members));
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {
