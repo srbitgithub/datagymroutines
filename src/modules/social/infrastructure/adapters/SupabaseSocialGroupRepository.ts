@@ -19,9 +19,9 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
     }
 
     async getByUser(userId: string): Promise<SocialGroup[]> {
+        console.log(`[SocialRepo] Fetching groups for user: ${userId}`);
         const client = await this.getClient();
 
-        // Usamos social_members como entrada para asegurar que vemos exactamente los grupos donde el usuario es miembro
         const { data, error } = await client
             .from("social_members")
             .select(`
@@ -35,9 +35,22 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
             `)
             .eq("user_id", userId);
 
-        if (error || !data) return [];
+        if (error) {
+            console.error("[SocialRepo] Error fetching memberships:", error);
+            return [];
+        }
 
-        return data.map((m: any) => SocialMapper.toGroupDomain(m.group, m.group.members));
+        console.log(`[SocialRepo] Memberships found: ${data?.length || 0}`);
+
+        if (!data) return [];
+
+        const groups = data.map((m: any) => {
+            if (!m.group) console.warn("[SocialRepo] Membership found but group data is null for group_id:", m.group_id);
+            return m.group ? SocialMapper.toGroupDomain(m.group, m.group.members) : null;
+        }).filter(Boolean) as SocialGroup[];
+
+        console.log(`[SocialRepo] Returning ${groups.length} groups`);
+        return groups;
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {
