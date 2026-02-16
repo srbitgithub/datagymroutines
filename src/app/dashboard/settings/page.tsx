@@ -9,6 +9,8 @@ import { UsernameSettingsForm } from "@/modules/profiles/presentation/components
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { AvatarUpload } from "@/modules/profiles/presentation/components/AvatarUpload";
+import { SocialSettingsForm } from "@/modules/profiles/presentation/components/SocialSettingsForm";
+import { Globe } from "lucide-react";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -118,6 +120,17 @@ export default function SettingsPage() {
 
                                 <div className="pt-4 border-t">
                                     <GoalSettingsForm initialGoal={profile.monthlyGoal || 20} />
+                                </div>
+
+                                <div className="pt-6 border-t">
+                                    <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                                        <Globe className="h-4 w-4 text-brand-primary" />
+                                        Privacidad Social
+                                    </h3>
+                                    <SocialSettingsForm
+                                        initialSocialActive={profile.isSocialActive}
+                                        initialSearchable={profile.isSearchable}
+                                    />
                                 </div>
                             </>
                         )}

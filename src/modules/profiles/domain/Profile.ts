@@ -7,6 +7,9 @@ export interface Profile {
     monthlyGoal?: number;
     gender: 'male' | 'female' | 'other';
     role: 'Rookie' | 'Athlete' | 'Elite' | 'Free4Ever';
+    subscriptionTier: 'free' | 'premium' | 'pro';
+    isSocialActive: boolean;
+    isSearchable: boolean;
     updatedAt: Date;
 }
 

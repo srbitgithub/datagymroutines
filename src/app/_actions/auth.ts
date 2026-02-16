@@ -166,6 +166,27 @@ export async function updateUsernameAction(username: string) {
     }
 }
 
+export async function updateSocialSettingsAction(settings: { isSocialActive?: boolean; isSearchable?: boolean }) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
+
+    try {
+        await updateProfileUseCase.execute(user.id, {
+            ...settings,
+            updatedAt: new Date()
+        });
+        revalidatePath("/dashboard/settings");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error al actualizar los ajustes sociales:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}
+
 export async function getUserSessionAction() {
     const authRepository = new SupabaseAuthRepository();
     return authRepository.getSession();
