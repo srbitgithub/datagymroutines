@@ -8,6 +8,7 @@ import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 import { useTranslation } from '@/core/i18n/TranslationContext';
+import { ShareWorkoutModal } from '@/modules/social/presentation/components/ShareWorkoutModal';
 
 export function SessionLogger() {
     const router = useRouter();
@@ -40,6 +41,7 @@ export function SessionLogger() {
     const [showCongratsModal, setShowCongratsModal] = useState(false);
     const [congratsPhrase, setCongratsPhrase] = useState('');
     const [setToDelete, setSetToDelete] = useState<string | null>(null);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     const userGender = useSession().userProfile?.gender || 'male';
 
@@ -758,19 +760,37 @@ export function SessionLogger() {
                         clearSession();
                     }
                 }}
-                onConfirm={() => {
-                    if (!isFinishing) {
-                        setShowCongratsModal(false);
-                        clearSession();
-                    }
-                }}
                 title={t('training.congrats_title') || '¡Muy Bien!'}
                 description={congratsPhrase}
                 variant="success"
                 type="alert"
                 confirmLabel={isFinishing ? "Guardando datos..." : "Aceptar"}
                 isConfirmDisabled={isFinishing}
+                onConfirm={() => {
+                    if (!isFinishing) {
+                        setShowCongratsModal(false);
+                        if (useSession().userProfile?.isSocialActive && activeSession?.id) {
+                            setShowShareModal(true);
+                        } else {
+                            clearSession();
+                        }
+                    }
+                }}
             />
+
+            {showShareModal && activeSession?.id && (
+                <ShareWorkoutModal
+                    sessionId={activeSession.id}
+                    onClose={() => {
+                        setShowShareModal(false);
+                        clearSession();
+                    }}
+                    onSuccess={() => {
+                        setShowShareModal(false);
+                        clearSession();
+                    }}
+                />
+            )}
 
             <CustomDialog
                 isOpen={errorDialog.isOpen}
