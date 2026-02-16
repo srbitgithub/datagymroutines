@@ -737,7 +737,7 @@ export function SessionLogger() {
                 isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={confirmCancel}
-                title={completedSetIds.length > 0 ? "¿Deseas finalizar el entrenamiento y guardar tu progreso?" : "¿Quieres abandonar este entrenamiento?"}
+                title={completedSetIds.length > 0 ? "Se va a cancelar el entrenamiento sin llegar al final. ¿Quieres guardar las sesiones finalizadas?" : "¿Quieres abandonar este entrenamiento?"}
                 description={completedSetIds.length > 0 ? "Se guardarán las series que has completado hasta ahora." : "No se guardará ninguna serie."}
                 variant={completedSetIds.length > 0 ? "info" : "danger"}
                 type="confirm"
