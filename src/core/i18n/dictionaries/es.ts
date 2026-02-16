@@ -54,6 +54,12 @@ export const es = {
         update_error: "Error al actualizar",
         goal_title: "Objetivo mensual de entrenamientos",
         goal_hint: "Este número se usará para calcular la barra de progreso en tu panel principal.",
+        workout_history: "Historial de Entrenamientos",
+        periods: {
+            this_week: "Esta semana",
+            last_week: "Semana pasada",
+            this_month: "Último mes"
+        }
     },
     exercises: {
         title: "Biblioteca de Ejercicios",

@@ -54,6 +54,12 @@ export const en = {
         update_error: "Error updating",
         goal_title: "Monthly training goal",
         goal_hint: "This number will be used to calculate the progress bar in your main dashboard.",
+        workout_history: "Workout History",
+        periods: {
+            this_week: "This week",
+            last_week: "Last week",
+            this_month: "Last month"
+        }
     },
     exercises: {
         title: "Exercise Library",

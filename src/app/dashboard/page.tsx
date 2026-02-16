@@ -7,6 +7,7 @@ import { ListChecks, Plus, History, Check, Loader2, AlertCircle } from "lucide-r
 import Link from "next/link";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { Routine } from "@/modules/training/domain/Routine";
+import { HistoryTracker } from "@/modules/training/presentation/components/HistoryTracker";
 
 export default function DashboardPage({ searchParams: searchParamsPromise }: { searchParams: Promise<{ error?: string }> }) {
     const [routines, setRoutines] = useState<Routine[]>([]);
@@ -50,61 +51,20 @@ export default function DashboardPage({ searchParams: searchParamsPromise }: { s
         );
     }
 
-    // Tracker Logic
+    // Monthly Logic for Summary
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
     const now = new Date();
     const localNow = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-    const year = localNow.getFullYear();
-    const month = localNow.getMonth();
-    const day = localNow.getDate();
-
-    const dayName = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(now);
-    const dayMap: Record<string, number> = { 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7 };
-    const todayNum = dayMap[dayName] ?? 1;
-
-    const diffToMonday = todayNum - 1;
-    const mondayLocal = new Date(year, month, day);
-    mondayLocal.setDate(mondayLocal.getDate() - diffToMonday);
-
-    const fmt = (d: Date) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dp = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dp}`;
-    };
-
-    const trainingDates = new Set(progressionItems.map(p => p.date));
-
-    // Monthly Logic
     const currentMonth = localNow.getMonth();
     const currentYear = localNow.getFullYear();
     const monthNames = ta('common.months');
     const currentMonthName = monthNames[currentMonth];
 
+    const trainingDates = new Set(progressionItems.map(p => p.date));
     const daysTrainedThisMonth = Array.from(trainingDates).filter(dateStr => {
         const [y, m] = dateStr.split('-').map(Number);
         return y === currentYear && m === (currentMonth + 1);
     }).length;
-
-    const dayAbbreviations = ta('common.days_short');
-
-    const weekProgress = dayAbbreviations.map((label, index) => {
-        const d = new Date(mondayLocal);
-        d.setDate(mondayLocal.getDate() + index);
-        const dateStr = fmt(d);
-
-        const isTrained = trainingDates.has(dateStr);
-        const isPast = index < (todayNum - 1);
-
-        let statusColor = "bg-zinc-800 text-zinc-500";
-        if (isTrained) {
-            statusColor = "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]";
-        } else if (isPast) {
-            statusColor = "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.3)]";
-        }
-
-        return { label, statusColor, isTrained };
-    });
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 pb-10">
@@ -130,25 +90,10 @@ export default function DashboardPage({ searchParams: searchParamsPromise }: { s
             <div className="grid gap-10">
                 <div className="space-y-10">
                     <div className="grid gap-6 md:grid-cols-3">
-                        {/* Weekly Tracker */}
-                        <section className="space-y-6 md:col-span-2">
-                            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-2">
-                                <History className="h-4 w-4 text-brand-primary" />
-                                {t('dashboard.weekly_activity')}
-                            </h2>
-                            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-3xl p-8 shadow-sm backdrop-blur-sm">
-                                <div className="flex justify-between items-center gap-3">
-                                    {weekProgress.map((day, i) => (
-                                        <div key={i} className="flex flex-col items-center gap-3 flex-1">
-                                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{day.label}</span>
-                                            <div className={`w-full aspect-square max-w-[56px] rounded-2xl flex items-center justify-center transition-all duration-500 ${day.statusColor}`}>
-                                                {day.isTrained && <Check className="h-6 w-6 stroke-[3px]" />}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
+                        {/* History Tracker */}
+                        <div className="md:col-span-2">
+                            <HistoryTracker progressionItems={progressionItems} />
+                        </div>
 
                         {/* Monthly Summary */}
                         <section className="space-y-6">
