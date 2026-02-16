@@ -20,34 +20,26 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
 
     async getByUser(userId: string): Promise<SocialGroup[]> {
         const client = await this.getClient();
-        // PostgREST doesn't support subqueries in 'or'. 
-        // We use !inner to filter the main resource by the embedded resource.
-        const { data, error } = await client
-            .from("social_groups")
-            .select(`
-                *,
-                members:social_members!inner(profile:profiles(*))
-            `)
-            .eq("social_members.user_id", userId);
 
-        if (error || !data) return [];
+        // 1. Get IDs of groups where user is a member
+        const { data: memberships, error: memError } = await client
+            .from("social_members")
+            .select("group_id")
+            .eq("user_id", userId);
 
-        // Now we also need to get ALL members for these groups, 
-        // because !inner with eq filtered the 'members' array to only the current user.
-        // So we do a second fetch or we change the approach.
-        // Actually, the best way is to fetch the group IDs first or use a join that doesn't filter the embed.
+        if (memError || !memberships || memberships.length === 0) return [];
 
-        const groupIds = data.map(g => g.id);
-        if (groupIds.length === 0) return [];
+        const groupIds = memberships.map(m => m.group_id);
 
-        const { data: fullData, error: fullError } = await client
+        // 2. Fetch full data for those groups including all members
+        const { data: groups, error: groupsError } = await client
             .from("social_groups")
             .select("*, members:social_members(profile:profiles(*))")
             .in("id", groupIds);
 
-        if (fullError || !fullData) return [];
+        if (groupsError || !groups) return [];
 
-        return fullData.map(group => SocialMapper.toGroupDomain(group, group.members));
+        return groups.map(group => SocialMapper.toGroupDomain(group, group.members));
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {
