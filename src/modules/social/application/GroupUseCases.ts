@@ -17,12 +17,13 @@ export class CreateGroupUseCase {
         // pro: unlimited
         const currentCount = await this.groupRepo.getGroupMemberCount(userId);
         const tier = profile.subscriptionTier || 'free';
+        const isFree4Ever = profile.role === 'Free4Ever';
 
-        if (tier === 'free') {
+        if (tier === 'free' && !isFree4Ever) {
             throw new Error("Las cuentas gratuitas no pueden crear grupos. ¡Pásate a Premium!");
         }
 
-        if (tier === 'premium' && currentCount >= 5) {
+        if (tier === 'premium' && currentCount >= 5 && !isFree4Ever) {
             throw new Error("Has alcanzado el límite de 5 grupos para tu cuenta Premium.");
         }
 
