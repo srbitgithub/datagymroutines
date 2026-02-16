@@ -19,38 +19,36 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
     }
 
     async getByUser(userId: string): Promise<SocialGroup[]> {
-        console.log(`[SocialRepo] Fetching groups for user: ${userId}`);
         const client = await this.getClient();
 
-        const { data, error } = await client
+        // 1. Buscamos primero los IDs de los grupos donde estamos
+        const { data: memberships, error: memError } = await client
             .from("social_members")
-            .select(`
-                group_id,
-                group:social_groups (
-                    *,
-                    members:social_members (
-                        profile:profiles (*)
-                    )
-                )
-            `)
+            .select("group_id")
             .eq("user_id", userId);
 
-        if (error) {
-            console.error("[SocialRepo] Error fetching memberships:", error);
-            return [];
-        }
+        if (memError || !memberships || memberships.length === 0) return [];
 
-        console.log(`[SocialRepo] Memberships found: ${data?.length || 0}`);
+        const groupIds = memberships.map(m => m.group_id);
 
-        if (!data) return [];
+        // 2. Traemos la info de esos grupos. 
+        // Nota: No unimos con profiles aquí para evitar el error PGRST200 
+        // hasta que el SQL del Paso 1 esté aplicado.
+        const { data: groups, error: groupError } = await client
+            .from("social_groups")
+            .select(`
+                *,
+                members:social_members (
+                    user_id
+                )
+            `)
+            .in("id", groupIds);
 
-        const groups = data.map((m: any) => {
-            if (!m.group) console.warn("[SocialRepo] Membership found but group data is null for group_id:", m.group_id);
-            return m.group ? SocialMapper.toGroupDomain(m.group, m.group.members) : null;
-        }).filter(Boolean) as SocialGroup[];
+        if (groupError || !groups) return [];
 
-        console.log(`[SocialRepo] Returning ${groups.length} groups`);
-        return groups;
+        // Para cada grupo, intentamos traer los perfiles de los miembros en una consulta aparte si es necesario,
+        // o simplificamos el dominio.
+        return groups.map(group => SocialMapper.toGroupDomain(group, group.members));
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {
