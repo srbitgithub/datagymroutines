@@ -13,17 +13,21 @@ import {
     subDays,
     eachDayOfInterval,
     endOfWeek,
-    isAfter
+    isAfter,
+    startOfMonth,
+    endOfMonth,
+    subMonths
 } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 
 interface HistoryTrackerProps {
     progressionItems: { date: string }[];
+    monthlyGoal: number;
 }
 
-type Period = 'this_week' | 'last_week' | 'this_month';
+type Period = 'this_week' | 'this_month' | 'last_month';
 
-export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
+export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTrackerProps) {
     const { t, language } = useTranslation();
     const [period, setPeriod] = useState<Period>('this_week');
     const now = new Date();
@@ -31,7 +35,7 @@ export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
     const locale = language === 'es' ? es : enUS;
     const trainingDates = useMemo(() => new Set(progressionItems.map(p => p.date)), [progressionItems]);
 
-    const days = useMemo(() => {
+    const { days, trainedCount } = useMemo(() => {
         let start: Date;
         let end: Date;
 
@@ -40,22 +44,25 @@ export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
                 start = startOfWeek(now, { weekStartsOn: 1 });
                 end = endOfWeek(now, { weekStartsOn: 1 });
                 break;
-            case 'last_week':
-                const lastWeek = subWeeks(now, 1);
-                start = startOfWeek(lastWeek, { weekStartsOn: 1 });
-                end = endOfWeek(lastWeek, { weekStartsOn: 1 });
-                break;
             case 'this_month':
-                start = subDays(now, 29); // Last 30 days
-                end = now;
+                start = startOfMonth(now);
+                end = endOfMonth(now);
+                break;
+            case 'last_month':
+                const lastMonth = subMonths(now, 1);
+                start = startOfMonth(lastMonth);
+                end = endOfMonth(lastMonth);
                 break;
             default:
                 start = startOfWeek(now, { weekStartsOn: 1 });
                 end = endOfWeek(now, { weekStartsOn: 1 });
         }
 
-        return eachDayOfInterval({ start, end });
-    }, [period]);
+        const interval = eachDayOfInterval({ start, end });
+        const count = interval.filter(day => trainingDates.has(format(day, 'yyyy-MM-dd'))).length;
+
+        return { days: interval, trainedCount: count };
+    }, [period, trainingDates]);
 
     return (
         <section className="space-y-6">
@@ -66,7 +73,7 @@ export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
                 </h2>
 
                 <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50 self-start sm:self-auto">
-                    {(['this_week', 'last_week', 'this_month'] as Period[]).map((p) => (
+                    {(['this_week', 'this_month', 'last_month'] as Period[]).map((p) => (
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
@@ -81,8 +88,8 @@ export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
                 </div>
             </div>
 
-            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-sm overflow-x-auto">
-                <div className={`flex flex-wrap gap-2 sm:gap-3 ${period === 'this_month' ? 'justify-start' : 'justify-between'}`}>
+            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-sm">
+                <div className={`flex flex-wrap gap-2 sm:gap-3 ${period !== 'this_week' ? 'justify-start' : 'justify-between'}`}>
                     {days.map((day) => {
                         const dateStr = format(day, 'yyyy-MM-dd');
                         const isTrained = trainingDates.has(dateStr);
@@ -118,6 +125,19 @@ export function HistoryTracker({ progressionItems }: HistoryTrackerProps) {
                         );
                     })}
                 </div>
+
+                {period !== 'this_week' && (
+                    <div className="mt-8 pt-6 border-t border-zinc-800/50 flex items-center justify-between">
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                            <span className="text-brand-primary font-black text-lg">{trainedCount}</span>
+                            <span className="mx-2">/</span>
+                            <span>{t('dashboard.days_trained')}</span>
+                        </p>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                            {t('dashboard.monthly_goal', { goal: monthlyGoal })}
+                        </p>
+                    </div>
+                )}
             </div>
         </section>
     );

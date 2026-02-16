@@ -57,8 +57,8 @@ export const es = {
         workout_history: "Historial de Entrenamientos",
         periods: {
             this_week: "Esta semana",
-            last_week: "Semana pasada",
-            this_month: "Último mes"
+            this_month: "Este mes",
+            last_month: "Mes pasado"
         }
     },
     exercises: {

@@ -92,7 +92,7 @@ export default function DashboardPage({ searchParams: searchParamsPromise }: { s
                     <div className="grid gap-6 md:grid-cols-3">
                         {/* History Tracker */}
                         <div className="md:col-span-2">
-                            <HistoryTracker progressionItems={progressionItems} />
+                            <HistoryTracker progressionItems={progressionItems} monthlyGoal={monthlyGoal} />
                         </div>
 
                         {/* Monthly Summary */}
