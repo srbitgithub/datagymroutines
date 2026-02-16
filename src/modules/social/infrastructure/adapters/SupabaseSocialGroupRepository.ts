@@ -21,25 +21,23 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
     async getByUser(userId: string): Promise<SocialGroup[]> {
         const client = await this.getClient();
 
-        // 1. Get IDs of groups where user is a member
-        const { data: memberships, error: memError } = await client
+        // Usamos social_members como entrada para asegurar que vemos exactamente los grupos donde el usuario es miembro
+        const { data, error } = await client
             .from("social_members")
-            .select("group_id")
+            .select(`
+                group_id,
+                group:social_groups (
+                    *,
+                    members:social_members (
+                        profile:profiles (*)
+                    )
+                )
+            `)
             .eq("user_id", userId);
 
-        if (memError || !memberships || memberships.length === 0) return [];
+        if (error || !data) return [];
 
-        const groupIds = memberships.map(m => m.group_id);
-
-        // 2. Fetch full data for those groups including all members
-        const { data: groups, error: groupsError } = await client
-            .from("social_groups")
-            .select("*, members:social_members(profile:profiles(*))")
-            .in("id", groupIds);
-
-        if (groupsError || !groups) return [];
-
-        return groups.map(group => SocialMapper.toGroupDomain(group, group.members));
+        return data.map((m: any) => SocialMapper.toGroupDomain(m.group, m.group.members));
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {
