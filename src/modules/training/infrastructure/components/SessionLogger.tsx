@@ -669,8 +669,9 @@ export function SessionLogger() {
                                                 </div>
                                                 <div className="flex justify-center">
                                                     <button
-                                                        onClick={() => handleToggleCompletion(set.id)}
-                                                        className={`h-9 w-full rounded-lg text-[9px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                                                        onClick={() => !isCompleted && handleToggleCompletion(set.id)}
+                                                        disabled={isCompleted}
+                                                        className={`h-9 w-full rounded-lg text-[9px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white cursor-not-allowed opacity-80' : 'bg-red-600 text-white'}`}
                                                     >
                                                         {isCompleted ? t('training.done') : t('training.finish')}
                                                     </button>
