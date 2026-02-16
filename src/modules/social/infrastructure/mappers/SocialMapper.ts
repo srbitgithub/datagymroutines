@@ -3,13 +3,14 @@ import { ProfileMapper } from "../../../profiles/infrastructure/mappers/ProfileM
 
 export class SocialMapper {
     static toGroupDomain(raw: any, members?: any[]): SocialGroup {
+        if (!raw) return {} as any;
         return {
             id: raw.id,
             name: raw.name,
             creatorId: raw.creator_id,
             adminId: raw.admin_id,
-            createdAt: new Date(raw.created_at),
-            members: members ? members.map(m => ProfileMapper.toDomain(m.profile)) : []
+            createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
+            members: members ? members.map(m => m.profile ? ProfileMapper.toDomain(m.profile) : { id: m.user_id } as any).filter(Boolean) : []
         };
     }
 

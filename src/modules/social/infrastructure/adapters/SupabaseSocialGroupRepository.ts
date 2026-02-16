@@ -21,7 +21,7 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
     async getByUser(userId: string): Promise<SocialGroup[]> {
         const client = await this.getClient();
 
-        // 1. Buscamos primero los IDs de los grupos donde estamos
+        // 1. Obtener los IDs de los grupos
         const { data: memberships, error: memError } = await client
             .from("social_members")
             .select("group_id")
@@ -31,14 +31,12 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
 
         const groupIds = memberships.map(m => m.group_id);
 
-        // 2. Traemos la info de esos grupos. 
-        // Nota: No unimos con profiles aquí para evitar el error PGRST200 
-        // hasta que el SQL del Paso 1 esté aplicado.
+        // 2. Obtener los grupos y TODOS sus miembros (no solo el actual)
         const { data: groups, error: groupError } = await client
             .from("social_groups")
             .select(`
                 *,
-                members:social_members (
+                members:social_members(
                     user_id
                 )
             `)
@@ -46,9 +44,23 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
 
         if (groupError || !groups) return [];
 
-        // Para cada grupo, intentamos traer los perfiles de los miembros en una consulta aparte si es necesario,
-        // o simplificamos el dominio.
-        return groups.map(group => SocialMapper.toGroupDomain(group, group.members));
+        // 3. Obtener los perfiles de todos los miembros encontrados para evitar errores de relación
+        const allMemberIds = Array.from(new Set(groups.flatMap(g => g.members.map((m: any) => m.user_id))));
+        const { data: profiles, error: profError } = await client
+            .from("profiles")
+            .select("*")
+            .in("id", allMemberIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        // 4. Unir manualmente
+        return groups.map(group => {
+            const enrichedMembers = group.members.map((m: any) => ({
+                user_id: m.user_id,
+                profile: profileMap.get(m.user_id)
+            }));
+            return SocialMapper.toGroupDomain(group, enrichedMembers);
+        });
     }
 
     async create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup> {

@@ -2,6 +2,7 @@ import { Profile } from "../../domain/Profile";
 
 export class ProfileMapper {
     static toDomain(raw: any): Profile {
+        if (!raw) return {} as any; // Retorno seguro
         return {
             id: raw.id,
             username: raw.username,
@@ -10,11 +11,11 @@ export class ProfileMapper {
             weightUnit: raw.weight_unit as 'kg' | 'lbs',
             monthlyGoal: raw.monthly_goal,
             role: raw.role as 'Rookie' | 'Athlete' | 'Elite' | 'Free4Ever',
-            subscriptionTier: raw.subscription_tier as 'free' | 'premium' | 'pro' || 'free',
+            subscriptionTier: (raw.subscription_tier as 'free' | 'premium' | 'pro') || 'free',
             isSocialActive: raw.is_social_active ?? false,
             isSearchable: raw.is_searchable ?? true,
             gender: raw.gender as 'male' | 'female' | 'other',
-            updatedAt: new Date(raw.updated_at),
+            updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
         };
     }
 
