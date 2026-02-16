@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy, Plus } from 'lucide-react';
+import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy, Plus, Trash2 } from 'lucide-react';
 import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
@@ -25,6 +25,7 @@ export function SessionLogger() {
         finishSession,
         abandonSession,
         addExerciseSet,
+        removeExerciseSet,
         clearSession
     } = useSession();
     const { t } = useTranslation();
@@ -38,6 +39,7 @@ export function SessionLogger() {
     const [errorDialog, setErrorDialog] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
     const [showCongratsModal, setShowCongratsModal] = useState(false);
     const [congratsPhrase, setCongratsPhrase] = useState('');
+    const [setToDelete, setSetToDelete] = useState<string | null>(null);
 
     const userGender = useSession().userProfile?.gender || 'male';
 
@@ -185,6 +187,17 @@ export function SessionLogger() {
         const numValue = typeof value === 'string' ? parseFloat(value) : value;
         if (isNaN(numValue)) return;
         updateSet(setId, field, numValue);
+    };
+
+    const handleRemoveSet = (setId: string) => {
+        setSetToDelete(setId);
+    };
+
+    const confirmRemoveSet = () => {
+        if (setToDelete) {
+            removeExerciseSet(setToDelete);
+            setSetToDelete(null);
+        }
     };
 
     const handleMainAction = async () => {
@@ -586,8 +599,8 @@ export function SessionLogger() {
                                 </div>
 
                                 <div className="p-0">
-                                    <div className="grid grid-cols-4 text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2">
-                                        <div className="text-center">{t('training.set')}</div>
+                                    <div className="grid grid-cols-[30px_1fr_1fr_80px_40px] text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2 items-center">
+                                        <div className="text-center">#</div>
                                         <div className="text-center">
                                             {exercise?.loggingType === 'bodyweight' ? 'Lastre' : t('training.weight')}
                                         </div>
@@ -595,6 +608,7 @@ export function SessionLogger() {
                                             {exercise?.loggingType === 'time' ? t('training.time') : t('training.reps')}
                                         </div>
                                         <div className="text-center">{t('training.action')}</div>
+                                        <div className="text-center"></div>
                                     </div>
                                     {exerciseSets.map((set, idx) => {
                                         const isCompleted = completedSetIds.includes(set.id);
@@ -604,21 +618,21 @@ export function SessionLogger() {
                                             <div
                                                 key={set.id}
                                                 data-next-set={isNextActive ? "true" : "false"}
-                                                className={`grid grid-cols-4 items-center border-b last:border-0 transition-colors p-3 gap-2 ${isNextActive ? 'bg-brand-primary/5 ring-1 ring-inset ring-brand-primary/20' : 'hover:bg-accent/5'}`}
+                                                className={`grid grid-cols-[30px_1fr_1fr_80px_40px] items-center border-b last:border-0 transition-colors p-3 gap-2 ${isNextActive ? 'bg-brand-primary/5 ring-1 ring-inset ring-brand-primary/20' : 'hover:bg-accent/5'}`}
                                             >
-                                                <div className="text-center font-bold text-muted-foreground">{idx + 1}</div>
+                                                <div className="text-center font-bold text-muted-foreground text-xs">{idx + 1}</div>
                                                 <div className="flex justify-center">
                                                     <input
                                                         type="number"
                                                         step="0.5"
                                                         value={set.weight}
                                                         onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
-                                                        className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                        className="w-14 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm"
                                                     />
                                                 </div>
                                                 <div className="flex justify-center">
                                                     {exercise?.loggingType === 'time' ? (
-                                                        <div className="flex items-center gap-0.5 h-10 px-1 bg-accent/20 rounded-lg justify-center transition-all focus-within:ring-2 focus-within:ring-brand-primary">
+                                                        <div className="flex items-center gap-0.5 h-9 px-1 bg-accent/20 rounded-lg justify-center transition-all focus-within:ring-2 focus-within:ring-brand-primary">
                                                             <input
                                                                 type="number"
                                                                 min="0"
@@ -649,16 +663,25 @@ export function SessionLogger() {
                                                             type="number"
                                                             value={set.reps}
                                                             onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
-                                                            className="w-16 h-10 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                                                            className="w-14 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm"
                                                         />
                                                     )}
                                                 </div>
                                                 <div className="flex justify-center">
                                                     <button
                                                         onClick={() => handleToggleCompletion(set.id)}
-                                                        className={`h-10 w-full rounded-lg text-[10px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+                                                        className={`h-9 w-full rounded-lg text-[9px] font-black uppercase transition-all duration-300 shadow-sm active:scale-95 ${isCompleted ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
                                                     >
                                                         {isCompleted ? t('training.done') : t('training.finish')}
+                                                    </button>
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        onClick={() => handleRemoveSet(set.id)}
+                                                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                                                        title={t('common.delete') || "Borrar"}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -756,6 +779,18 @@ export function SessionLogger() {
                 description={errorDialog.message}
                 variant="danger"
                 type="alert"
+            />
+
+            <CustomDialog
+                isOpen={setToDelete !== null}
+                onClose={() => setSetToDelete(null)}
+                onConfirm={confirmRemoveSet}
+                title={t('training.delete_set_title') || "Borrar serie"}
+                description={t('training.delete_set_confirm') || "¿Estás seguro de que quieres borrar esta serie?"}
+                variant="danger"
+                type="confirm"
+                confirmLabel={t('common.delete') || "Borrar"}
+                cancelLabel={t('common.cancel') || "Cancelar"}
             />
         </div>
     );

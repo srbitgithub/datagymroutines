@@ -24,6 +24,7 @@ interface SessionContextType {
     finishSession: () => Promise<void>;
     abandonSession: () => Promise<void>;
     addExerciseSet: (exerciseId: string) => void;
+    removeExerciseSet: (setId: string) => void;
     clearSession: () => void;
     userProfile?: Profile | null;
 }
@@ -172,6 +173,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const removeExerciseSet = (setId: string) => {
+        setSessionSets(prev => prev.filter(s => s.id !== setId));
+        setCompletedSetIds(prev => prev.filter(id => id !== setId));
+    };
+
     const toggleSetCompletion = (setId: string) => {
         setCompletedSetIds(prev => {
             const next = [...prev];
@@ -247,6 +253,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             finishSession,
             abandonSession,
             addExerciseSet,
+            removeExerciseSet,
             clearSession,
             userProfile
         }}>

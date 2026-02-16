@@ -146,6 +146,8 @@ export const en = {
         action: "ACTION",
         done: "DONE",
         finish: "FINISH",
+        delete_set_title: "Delete set",
+        delete_set_confirm: "Are you sure you want to delete this set?",
         error_finishing: "Error finishing",
         error_saving: "Error saving",
         error_starting: "Error starting session",

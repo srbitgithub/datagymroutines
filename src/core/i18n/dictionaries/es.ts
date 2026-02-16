@@ -146,6 +146,8 @@ export const es = {
         action: "ACCIÓN",
         done: "TERMINADA",
         finish: "FINALIZAR",
+        delete_set_title: "Borrar serie",
+        delete_set_confirm: "¿Estás seguro de que quieres borrar esta serie?",
         error_finishing: "Error al finalizar",
         error_saving: "Error al guardar",
         error_starting: "Error al iniciar sesión",
