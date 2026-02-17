@@ -83,6 +83,21 @@ export class SupabaseNotificationRepository extends SupabaseRepository implement
         if (error) throw new Error(error.message);
     }
 
+    async removeReactionNotification(userId: string, actorId: string, postId: string, emoji: string): Promise<void> {
+        const client = await this.getClient();
+        const { error } = await client
+            .from("notifications")
+            .delete()
+            .eq("user_id", userId)
+            .eq("actor_id", actorId)
+            .eq("type", "reaction")
+            .eq("data->>postId", postId)
+            .eq("data->>emoji", emoji)
+            .eq("is_read", false); // Only delete if not already cleared/read by user
+
+        if (error) throw new Error(error.message);
+    }
+
     async getUnreadCount(userId: string): Promise<number> {
         const client = await this.getClient();
         const { count, error } = await client

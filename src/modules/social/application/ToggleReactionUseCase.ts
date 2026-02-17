@@ -16,6 +16,21 @@ export class ToggleReactionUseCase {
 
         if (reactions.includes(emoji)) {
             await this.reactionRepo.removeReaction(postId, userId, emoji);
+
+            // Retract notification if it exists and is unread
+            try {
+                const post = await this.postRepo.getById(postId);
+                if (post && post.userId !== userId) {
+                    await this.notificationRepo.removeReactionNotification(
+                        post.userId,
+                        userId,
+                        postId,
+                        emoji
+                    );
+                }
+            } catch (notifyError) {
+                console.error("Failed to retract reaction notification:", notifyError);
+            }
         } else {
             // User can have multiple types of reactions, but usually we just add/remove
             await this.reactionRepo.addReaction(postId, userId, emoji);

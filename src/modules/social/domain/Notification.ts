@@ -24,5 +24,6 @@ export interface NotificationRepository {
     markAsRead(id: string): Promise<void>;
     markAllAsRead(userId: string): Promise<void>;
     markGroupAsRead(userId: string, groupId: string): Promise<void>;
+    removeReactionNotification(userId: string, actorId: string, postId: string, emoji: string): Promise<void>;
     getUnreadCount(userId: string): Promise<number>;
 }
