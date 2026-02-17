@@ -11,7 +11,8 @@ import { Notification } from "../../domain/Notification";
 import { Bell, BellOff, CheckCircle2, Loader2, MessageSquare, Trophy, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 
 export function NotificationCenter() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -20,6 +21,7 @@ export function NotificationCenter() {
     const [loading, setLoading] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const pathname = usePathname();
 
     // Light poll: only the count (fast, cheap)
     const loadUnreadCount = async () => {
@@ -49,24 +51,59 @@ export function NotificationCenter() {
         }
     };
 
-    // Initial load + polling every 15s for count only
+    // Initial load + Real-time + Polling fallback
     useEffect(() => {
         loadUnreadCount();
-        const interval = setInterval(loadUnreadCount, 15000);
+
+        // Real-time notifications
+        const channel = supabase
+            .channel('db-notifications')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications' },
+                async (payload) => {
+                    const newNotif = payload.new;
+
+                    // If user is already in the target group, auto-read it
+                    const currentGroupId = pathname.split('/').pop();
+                    const notifGroupId = newNotif.data?.groupId;
+
+                    if (notifGroupId && currentGroupId === notifGroupId) {
+                        try {
+                            await markNotificationAsReadAction(newNotif.id);
+                            // Feed in GroupActivityFeed will refresh via its own subscription
+                        } catch (e) {
+                            console.error("Failed to auto-read notification:", e);
+                        }
+                    } else {
+                        // Refresh count for bell
+                        loadUnreadCount();
+                    }
+
+                    if (isOpen) {
+                        loadNotifications();
+                    }
+                }
+            )
+            .subscribe();
+
+        const interval = setInterval(loadUnreadCount, 30000); // Polling as backup
 
         // Refresh when browser tab becomes visible again
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
                 loadUnreadCount();
+                if (isOpen) loadNotifications();
             }
         };
         document.addEventListener('visibilitychange', handleVisibility);
 
         return () => {
+            supabase.removeChannel(channel);
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, []);
+    }, [pathname, isOpen, loadNotifications, loadUnreadCount]); // Added loadNotifications/loadUnreadCount to dependencies for completeness
 
     // Full fetch when panel opens
     useEffect(() => {
@@ -95,7 +132,12 @@ export function NotificationCenter() {
 
             // Navigate if we have a groupId
             if (n.data?.groupId) {
-                router.push(`/dashboard/social/${n.data.groupId}`);
+                const targetPath = `/dashboard/social/${n.data.groupId}`;
+                if (pathname === targetPath) {
+                    router.refresh();
+                } else {
+                    router.push(targetPath);
+                }
                 setIsOpen(false);
             }
         } catch (error) {

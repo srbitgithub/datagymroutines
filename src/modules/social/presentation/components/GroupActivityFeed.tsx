@@ -5,6 +5,7 @@ import { getGroupFeedAction, toggleReactionAction, getReactorsAction } from "@/a
 import { SocialPost } from "@/modules/social/domain/SocialPost";
 import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
 import { Loader2, Zap, MessageSquare, History, Trophy, Users, X } from "lucide-react";
+import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 
 interface GroupActivityFeedProps {
     groupId: string;
@@ -34,9 +35,30 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
 
     useEffect(() => {
         loadFeed();
-        // Poll every 30 seconds for new posts
-        const interval = setInterval(loadFeed, 30000);
-        return () => clearInterval(interval);
+
+        // Real-time subscription
+        const reactionsChannel = supabase
+            .channel(`group-feed-${groupId}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'social_reactions' },
+                () => loadFeed()
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'social_post_shares',
+                    filter: `group_id=eq.${groupId}`
+                },
+                () => loadFeed()
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(reactionsChannel);
+        };
     }, [groupId]);
 
     const handleShowReactors = async (postId: string, emoji: EmojiReaction) => {
