@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 import { ShareWorkoutModal } from '@/modules/social/presentation/components/ShareWorkoutModal';
+import { getUserGroupsAction } from '@/app/_actions/social';
 
 export function SessionLogger() {
     const router = useRouter();
@@ -143,7 +144,6 @@ export function SessionLogger() {
                 const randomPhrase = congratsPhrases[Math.floor(Math.random() * congratsPhrases.length)];
                 setCongratsPhrase(randomPhrase);
 
-                // We delay slightly to let the UI update (move the last set) before showing modal
                 setTimeout(async () => {
                     setShowCongratsModal(true);
                     setIsFinishing(true);
@@ -767,13 +767,21 @@ export function SessionLogger() {
                 type="alert"
                 confirmLabel={isFinishing ? "Guardando datos..." : "Aceptar"}
                 isConfirmDisabled={isFinishing}
-                onConfirm={() => {
+                onConfirm={async () => {
                     if (!isFinishing) {
                         setShowCongratsModal(false);
+
+                        // Si el perfil dice que es activo, lo mostramos
                         if (userProfile?.isSocialActive && activeSession?.id) {
                             setShowShareModal(true);
                         } else {
-                            clearSession();
+                            // Si no, hacemos una última comprobación de grupos por si el perfil está desactualizado
+                            const userGroups = await getUserGroupsAction();
+                            if (userGroups.length > 0 && activeSession?.id) {
+                                setShowShareModal(true);
+                            } else {
+                                clearSession();
+                            }
                         }
                     }
                 }}
