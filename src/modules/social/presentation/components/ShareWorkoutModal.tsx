@@ -38,7 +38,8 @@ export function ShareWorkoutModal({ sessionId, onClose, onSuccess }: ShareWorkou
         if (selectedIds.length === 0) return;
         setIsSharing(true);
         try {
-            const result = await shareWorkoutAction(sessionId, selectedIds);
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const result = await shareWorkoutAction(sessionId, selectedIds, timeStr);
             if (result.success) {
                 onSuccess();
             } else {

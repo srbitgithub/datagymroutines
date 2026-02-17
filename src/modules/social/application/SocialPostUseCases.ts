@@ -7,17 +7,16 @@ export class ShareWorkoutUseCase {
         private profileRepo: ProfileRepository
     ) { }
 
-    async execute(userId: string, sessionId: string, groupIds: string[]): Promise<SocialPost> {
+    async execute(userId: string, sessionId: string, groupIds: string[], timeStr?: string): Promise<SocialPost> {
         if (groupIds.length === 0) throw new Error("Debes seleccionar al menos un grupo.");
 
         const profile = await this.profileRepo.getById(userId);
         if (!profile) throw new Error("Perfil no encontrado");
 
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const finalTimeStr = timeStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         // Automatic message: @usuario ha terminado con éxito su entrenamiento de hoy a las HH:MM
-        const message = `@${profile.username} ha terminado con éxito su entrenamiento de hoy a las ${timeStr}`;
+        const message = `@${profile.username} ha terminado con éxito su entrenamiento de hoy a las ${finalTimeStr}`;
 
         return this.postRepo.create({
             userId,

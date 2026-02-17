@@ -89,7 +89,7 @@ export async function getGroupByIdAction(groupId: string) {
     return groupRepo.getById(groupId);
 }
 
-export async function shareWorkoutAction(sessionId: string, groupIds: string[]) {
+export async function shareWorkoutAction(sessionId: string, groupIds: string[], timeStr?: string) {
     const authRepo = new SupabaseAuthRepository();
     const groupRepo = new SupabaseSocialPostRepository(); // Using Post Repo
     const profileRepo = new SupabaseProfileRepository();
@@ -99,7 +99,7 @@ export async function shareWorkoutAction(sessionId: string, groupIds: string[]) 
 
     const useCase = new ShareWorkoutUseCase(groupRepo, profileRepo);
     try {
-        await useCase.execute(user.id, sessionId, groupIds);
+        await useCase.execute(user.id, sessionId, groupIds, timeStr);
         revalidatePath("/dashboard/social");
         return { success: true };
     } catch (error: any) {
