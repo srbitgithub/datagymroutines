@@ -5,7 +5,6 @@ import { TrainingSession, ExerciseSet } from '../../domain/Session';
 import { Routine } from '../../domain/Routine';
 import { Exercise } from '../../domain/Exercise';
 import { Profile } from '@/modules/profiles/domain/Profile';
-import { SocialGroup } from '@/modules/social/domain/SocialGroup';
 import { saveSessionBatchAction, startSessionAction, abandonSessionAction } from '@/app/_actions/training';
 import { getProfileAction } from '@/app/_actions/auth';
 
@@ -28,8 +27,6 @@ interface SessionContextType {
     removeExerciseSet: (setId: string) => void;
     clearSession: () => void;
     userProfile?: Profile | null;
-    userGroups?: SocialGroup[];
-    refreshUserGroups: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -45,18 +42,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const [preferredRestTime, setPreferredRestTimeState] = useState(120);
     const [isLoading, setIsLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<Profile | null>(null);
-    const [userGroups, setUserGroups] = useState<SocialGroup[]>([]);
-
-    const refreshUserGroups = async () => {
-        const { getUserGroupsAction } = await import('@/app/_actions/social');
-        const groups = await getUserGroupsAction();
-        setUserGroups(groups);
-    };
 
     // Load from localStorage on mount
     useEffect(() => {
         getProfileAction().then(setUserProfile);
-        refreshUserGroups();
 
         const saved = localStorage.getItem(STORAGE_KEY);
         const savedRest = localStorage.getItem('ironmetric_preferred_rest');
@@ -219,10 +208,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (!result.success) {
             throw new Error(result.error || "Error al finalizar sesión");
         }
-        // Refresh profile and groups to ensure social settings are up-to-date
+        // Refresh profile to ensure social settings are up-to-date
         const updatedProfile = await getProfileAction();
         setUserProfile(updatedProfile);
-        await refreshUserGroups();
     };
 
     const abandonSession = async () => {
@@ -269,9 +257,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             addExerciseSet,
             removeExerciseSet,
             clearSession,
-            userProfile,
-            userGroups,
-            refreshUserGroups
+            userProfile
         }}>
             {children}
         </SessionContext.Provider>

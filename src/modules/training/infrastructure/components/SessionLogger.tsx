@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 import { ShareWorkoutModal } from '@/modules/social/presentation/components/ShareWorkoutModal';
+import { getUserGroupsAction } from '@/app/_actions/social';
 
 export function SessionLogger() {
     const router = useRouter();
@@ -28,8 +29,7 @@ export function SessionLogger() {
         addExerciseSet,
         removeExerciseSet,
         clearSession,
-        userProfile,
-        userGroups
+        userProfile
     } = useSession();
     const { t } = useTranslation();
 
@@ -771,12 +771,23 @@ export function SessionLogger() {
                     if (!isFinishing) {
                         setShowCongratsModal(false);
 
-                        // Si el perfil dice que es activo O el usuario tiene grupos, mostramos el modal de compartir
-                        const hasGroups = (userGroups?.length || 0) > 0;
+                        try {
+                            // Importar y ejecutar directamente para obtener datos FRESCOS sin closures de estado
+                            const userGroups = await getUserGroupsAction();
+                            const hasGroups = (userGroups?.length || 0) > 0;
 
-                        if ((userProfile?.isSocialActive || hasGroups) && activeSession?.id) {
-                            setShowShareModal(true);
-                        } else {
+                            // Debug logs para trazabilidad (visibles solo en consola)
+                            console.log("[SocialShare] isSocialActive:", userProfile?.isSocialActive);
+                            console.log("[SocialShare] hasGroups:", hasGroups);
+                            console.log("[SocialShare] activeSessionID:", activeSession?.id);
+
+                            if ((userProfile?.isSocialActive || hasGroups) && activeSession?.id) {
+                                setShowShareModal(true);
+                            } else {
+                                clearSession();
+                            }
+                        } catch (err) {
+                            console.error("[SocialShare] Error checking groups:", err);
                             clearSession();
                         }
                     }
