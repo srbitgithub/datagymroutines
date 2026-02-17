@@ -208,6 +208,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (!result.success) {
             throw new Error(result.error || "Error al finalizar sesión");
         }
+        // Refresh profile to ensure social settings are up-to-date
+        const updatedProfile = await getProfileAction();
+        setUserProfile(updatedProfile);
     };
 
     const abandonSession = async () => {
