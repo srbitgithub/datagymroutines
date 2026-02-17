@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { getGroupFeedAction, toggleReactionAction } from "@/app/_actions/social";
+import { getGroupFeedAction, toggleReactionAction, getReactorsAction } from "@/app/_actions/social";
 import { SocialPost } from "@/modules/social/domain/SocialPost";
 import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
-import { Loader2, Zap, MessageSquare, History, Trophy } from "lucide-react";
+import { Loader2, Zap, MessageSquare, History, Trophy, Users, X } from "lucide-react";
 
 interface GroupActivityFeedProps {
     groupId: string;
     currentUserId?: string;
+}
+
+interface ReactorInfo {
+    username: string;
 }
 
 const EMOJIS: EmojiReaction[] = ['🔥', '💪', '👏', '🚀', '💎'];
@@ -16,6 +20,11 @@ const EMOJIS: EmojiReaction[] = ['🔥', '💪', '👏', '🚀', '💎'];
 export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedProps) {
     const [posts, setPosts] = useState<SocialPost[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedEmojiReactors, setSelectedEmojiReactors] = useState<{
+        emoji: EmojiReaction;
+        reactors: ReactorInfo[];
+    } | null>(null);
+    const [loadingReactors, setLoadingReactors] = useState(false);
 
     const loadFeed = async () => {
         const feed = await getGroupFeedAction(groupId);
@@ -29,6 +38,15 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
         const interval = setInterval(loadFeed, 30000);
         return () => clearInterval(interval);
     }, [groupId]);
+
+    const handleShowReactors = async (postId: string, emoji: EmojiReaction) => {
+        setLoadingReactors(true);
+        const result = await getReactorsAction(postId, emoji);
+        if (result.success && result.reactors) {
+            setSelectedEmojiReactors({ emoji, reactors: result.reactors });
+        }
+        setLoadingReactors(false);
+    };
 
     const handleToggleReaction = async (postId: string, emoji: EmojiReaction) => {
         // Optimistic update
@@ -111,33 +129,87 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                         </p>
                     </div>
 
-                    {post.userId !== currentUserId && (
-                        <footer className="flex flex-wrap items-center gap-2 pt-2 border-t mt-1">
-                            <div className="flex flex-wrap gap-1.5">
-                                {EMOJIS.map(emoji => {
-                                    const count = post.reactions?.[emoji] || 0;
-                                    const hasReacted = post.userReactions?.includes(emoji);
-                                    return (
-                                        <button
-                                            key={emoji}
-                                            onClick={() => handleToggleReaction(post.id, emoji)}
-                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${hasReacted
-                                                ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
-                                                : count > 0
-                                                    ? 'bg-muted hover:bg-muted/80'
-                                                    : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
-                                                }`}
-                                        >
-                                            <span>{emoji}</span>
-                                            {count > 0 && <span className="text-[10px]">{count}</span>}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </footer>
-                    )}
+                    <footer className="flex flex-wrap items-center gap-2 pt-2 border-t mt-1">
+                        <div className="flex flex-wrap gap-1.5">
+                            {EMOJIS.map(emoji => {
+                                const count = post.reactions?.[emoji] || 0;
+                                const hasReacted = post.userReactions?.includes(emoji);
+                                const isOwner = post.userId === currentUserId;
+
+                                return (
+                                    <button
+                                        key={emoji}
+                                        onClick={() => isOwner ? handleShowReactors(post.id, emoji) : handleToggleReaction(post.id, emoji)}
+                                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${hasReacted
+                                            ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
+                                            : count > 0
+                                                ? 'bg-muted hover:bg-muted/80'
+                                                : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
+                                            } ${isOwner ? 'cursor-help' : ''}`}
+                                    >
+                                        <span>{emoji}</span>
+                                        {count > 0 && <span className="text-[10px]">{count}</span>}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </footer>
                 </div>
             ))}
+
+            {/* Reactor Details Modal */}
+            {selectedEmojiReactors && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-background w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border animate-in zoom-in-95 duration-200">
+                        <header className="px-5 py-4 border-b flex items-center justify-between bg-muted/30">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">{selectedEmojiReactors.emoji}</span>
+                                <h3 className="font-bold text-sm uppercase tracking-wider">Reacciones</h3>
+                            </div>
+                            <button
+                                onClick={() => setSelectedEmojiReactors(null)}
+                                className="p-1.5 rounded-full hover:bg-muted transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </header>
+                        <div className="max-h-[60vh] overflow-y-auto px-2 py-3">
+                            {selectedEmojiReactors.reactors.length > 0 ? (
+                                <div className="space-y-1">
+                                    {selectedEmojiReactors.reactors.map((reactor, i) => (
+                                        <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors">
+                                            <div className="h-8 w-8 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                                                <Users className="h-4 w-4 text-brand-primary" />
+                                            </div>
+                                            <span className="font-medium text-sm">{reactor.username}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-8 text-center text-muted-foreground text-sm">
+                                    No hay reacciones todavía
+                                </div>
+                            )}
+                        </div>
+                        <footer className="p-4 bg-muted/10 border-t">
+                            <button
+                                onClick={() => setSelectedEmojiReactors(null)}
+                                className="w-full py-2.5 rounded-xl bg-brand-primary text-white font-bold text-sm shadow-sm hover:opacity-90 transition-opacity"
+                            >
+                                Cerrar
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
+
+            {loadingReactors && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-[1px]">
+                    <div className="bg-background p-4 rounded-2xl shadow-lg border">
+                        <Loader2 className="h-6 w-6 animate-spin text-brand-primary" />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

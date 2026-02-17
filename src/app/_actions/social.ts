@@ -9,6 +9,7 @@ import {
 } from "@/modules/social/application/GroupUseCases";
 import { ShareWorkoutUseCase, GetGroupFeedUseCase } from "@/modules/social/application/SocialPostUseCases";
 import { ToggleReactionUseCase } from "@/modules/social/application/ToggleReactionUseCase";
+import { GetReactorsUseCase } from "@/modules/social/application/GetReactorsUseCase";
 import {
     GetUserNotificationsUseCase,
     MarkNotificationAsReadUseCase,
@@ -23,6 +24,7 @@ import { SupabaseNotificationRepository } from "@/modules/social/infrastructure/
 import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/adapters/SupabaseProfileRepository";
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { revalidatePath } from "next/cache";
+import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
 
 async function getRepos() {
     const authRepo = new SupabaseAuthRepository();
@@ -189,6 +191,17 @@ export async function markGroupNotificationsAsReadAction(groupId: string) {
     try {
         await useCase.execute(user.id, groupId);
         return { success: true };
+    } catch (error: any) {
+        return { error: error.message };
+    }
+}
+
+export async function getReactorsAction(postId: string, emoji: EmojiReaction) {
+    const { reactionRepo } = await getRepos();
+    const useCase = new GetReactorsUseCase(reactionRepo);
+    try {
+        const reactors = await useCase.execute(postId, emoji);
+        return { success: true, reactors };
     } catch (error: any) {
         return { error: error.message };
     }

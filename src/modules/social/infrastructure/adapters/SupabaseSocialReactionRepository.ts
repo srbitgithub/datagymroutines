@@ -48,4 +48,23 @@ export class SupabaseSocialReactionRepository extends SupabaseRepository impleme
         if (error || !data) return [];
         return data.map(r => r.emoji as EmojiReaction);
     }
+
+    async getReactorsWithProfiles(postId: string, emoji: EmojiReaction): Promise<{ username: string }[]> {
+        const client = await this.getClient();
+        // Use RPC or separate query if relationship is not clear, but let's try standard join first
+        const { data, error } = await client
+            .from("social_reactions")
+            .select(`
+                profiles!social_reactions_user_id_fkey (
+                    username
+                )
+            `)
+            .match({ post_id: postId, emoji });
+
+        if (error || !data) return [];
+
+        return data
+            .map((r: any) => ({ username: r.profiles?.username || "Usuario" }))
+            .filter(u => u.username !== "Usuario");
+    }
 }
