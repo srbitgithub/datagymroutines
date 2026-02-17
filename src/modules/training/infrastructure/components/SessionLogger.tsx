@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 import { ShareWorkoutModal } from '@/modules/social/presentation/components/ShareWorkoutModal';
-import { getUserGroupsAction } from '@/app/_actions/social';
 
 export function SessionLogger() {
     const router = useRouter();
@@ -29,7 +28,8 @@ export function SessionLogger() {
         addExerciseSet,
         removeExerciseSet,
         clearSession,
-        userProfile
+        userProfile,
+        userGroups
     } = useSession();
     const { t } = useTranslation();
 
@@ -771,17 +771,13 @@ export function SessionLogger() {
                     if (!isFinishing) {
                         setShowCongratsModal(false);
 
-                        // Si el perfil dice que es activo, lo mostramos
-                        if (userProfile?.isSocialActive && activeSession?.id) {
+                        // Si el perfil dice que es activo O el usuario tiene grupos, mostramos el modal de compartir
+                        const hasGroups = (userGroups?.length || 0) > 0;
+
+                        if ((userProfile?.isSocialActive || hasGroups) && activeSession?.id) {
                             setShowShareModal(true);
                         } else {
-                            // Si no, hacemos una última comprobación de grupos por si el perfil está desactualizado
-                            const userGroups = await getUserGroupsAction();
-                            if (userGroups.length > 0 && activeSession?.id) {
-                                setShowShareModal(true);
-                            } else {
-                                clearSession();
-                            }
+                            clearSession();
                         }
                     }
                 }}
