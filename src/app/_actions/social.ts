@@ -13,7 +13,8 @@ import {
     GetUserNotificationsUseCase,
     MarkNotificationAsReadUseCase,
     MarkAllNotificationsAsReadUseCase,
-    GetUnreadNotificationsCountUseCase
+    GetUnreadNotificationsCountUseCase,
+    MarkGroupNotificationsAsReadUseCase
 } from "@/modules/social/application/NotificationUseCases";
 import { SupabaseSocialGroupRepository } from "@/modules/social/infrastructure/adapters/SupabaseSocialGroupRepository";
 import { SupabaseSocialPostRepository } from "@/modules/social/infrastructure/adapters/SupabaseSocialPostRepository";
@@ -178,4 +179,17 @@ export async function getUnreadNotificationsCountAction() {
 
     const useCase = new GetUnreadNotificationsCountUseCase(notificationRepo);
     return useCase.execute(user.id);
+}
+
+export async function markGroupNotificationsAsReadAction(groupId: string) {
+    const { notificationRepo, user } = await getRepos();
+    if (!user) return { error: "No autenticado" };
+
+    const useCase = new MarkGroupNotificationsAsReadUseCase(notificationRepo);
+    try {
+        await useCase.execute(user.id, groupId);
+        return { success: true };
+    } catch (error: any) {
+        return { error: error.message };
+    }
 }

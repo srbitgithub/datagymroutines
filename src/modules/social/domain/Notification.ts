@@ -23,5 +23,6 @@ export interface NotificationRepository {
     create(notification: Partial<Notification>): Promise<void>;
     markAsRead(id: string): Promise<void>;
     markAllAsRead(userId: string): Promise<void>;
+    markGroupAsRead(userId: string, groupId: string): Promise<void>;
     getUnreadCount(userId: string): Promise<number>;
 }

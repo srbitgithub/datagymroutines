@@ -71,6 +71,18 @@ export class SupabaseNotificationRepository extends SupabaseRepository implement
         if (error) throw new Error(error.message);
     }
 
+    async markGroupAsRead(userId: string, groupId: string): Promise<void> {
+        const client = await this.getClient();
+        const { error } = await client
+            .from("notifications")
+            .update({ is_read: true })
+            .eq("user_id", userId)
+            .eq("data->>groupId", groupId)
+            .eq("is_read", false);
+
+        if (error) throw new Error(error.message);
+    }
+
     async getUnreadCount(userId: string): Promise<number> {
         const client = await this.getClient();
         const { count, error } = await client

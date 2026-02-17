@@ -31,3 +31,11 @@ export class GetUnreadNotificationsCountUseCase {
         return this.notificationRepo.getUnreadCount(userId);
     }
 }
+
+export class MarkGroupNotificationsAsReadUseCase {
+    constructor(private notificationRepo: NotificationRepository) { }
+
+    async execute(userId: string, groupId: string): Promise<void> {
+        await this.notificationRepo.markGroupAsRead(userId, groupId);
+    }
+}

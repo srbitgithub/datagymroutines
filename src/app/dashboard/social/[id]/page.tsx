@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from "react";
-import { getGroupByIdAction, exitGroupAction } from "@/app/_actions/social";
+import { getGroupByIdAction, exitGroupAction, markGroupNotificationsAsReadAction } from "@/app/_actions/social";
 import { getProfileAction } from "@/app/_actions/auth";
 import { SocialGroup } from "@/modules/social/domain/SocialGroup";
 import { Profile } from "@/modules/profiles/domain/Profile";
@@ -46,6 +46,11 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
         setGroup(g);
         setProfile(p);
         setLoading(false);
+
+        // Mark group notifications as read automatically
+        if (g) {
+            markGroupNotificationsAsReadAction(params.id);
+        }
     };
 
     useEffect(() => {
