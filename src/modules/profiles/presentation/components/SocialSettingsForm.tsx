@@ -4,6 +4,7 @@ import { useState } from "react";
 import { updateSocialSettingsAction } from "@/app/_actions/auth";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { Loader2, Globe, Eye, EyeOff, Users2, Bell, BellOff } from "lucide-react";
+import { useProfile } from "@/modules/profiles/presentation/contexts/ProfileContext";
 
 interface SocialSettingsFormProps {
     initialSocialActive?: boolean;
@@ -13,6 +14,7 @@ interface SocialSettingsFormProps {
 
 export function SocialSettingsForm({ initialSocialActive = false, initialSearchable = true, initialNotificationsActive = true }: SocialSettingsFormProps) {
     const { t } = useTranslation();
+    const { refreshProfile } = useProfile();
     const [isSocialActive, setIsSocialActive] = useState(initialSocialActive);
     const [isSearchable, setIsSearchable] = useState(initialSearchable);
     const [isNotificationsActive, setIsNotificationsActive] = useState(initialNotificationsActive);
@@ -27,6 +29,7 @@ export function SocialSettingsForm({ initialSocialActive = false, initialSearcha
             const result = await updateSocialSettingsAction({ isSocialActive: newValue });
             if (result.success) {
                 setIsSocialActive(newValue);
+                refreshProfile();
             }
         } catch (error) {
             console.error("Failed to update social activity", error);
@@ -57,6 +60,7 @@ export function SocialSettingsForm({ initialSocialActive = false, initialSearcha
             const result = await updateSocialSettingsAction({ isNotificationsActive: newValue });
             if (result.success) {
                 setIsNotificationsActive(newValue);
+                refreshProfile();
             }
         } catch (error) {
             console.error("Failed to update notifications preference", error);

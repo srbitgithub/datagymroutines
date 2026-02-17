@@ -10,17 +10,13 @@ import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationCont
 import { useTheme } from "@/core/theme/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { NotificationCenter } from "@/modules/social/presentation/components/NotificationCenter";
-import { Profile } from "@/modules/profiles/domain/Profile";
+import { ProfileProvider, useProfile } from "@/modules/profiles/presentation/contexts/ProfileContext";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { t } = useTranslation();
     const { theme, toggleTheme } = useTheme();
-    const [profile, setProfile] = useState<Profile | null>(null);
-
-    useEffect(() => {
-        getProfileAction().then(setProfile).catch(() => { });
-    }, []);
+    const { profile } = useProfile();
 
     const isHeaderVisible = profile?.isSocialActive !== false && profile?.isNotificationsActive !== false;
 
@@ -39,7 +35,6 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
             {/* Sidebar Mobile (bottom) / Desktop (left) */}
             <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-card md:static md:w-64 md:border-r md:border-t-0 border-border transition-colors duration-300">
-                {/* ... existing sidebar content ... */}
                 <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
                     <div className="hidden items-center gap-2 md:flex mb-8">
                         <img src="/icons/icon-192x192.png" alt="IronMetric Logo" className="h-8 w-8 object-contain" />
@@ -108,9 +103,11 @@ function DashboardContent({ children }: { children: ReactNode }) {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
     return (
         <SessionProvider>
-            <DashboardContent>
-                {children}
-            </DashboardContent>
+            <ProfileProvider>
+                <DashboardContent>
+                    {children}
+                </DashboardContent>
+            </ProfileProvider>
         </SessionProvider>
     );
 }
