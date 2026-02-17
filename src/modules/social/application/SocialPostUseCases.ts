@@ -30,17 +30,17 @@ export class ShareWorkoutUseCase {
 
         // 3. Create notifications for group members
         try {
-            const memberIdsSet = new Set<string>();
+            const memberToGroupMap = new Map<string, string>();
             for (const groupId of groupIds) {
                 const members = await this.groupRepo.getGroupMembers(groupId);
                 members.forEach(id => {
-                    if (id !== userId) memberIdsSet.add(id);
+                    if (id !== userId && !memberToGroupMap.has(id)) {
+                        memberToGroupMap.set(id, groupId);
+                    }
                 });
             }
 
-            const memberIds = Array.from(memberIdsSet);
-            // We could optimize this by fetching profiles in batch
-            for (const recipientId of memberIds) {
+            for (const [recipientId, targetGroupId] of memberToGroupMap.entries()) {
                 const recipientProfile = await this.profileRepo.getById(recipientId);
                 if (recipientProfile?.isNotificationsActive) {
                     await this.notificationRepo.create({
@@ -49,6 +49,7 @@ export class ShareWorkoutUseCase {
                         type: 'workout_completion',
                         data: {
                             sessionId,
+                            groupId: targetGroupId,
                             username: profile.username
                         }
                     });

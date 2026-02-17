@@ -11,7 +11,7 @@ export class ToggleReactionUseCase {
         private notificationRepo: NotificationRepository
     ) { }
 
-    async execute(postId: string, userId: string, emoji: EmojiReaction): Promise<void> {
+    async execute(postId: string, userId: string, emoji: EmojiReaction, groupId?: string): Promise<void> {
         const reactions = await this.reactionRepo.getUserReactions(postId, userId);
 
         if (reactions.includes(emoji)) {
@@ -34,6 +34,7 @@ export class ToggleReactionUseCase {
                             data: {
                                 postId,
                                 emoji,
+                                groupId,
                                 username: actorProfile?.username || "Alguien"
                             }
                         });

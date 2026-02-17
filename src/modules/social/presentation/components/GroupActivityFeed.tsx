@@ -49,7 +49,7 @@ export function GroupActivityFeed({ groupId }: GroupActivityFeedProps) {
             return post;
         }));
 
-        const result = await toggleReactionAction(postId, emoji);
+        const result = await toggleReactionAction(postId, emoji, groupId);
         if (!result.success) {
             // Revert on error
             loadFeed();
@@ -120,10 +120,10 @@ export function GroupActivityFeed({ groupId }: GroupActivityFeedProps) {
                                         key={emoji}
                                         onClick={() => handleToggleReaction(post.id, emoji)}
                                         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${hasReacted
-                                                ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
-                                                : count > 0
-                                                    ? 'bg-muted hover:bg-muted/80'
-                                                    : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
+                                            ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
+                                            : count > 0
+                                                ? 'bg-muted hover:bg-muted/80'
+                                                : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
                                             }`}
                                     >
                                         <span>{emoji}</span>

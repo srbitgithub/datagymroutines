@@ -11,7 +11,7 @@ import { Notification } from "../../domain/Notification";
 import { Bell, BellOff, CheckCircle2, Loader2, MessageSquare, Trophy, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function NotificationCenter() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -19,6 +19,7 @@ export function NotificationCenter() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     // Light poll: only the count (fast, cheap)
     const loadUnreadCount = async () => {
@@ -38,7 +39,8 @@ export function NotificationCenter() {
                 getUserNotificationsAction(),
                 getUnreadNotificationsCountAction()
             ]);
-            setNotifications(list);
+            // Only keep unread ones in the local list for the "disappear" behavior
+            setNotifications(list.filter(n => !n.isRead));
             setUnreadCount(count);
         } catch (error) {
             console.error("Error loading notifications:", error);
@@ -73,7 +75,6 @@ export function NotificationCenter() {
         }
     }, [isOpen]);
 
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -84,20 +85,28 @@ export function NotificationCenter() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleMarkAsRead = async (id: string) => {
+    const handleNotificationClick = async (n: Notification) => {
+        // Optimistic UI update: remove from list and count
+        setNotifications(prev => prev.filter(item => item.id !== n.id));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+
         try {
-            await markNotificationAsReadAction(id);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            await markNotificationAsReadAction(n.id);
+
+            // Navigate if we have a groupId
+            if (n.data?.groupId) {
+                router.push(`/dashboard/social/${n.data.groupId}`);
+                setIsOpen(false);
+            }
         } catch (error) {
-            console.error("Error marking as read:", error);
+            console.error("Error handling notification click:", error);
         }
     };
 
     const handleMarkAllAsRead = async () => {
         try {
             await markAllNotificationsAsReadAction();
-            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            setNotifications([]);
             setUnreadCount(0);
         } catch (error) {
             console.error("Error marking all as read:", error);
@@ -177,12 +186,10 @@ export function NotificationCenter() {
                                 {notifications.map((n) => (
                                     <div
                                         key={n.id}
-                                        className={`relative p-4 transition-colors hover:bg-muted/30 flex gap-4 ${!n.isRead ? 'bg-brand-primary/5' : ''}`}
-                                        onClick={() => !n.isRead && handleMarkAsRead(n.id)}
+                                        className="relative p-4 transition-colors hover:bg-muted/30 flex gap-4 bg-brand-primary/5 cursor-pointer"
+                                        onClick={() => handleNotificationClick(n)}
                                     >
-                                        {!n.isRead && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
-                                        )}
+                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
                                         <div className="h-10 w-10 shrink-0 rounded-full border bg-background flex items-center justify-center relative shadow-sm">
                                             {n.actor?.avatarUrl ? (
                                                 <img src={n.actor.avatarUrl} alt={n.actor.username} className="h-full w-full rounded-full object-cover" />
@@ -209,9 +216,9 @@ export function NotificationCenter() {
                                 <div className="p-4 rounded-full bg-muted/50">
                                     <BellOff className="h-10 w-10" />
                                 </div>
-                                <p className="text-sm font-bold uppercase tracking-widest">No hay notificaciones</p>
+                                <p className="text-sm font-bold uppercase tracking-widest">No hay notificaciones nuevas</p>
                                 <p className="text-[10px] font-medium leading-relaxed">
-                                    Aquí verás cuando tus amigos compartan entrenos o reaccionen a tus logros.
+                                    ¡Buen trabajo! Estás al día con tu actividad social.
                                 </p>
                             </div>
                         )}

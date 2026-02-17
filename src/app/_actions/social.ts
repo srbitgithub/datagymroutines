@@ -119,14 +119,19 @@ export async function getGroupFeedAction(groupId: string) {
     return postRepo.getFeedByGroup(groupId);
 }
 
-export async function toggleReactionAction(postId: string, emoji: any) {
+export async function toggleReactionAction(postId: string, emoji: any, groupId?: string) {
     const { postRepo, profileRepo, reactionRepo, notificationRepo, user } = await getRepos();
 
     if (!user) return { error: "No autenticado" };
 
     const useCase = new ToggleReactionUseCase(reactionRepo, postRepo, profileRepo, notificationRepo);
     try {
-        await useCase.execute(postId, user.id, emoji);
+        await useCase.execute(postId, user.id, emoji, groupId);
+        if (groupId) {
+            revalidatePath(`/dashboard/social/${groupId}`);
+        } else {
+            revalidatePath('/dashboard/social');
+        }
         return { success: true };
     } catch (error: any) {
         return { error: error.message };
