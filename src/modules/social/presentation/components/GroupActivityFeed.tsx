@@ -8,11 +8,12 @@ import { Loader2, Zap, MessageSquare, History, Trophy } from "lucide-react";
 
 interface GroupActivityFeedProps {
     groupId: string;
+    currentUserId?: string;
 }
 
 const EMOJIS: EmojiReaction[] = ['🔥', '💪', '👏', '🚀', '💎'];
 
-export function GroupActivityFeed({ groupId }: GroupActivityFeedProps) {
+export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedProps) {
     const [posts, setPosts] = useState<SocialPost[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -110,29 +111,31 @@ export function GroupActivityFeed({ groupId }: GroupActivityFeedProps) {
                         </p>
                     </div>
 
-                    <footer className="flex flex-wrap items-center gap-2 pt-2 border-t mt-1">
-                        <div className="flex flex-wrap gap-1.5">
-                            {EMOJIS.map(emoji => {
-                                const count = post.reactions?.[emoji] || 0;
-                                const hasReacted = post.userReactions?.includes(emoji);
-                                return (
-                                    <button
-                                        key={emoji}
-                                        onClick={() => handleToggleReaction(post.id, emoji)}
-                                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${hasReacted
-                                            ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
-                                            : count > 0
-                                                ? 'bg-muted hover:bg-muted/80'
-                                                : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
-                                            }`}
-                                    >
-                                        <span>{emoji}</span>
-                                        {count > 0 && <span className="text-[10px]">{count}</span>}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </footer>
+                    {post.userId !== currentUserId && (
+                        <footer className="flex flex-wrap items-center gap-2 pt-2 border-t mt-1">
+                            <div className="flex flex-wrap gap-1.5">
+                                {EMOJIS.map(emoji => {
+                                    const count = post.reactions?.[emoji] || 0;
+                                    const hasReacted = post.userReactions?.includes(emoji);
+                                    return (
+                                        <button
+                                            key={emoji}
+                                            onClick={() => handleToggleReaction(post.id, emoji)}
+                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all ${hasReacted
+                                                ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-primary/20 scale-105'
+                                                : count > 0
+                                                    ? 'bg-muted hover:bg-muted/80'
+                                                    : 'bg-transparent hover:bg-muted opacity-40 hover:opacity-100'
+                                                }`}
+                                        >
+                                            <span>{emoji}</span>
+                                            {count > 0 && <span className="text-[10px]">{count}</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </footer>
+                    )}
                 </div>
             ))}
         </div>

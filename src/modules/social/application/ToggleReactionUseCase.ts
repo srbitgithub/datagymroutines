@@ -12,6 +12,12 @@ export class ToggleReactionUseCase {
     ) { }
 
     async execute(postId: string, userId: string, emoji: EmojiReaction, groupId?: string): Promise<void> {
+        const post = await this.postRepo.getById(postId);
+        if (!post || post.userId === userId) {
+            // Cannot react to your own post or non-existent post
+            return;
+        }
+
         const reactions = await this.reactionRepo.getUserReactions(postId, userId);
 
         if (reactions.includes(emoji)) {

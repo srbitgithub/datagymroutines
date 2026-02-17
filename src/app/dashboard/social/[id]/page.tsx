@@ -173,7 +173,7 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                             <History className="h-4 w-4" />
                             <h2 className="text-sm font-bold uppercase tracking-wider">Actividad Reciente</h2>
                         </div>
-                        <GroupActivityFeed groupId={group.id} />
+                        <GroupActivityFeed groupId={group.id} currentUserId={profile?.id} />
                     </section>
                 </div>
 
