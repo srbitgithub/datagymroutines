@@ -20,6 +20,17 @@ export function NotificationCenter() {
     const [loading, setLoading] = useState(false);
     const panelRef = useRef<HTMLDivElement>(null);
 
+    // Light poll: only the count (fast, cheap)
+    const loadUnreadCount = async () => {
+        try {
+            const count = await getUnreadNotificationsCountAction();
+            setUnreadCount(count);
+        } catch (error) {
+            console.error("Error loading unread count:", error);
+        }
+    };
+
+    // Full load: notifications list + count (when panel opens)
     const loadNotifications = async () => {
         setLoading(true);
         try {
@@ -36,12 +47,32 @@ export function NotificationCenter() {
         }
     };
 
+    // Initial load + polling every 15s for count only
     useEffect(() => {
-        loadNotifications();
-        // Polling every 1 minute (simplest way to catch new stuff for now)
-        const interval = setInterval(loadNotifications, 60000);
-        return () => clearInterval(interval);
+        loadUnreadCount();
+        const interval = setInterval(loadUnreadCount, 15000);
+
+        // Refresh when browser tab becomes visible again
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                loadUnreadCount();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
     }, []);
+
+    // Full fetch when panel opens
+    useEffect(() => {
+        if (isOpen) {
+            loadNotifications();
+        }
+    }, [isOpen]);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -105,8 +136,8 @@ export function NotificationCenter() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`relative p-2 rounded-xl border transition-all hover:scale-105 active:scale-95 ${unreadCount > 0
-                        ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary animate-in zoom-in duration-300'
-                        : 'bg-muted/30 border-border text-muted-foreground'
+                    ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary animate-in zoom-in duration-300'
+                    : 'bg-muted/30 border-border text-muted-foreground'
                     }`}
             >
                 <Bell className="h-5 w-5" />

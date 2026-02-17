@@ -21,8 +21,16 @@ CREATE POLICY "Users can view their own notifications"
 ON public.notifications FOR SELECT 
 USING (auth.uid() = user_id);
 
+CREATE POLICY "Authenticated users can create notifications" 
+ON public.notifications FOR INSERT 
+WITH CHECK (auth.uid() IS NOT NULL);
+
 CREATE POLICY "Users can update their own notifications (mark as read)" 
 ON public.notifications FOR UPDATE
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own notifications" 
+ON public.notifications FOR DELETE
 USING (auth.uid() = user_id);
 
 -- Index for performance
