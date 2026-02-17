@@ -1,6 +1,8 @@
 import { getExercisesAction } from "@/app/_actions/training";
 import { RoutineBuilderForm } from "@/modules/training/infrastructure/components/RoutineBuilderForm";
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewRoutinePage() {
     const exercises = await getExercisesAction(true);
 

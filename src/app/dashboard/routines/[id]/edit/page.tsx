@@ -2,6 +2,8 @@ import { getExercisesAction, getRoutineByIdAction } from "@/app/_actions/trainin
 import { RoutineBuilderForm } from "@/modules/training/infrastructure/components/RoutineBuilderForm";
 import { notFound } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditRoutinePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const [exercises, routine] = await Promise.all([

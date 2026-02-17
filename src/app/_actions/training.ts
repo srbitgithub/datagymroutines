@@ -15,6 +15,7 @@ import { DEFAULT_EXERCISES_DATA } from "@/modules/training/domain/DefaultExercis
 import { Exercise } from "@/modules/training/domain/Exercise";
 
 export async function getExercisesAction(includeDefaults: boolean = false) {
+    noStore();
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
@@ -117,6 +118,7 @@ export async function createExerciseAction(prevState: any, formData: FormData) {
 }
 
 export async function getRoutinesAction() {
+    noStore();
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
@@ -137,6 +139,7 @@ export async function getRoutinesAction() {
 }
 
 export async function getRoutineByIdAction(id: string) {
+    noStore();
     try {
         const authRepository = new SupabaseAuthRepository();
         const user = await authRepository.getSession();
