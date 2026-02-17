@@ -44,6 +44,7 @@ export function SessionLogger() {
     const [congratsPhrase, setCongratsPhrase] = useState('');
     const [setToDelete, setSetToDelete] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
+    const showShareModalRef = useRef(false);
 
     const userGender = userProfile?.gender || 'male';
 
@@ -755,10 +756,13 @@ export function SessionLogger() {
             <CustomDialog
                 isOpen={showCongratsModal}
                 onClose={() => {
-                    // Prevent closing via backdrop if still finishing
                     if (!isFinishing) {
                         setShowCongratsModal(false);
-                        clearSession();
+                        // Use ref to reliably check if share modal is being shown
+                        // (state check would use stale closure value)
+                        if (!showShareModalRef.current) {
+                            clearSession();
+                        }
                     }
                 }}
                 title={t('training.congrats_title') || '¡Muy Bien!'}
@@ -782,6 +786,7 @@ export function SessionLogger() {
                             console.log("[SocialShare] activeSessionID:", activeSession?.id);
 
                             if ((userProfile?.isSocialActive || hasGroups) && activeSession?.id) {
+                                showShareModalRef.current = true;
                                 setShowShareModal(true);
                             } else {
                                 clearSession();

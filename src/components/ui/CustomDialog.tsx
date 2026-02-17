@@ -7,7 +7,7 @@ import { useTranslation } from '@/core/i18n/TranslationContext';
 interface CustomDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
     title: string;
     description: string;
     type?: 'alert' | 'confirm';
@@ -91,8 +91,8 @@ export function CustomDialog({
                         </button>
                     )}
                     <button
-                        onClick={() => {
-                            onConfirm();
+                        onClick={async () => {
+                            await onConfirm();
                             if (type === 'alert') onClose();
                         }}
                         disabled={isConfirmDisabled}
