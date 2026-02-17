@@ -208,7 +208,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (!result.success) {
             throw new Error(result.error || "Error al finalizar sesión");
         }
-        clearSession();
     };
 
     const abandonSession = async () => {

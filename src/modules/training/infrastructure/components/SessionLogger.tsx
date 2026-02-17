@@ -27,7 +27,8 @@ export function SessionLogger() {
         abandonSession,
         addExerciseSet,
         removeExerciseSet,
-        clearSession
+        clearSession,
+        userProfile
     } = useSession();
     const { t } = useTranslation();
 
@@ -43,7 +44,7 @@ export function SessionLogger() {
     const [setToDelete, setSetToDelete] = useState<string | null>(null);
     const [showShareModal, setShowShareModal] = useState(false);
 
-    const userGender = useSession().userProfile?.gender || 'male';
+    const userGender = userProfile?.gender || 'male';
 
     const getPhrases = (gender: string) => {
         const basePhrases = [
@@ -769,7 +770,7 @@ export function SessionLogger() {
                 onConfirm={() => {
                     if (!isFinishing) {
                         setShowCongratsModal(false);
-                        if (useSession().userProfile?.isSocialActive && activeSession?.id) {
+                        if (userProfile?.isSocialActive && activeSession?.id) {
                             setShowShareModal(true);
                         } else {
                             clearSession();
