@@ -19,11 +19,11 @@ function DashboardContent({ children }: { children: ReactNode }) {
     const navItems = [
         { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
         { href: "/dashboard/session", icon: PlayCircle, label: t('nav.training') },
+        { href: "/dashboard/social", icon: Users2, label: "Social" },
         { href: "/dashboard/routines", icon: ListChecks, label: t('nav.routines') },
         { href: "/dashboard/exercises", icon: Dumbbell, label: t('nav.exercises') },
-        { href: "/dashboard/tools", icon: Wrench, label: t('nav.tools') },
         { href: "/dashboard/stats", icon: BarChart2, label: t('nav.stats') },
-        { href: "/dashboard/social", icon: Users2, label: "Social" },
+        { href: "/dashboard/tools", icon: Wrench, label: t('nav.tools') },
         { href: "/dashboard/settings", icon: Settings, label: t('nav.settings') },
     ];
 
