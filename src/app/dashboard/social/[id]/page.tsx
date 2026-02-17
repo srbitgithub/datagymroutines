@@ -10,6 +10,7 @@ import Link from "next/link";
 import { AddMemberModal } from "@/modules/social/presentation/components/AddMemberModal";
 import { GroupActivityFeed } from "@/modules/social/presentation/components/GroupActivityFeed";
 import { useRouter } from "next/navigation";
+import { CustomDialog } from "@/components/ui/CustomDialog";
 
 export default function GroupDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
     const params = use(paramsPromise);
@@ -20,6 +21,21 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
     const [showAddModal, setShowAddModal] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const [successorId, setSuccessorId] = useState<string>("");
+    const [dialogConfig, setDialogConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        description: string;
+        type: 'alert' | 'confirm';
+        variant: 'info' | 'success' | 'danger' | 'warning';
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: "",
+        description: "",
+        type: "alert",
+        variant: "info",
+        onConfirm: () => { }
+    });
 
     const loadData = async () => {
         setLoading(true);
@@ -41,19 +57,49 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
 
         // If creator and other members exist, must select successor
         if (group.creatorId === profile.id && (group.members?.length || 0) > 1 && !successorId) {
-            alert("Por favor, selecciona un sucesor antes de abandonar el grupo.");
+            setDialogConfig({
+                isOpen: true,
+                title: "Seleccionar Sucesor",
+                description: "Por favor, selecciona un sucesor antes de abandonar el grupo.",
+                type: "alert",
+                variant: "warning",
+                onConfirm: () => setDialogConfig(prev => ({ ...prev, isOpen: false }))
+            });
             return;
         }
 
-        if (!confirm("¿Estás seguro de que quieres abandonar este grupo?")) return;
+        const selectedSuccessor = group.members?.find(m => m.id === successorId);
+        const description = successorId && selectedSuccessor
+            ? `¿Estás seguro de que quieres abandonar este grupo? El usuario "${selectedSuccessor.username}" pasará a ser el nuevo administrador.`
+            : "¿Estás seguro de que quieres abandonar este grupo?";
 
+        setDialogConfig({
+            isOpen: true,
+            title: "¿Abandonar Grupo?",
+            description: description,
+            type: "confirm",
+            variant: "danger",
+            onConfirm: performExit
+        });
+    };
+
+    const performExit = async () => {
+        if (!group) return;
+        setDialogConfig(prev => ({ ...prev, isOpen: false }));
         setIsExiting(true);
         try {
             const result = await exitGroupAction(group.id, successorId || undefined);
             if (result.success) {
                 router.push("/dashboard/social");
             } else {
-                alert(result.error);
+                setDialogConfig({
+                    isOpen: true,
+                    title: "Error",
+                    description: result.error || "Ocurrió un error al intentar salir del grupo",
+                    type: "alert",
+                    variant: "danger",
+                    onConfirm: () => setDialogConfig(prev => ({ ...prev, isOpen: false }))
+                });
             }
         } catch (err) {
             console.error(err);
@@ -175,7 +221,25 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                                 <select
                                     className="w-full h-10 px-3 rounded-lg border bg-background text-xs focus:ring-2 focus:ring-brand-primary/20 outline-none"
                                     value={successorId}
-                                    onChange={(e) => setSuccessorId(e.target.value)}
+                                    onChange={(e) => {
+                                        const newId = e.target.value;
+                                        if (newId) {
+                                            const member = group.members?.find(m => m.id === newId);
+                                            setDialogConfig({
+                                                isOpen: true,
+                                                title: "Confirmar Sucesor",
+                                                description: `¿Quieres designar a "${member?.username}" como el nuevo administrador cuando abandones el grupo?`,
+                                                type: "confirm",
+                                                variant: "info",
+                                                onConfirm: () => {
+                                                    setSuccessorId(newId);
+                                                    setDialogConfig(prev => ({ ...prev, isOpen: false }));
+                                                }
+                                            });
+                                        } else {
+                                            setSuccessorId("");
+                                        }
+                                    }}
                                 >
                                     <option value="">Selecciona un nuevo admin...</option>
                                     {otherMembers.map(m => (
@@ -213,6 +277,16 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                     }}
                 />
             )}
+
+            <CustomDialog
+                isOpen={dialogConfig.isOpen}
+                onClose={() => setDialogConfig(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={dialogConfig.onConfirm}
+                title={dialogConfig.title}
+                description={dialogConfig.description}
+                type={dialogConfig.type}
+                variant={dialogConfig.variant}
+            />
         </div>
     );
 }

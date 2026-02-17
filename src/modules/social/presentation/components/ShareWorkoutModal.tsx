@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getUserGroupsAction, shareWorkoutAction } from "@/app/_actions/social";
 import { SocialGroup } from "@/modules/social/domain/SocialGroup";
 import { Loader2, X, Check, Users2, Send } from "lucide-react";
+import { CustomDialog } from "@/components/ui/CustomDialog";
 
 interface ShareWorkoutModalProps {
     sessionId: string;
@@ -16,6 +17,7 @@ export function ShareWorkoutModal({ sessionId, onClose, onSuccess }: ShareWorkou
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSharing, setIsSharing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadGroups = async () => {
@@ -40,7 +42,7 @@ export function ShareWorkoutModal({ sessionId, onClose, onSuccess }: ShareWorkou
             if (result.success) {
                 onSuccess();
             } else {
-                alert(result.error);
+                setError(result.error || "Ocurrió un error al compartir el entrenamiento");
             }
         } catch (err) {
             console.error(err);
@@ -85,8 +87,8 @@ export function ShareWorkoutModal({ sessionId, onClose, onSuccess }: ShareWorkou
                                         key={group.id}
                                         onClick={() => toggleGroup(group.id)}
                                         className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${isSelected
-                                                ? 'border-brand-primary bg-brand-primary/5 shadow-inner'
-                                                : 'border-border bg-muted/20 hover:border-brand-primary/30 hover:bg-muted/30'
+                                            ? 'border-brand-primary bg-brand-primary/5 shadow-inner'
+                                            : 'border-border bg-muted/20 hover:border-brand-primary/30 hover:bg-muted/30'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3 text-left">
@@ -133,6 +135,16 @@ export function ShareWorkoutModal({ sessionId, onClose, onSuccess }: ShareWorkou
                     </button>
                 </div>
             </div>
+
+            <CustomDialog
+                isOpen={!!error}
+                onClose={() => setError(null)}
+                onConfirm={() => setError(null)}
+                title="Error"
+                description={error || ""}
+                type="alert"
+                variant="danger"
+            />
         </div>
     );
 }
