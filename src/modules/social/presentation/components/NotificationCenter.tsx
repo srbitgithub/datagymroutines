@@ -5,14 +5,14 @@ import {
     getUserNotificationsAction,
     markNotificationAsReadAction,
     markAllNotificationsAsReadAction,
-    getUnreadNotificationsCountAction
+    getUnreadNotificationsCountAction,
+    markGroupNotificationsAsReadAction
 } from "@/app/_actions/social";
 import { Notification } from "../../domain/Notification";
 import { Bell, BellOff, CheckCircle2, Loader2, MessageSquare, Trophy, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useRouter, usePathname } from "next/navigation";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 
 export function NotificationCenter() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -51,59 +51,39 @@ export function NotificationCenter() {
         }
     };
 
-    // Initial load + Real-time + Polling fallback
+    // Context-aware polling: auto-read notifications if user is viewing the relevant group
+    const pollNotifications = async () => {
+        // If user is on a group page, auto-clear notifications for that group
+        const groupMatch = pathname.match(/\/dashboard\/social\/(.+)/);
+        if (groupMatch) {
+            try {
+                await markGroupNotificationsAsReadAction(groupMatch[1]);
+            } catch (e) {
+                // ignore
+            }
+        }
+        await loadUnreadCount();
+    };
+
+    // Initial load + polling every 10 seconds
     useEffect(() => {
-        loadUnreadCount();
-
-        // Real-time notifications
-        const channel = supabase
-            .channel('db-notifications')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'notifications' },
-                async (payload) => {
-                    const newNotif = payload.new;
-
-                    // If user is already in the target group, auto-read it
-                    const currentGroupId = pathname.split('/').pop();
-                    const notifGroupId = newNotif.data?.groupId;
-
-                    if (notifGroupId && currentGroupId === notifGroupId) {
-                        try {
-                            await markNotificationAsReadAction(newNotif.id);
-                            // Feed in GroupActivityFeed will refresh via its own subscription
-                        } catch (e) {
-                            console.error("Failed to auto-read notification:", e);
-                        }
-                    } else {
-                        // Refresh count for bell
-                        loadUnreadCount();
-                    }
-
-                    if (isOpen) {
-                        loadNotifications();
-                    }
-                }
-            )
-            .subscribe();
-
-        const interval = setInterval(loadUnreadCount, 30000); // Polling as backup
+        pollNotifications();
+        const interval = setInterval(pollNotifications, 10000);
 
         // Refresh when browser tab becomes visible again
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
-                loadUnreadCount();
+                pollNotifications();
                 if (isOpen) loadNotifications();
             }
         };
         document.addEventListener('visibilitychange', handleVisibility);
 
         return () => {
-            supabase.removeChannel(channel);
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, [pathname, isOpen, loadNotifications, loadUnreadCount]); // Added loadNotifications/loadUnreadCount to dependencies for completeness
+    }, [pathname]);
 
     // Full fetch when panel opens
     useEffect(() => {

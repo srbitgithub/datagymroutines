@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import { getGroupFeedAction, toggleReactionAction, getReactorsAction } from "@/app/_actions/social";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { getGroupFeedAction, toggleReactionAction, getReactorsAction, markGroupNotificationsAsReadAction } from "@/app/_actions/social";
 import { SocialPost } from "@/modules/social/domain/SocialPost";
 import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
 import { Loader2, Zap, MessageSquare, History, Trophy, Users, X } from "lucide-react";
-import { supabase } from "@/modules/auth/infrastructure/adapters/SupabaseClient";
 
 interface GroupActivityFeedProps {
     groupId: string;
@@ -36,29 +35,14 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
     useEffect(() => {
         loadFeed();
 
-        // Real-time subscription
-        const reactionsChannel = supabase
-            .channel(`group-feed-${groupId}`)
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'social_reactions' },
-                () => loadFeed()
-            )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'social_post_shares',
-                    filter: `group_id=eq.${groupId}`
-                },
-                () => loadFeed()
-            )
-            .subscribe();
+        // Fast polling every 5 seconds for near-real-time updates
+        const interval = setInterval(async () => {
+            await loadFeed();
+            // Auto-clear notifications for this group while viewing it
+            markGroupNotificationsAsReadAction(groupId).catch(() => { });
+        }, 5000);
 
-        return () => {
-            supabase.removeChannel(reactionsChannel);
-        };
+        return () => clearInterval(interval);
     }, [groupId]);
 
     const handleShowReactors = async (postId: string, emoji: EmojiReaction) => {
