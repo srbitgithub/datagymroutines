@@ -27,7 +27,8 @@ export class SupabaseSocialReactionRepository extends SupabaseRepository impleme
         const client = await this.getClient();
         const { data, error } = await client
             .from("social_reactions")
-            .select("emoji");
+            .select("emoji")
+            .eq("post_id", postId);
 
         if (error || !data) return {};
 
@@ -51,20 +52,28 @@ export class SupabaseSocialReactionRepository extends SupabaseRepository impleme
 
     async getReactorsWithProfiles(postId: string, emoji: EmojiReaction): Promise<{ username: string }[]> {
         const client = await this.getClient();
-        // Use RPC or separate query if relationship is not clear, but let's try standard join first
-        const { data, error } = await client
+
+        // 1. Get user_ids who reacted
+        const { data: reactionData, error: reactionError } = await client
             .from("social_reactions")
-            .select(`
-                profiles!social_reactions_user_id_fkey (
-                    username
-                )
-            `)
+            .select("user_id")
             .match({ post_id: postId, emoji });
 
-        if (error || !data) return [];
+        if (reactionError || !reactionData || reactionData.length === 0) return [];
 
-        return data
-            .map((r: any) => ({ username: r.profiles?.username || "Usuario" }))
-            .filter(u => u.username !== "Usuario");
+        const userIds = Array.from(new Set(reactionData.map(r => r.user_id)));
+
+        // 2. Get profiles for those users
+        const { data: profileData, error: profileError } = await client
+            .from("profiles")
+            .select("id, username")
+            .in("id", userIds);
+
+        if (profileError || !profileData) return [];
+
+        return userIds.map(id => {
+            const profile = profileData.find(p => p.id === id);
+            return { username: profile?.username || "Usuario" };
+        });
     }
 }
