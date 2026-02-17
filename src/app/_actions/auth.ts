@@ -166,7 +166,7 @@ export async function updateUsernameAction(username: string) {
     }
 }
 
-export async function updateSocialSettingsAction(settings: { isSocialActive?: boolean; isSearchable?: boolean }) {
+export async function updateSocialSettingsAction(settings: { isSocialActive?: boolean; isSearchable?: boolean; isNotificationsActive?: boolean }) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };

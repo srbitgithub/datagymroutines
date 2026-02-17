@@ -132,6 +132,17 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
         return !error && !!data;
     }
 
+    async getGroupMembers(groupId: string): Promise<string[]> {
+        const client = await this.getClient();
+        const { data, error } = await client
+            .from("social_members")
+            .select("user_id")
+            .eq("group_id", groupId);
+
+        if (error || !data) return [];
+        return data.map(m => m.user_id);
+    }
+
     async getGroupMemberCount(userId: string): Promise<number> {
         const client = await this.getClient();
         const { count, error } = await client

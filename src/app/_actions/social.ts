@@ -9,9 +9,16 @@ import {
 } from "@/modules/social/application/GroupUseCases";
 import { ShareWorkoutUseCase, GetGroupFeedUseCase } from "@/modules/social/application/SocialPostUseCases";
 import { ToggleReactionUseCase } from "@/modules/social/application/ToggleReactionUseCase";
+import {
+    GetUserNotificationsUseCase,
+    MarkNotificationAsReadUseCase,
+    MarkAllNotificationsAsReadUseCase,
+    GetUnreadNotificationsCountUseCase
+} from "@/modules/social/application/NotificationUseCases";
 import { SupabaseSocialGroupRepository } from "@/modules/social/infrastructure/adapters/SupabaseSocialGroupRepository";
 import { SupabaseSocialPostRepository } from "@/modules/social/infrastructure/adapters/SupabaseSocialPostRepository";
 import { SupabaseSocialReactionRepository } from "@/modules/social/infrastructure/adapters/SupabaseSocialReactionRepository";
+import { SupabaseNotificationRepository } from "@/modules/social/infrastructure/adapters/SupabaseNotificationRepository";
 import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/adapters/SupabaseProfileRepository";
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { revalidatePath } from "next/cache";
@@ -20,8 +27,11 @@ async function getRepos() {
     const authRepo = new SupabaseAuthRepository();
     const groupRepo = new SupabaseSocialGroupRepository();
     const profileRepo = new SupabaseProfileRepository();
+    const postRepo = new SupabaseSocialPostRepository();
+    const reactionRepo = new SupabaseSocialReactionRepository();
+    const notificationRepo = new SupabaseNotificationRepository();
     const user = await authRepo.getSession();
-    return { authRepo, groupRepo, profileRepo, user };
+    return { authRepo, groupRepo, profileRepo, postRepo, reactionRepo, notificationRepo, user };
 }
 
 export async function createGroupAction(name: string) {
@@ -90,14 +100,11 @@ export async function getGroupByIdAction(groupId: string) {
 }
 
 export async function shareWorkoutAction(sessionId: string, groupIds: string[], timeStr?: string) {
-    const authRepo = new SupabaseAuthRepository();
-    const groupRepo = new SupabaseSocialPostRepository(); // Using Post Repo
-    const profileRepo = new SupabaseProfileRepository();
-    const user = await authRepo.getSession();
+    const { groupRepo, profileRepo, postRepo, notificationRepo, user } = await getRepos();
 
     if (!user) return { error: "No autenticado" };
 
-    const useCase = new ShareWorkoutUseCase(groupRepo, profileRepo);
+    const useCase = new ShareWorkoutUseCase(postRepo, profileRepo, groupRepo, notificationRepo);
     try {
         await useCase.execute(user.id, sessionId, groupIds, timeStr);
         revalidatePath("/dashboard/social");
@@ -108,22 +115,62 @@ export async function shareWorkoutAction(sessionId: string, groupIds: string[], 
 }
 
 export async function getGroupFeedAction(groupId: string) {
-    const groupRepo = new SupabaseSocialPostRepository();
-    return groupRepo.getFeedByGroup(groupId);
+    const { postRepo } = await getRepos();
+    return postRepo.getFeedByGroup(groupId);
 }
 
 export async function toggleReactionAction(postId: string, emoji: any) {
-    const authRepo = new SupabaseAuthRepository();
-    const reactionRepo = new SupabaseSocialReactionRepository();
-    const user = await authRepo.getSession();
+    const { postRepo, profileRepo, reactionRepo, notificationRepo, user } = await getRepos();
 
     if (!user) return { error: "No autenticado" };
 
-    const useCase = new ToggleReactionUseCase(reactionRepo);
+    const useCase = new ToggleReactionUseCase(reactionRepo, postRepo, profileRepo, notificationRepo);
     try {
         await useCase.execute(postId, user.id, emoji);
         return { success: true };
     } catch (error: any) {
         return { error: error.message };
     }
+}
+
+export async function getUserNotificationsAction() {
+    const { notificationRepo, user } = await getRepos();
+    if (!user) return [];
+
+    const useCase = new GetUserNotificationsUseCase(notificationRepo);
+    return useCase.execute(user.id);
+}
+
+export async function markNotificationAsReadAction(id: string) {
+    const { notificationRepo, user } = await getRepos();
+    if (!user) return { error: "No autenticado" };
+
+    const useCase = new MarkNotificationAsReadUseCase(notificationRepo);
+    try {
+        await useCase.execute(id);
+        return { success: true };
+    } catch (error: any) {
+        return { error: error.message };
+    }
+}
+
+export async function markAllNotificationsAsReadAction() {
+    const { notificationRepo, user } = await getRepos();
+    if (!user) return { error: "No autenticado" };
+
+    const useCase = new MarkAllNotificationsAsReadUseCase(notificationRepo);
+    try {
+        await useCase.execute(user.id);
+        return { success: true };
+    } catch (error: any) {
+        return { error: error.message };
+    }
+}
+
+export async function getUnreadNotificationsCountAction() {
+    const { notificationRepo, user } = await getRepos();
+    if (!user) return 0;
+
+    const useCase = new GetUnreadNotificationsCountUseCase(notificationRepo);
+    return useCase.execute(user.id);
 }

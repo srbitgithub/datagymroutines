@@ -10,6 +10,7 @@ export interface Profile {
     subscriptionTier: 'free' | 'premium' | 'pro';
     isSocialActive: boolean;
     isSearchable: boolean;
+    isNotificationsActive: boolean;
     updatedAt: Date;
 }
 

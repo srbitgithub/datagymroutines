@@ -130,6 +130,7 @@ export default function SettingsPage() {
                                     <SocialSettingsForm
                                         initialSocialActive={profile.isSocialActive}
                                         initialSearchable={profile.isSearchable}
+                                        initialNotificationsActive={profile.isNotificationsActive}
                                     />
                                 </div>
                             </>

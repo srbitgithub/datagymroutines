@@ -9,6 +9,7 @@ import { SessionProvider } from "@/modules/training/presentation/contexts/Sessio
 import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
 import { useTheme } from "@/core/theme/ThemeContext";
 import { Sun, Moon } from "lucide-react";
+import { NotificationCenter } from "@/modules/social/presentation/components/NotificationCenter";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -30,6 +31,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
             {/* Sidebar Mobile (bottom) / Desktop (left) */}
             <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-card md:static md:w-64 md:border-r md:border-t-0 border-border transition-colors duration-300">
+                {/* ... existing sidebar content ... */}
                 <div className="flex h-full flex-row items-center justify-around p-2 md:flex-col md:justify-start md:gap-4 md:p-6">
                     <div className="hidden items-center gap-2 md:flex mb-8">
                         <img src="/icons/icon-192x192.png" alt="IronMetric Logo" className="h-8 w-8 object-contain" />
@@ -81,8 +83,13 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 </div>
             </aside>
 
-            <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto">
-                {children}
+            <main className="flex-1 flex flex-col h-screen overflow-hidden">
+                <header className="flex items-center justify-end px-4 py-3 border-b bg-card/30 backdrop-blur-md md:px-6">
+                    <NotificationCenter />
+                </header>
+                <div className="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto no-scrollbar">
+                    {children}
+                </div>
             </main>
         </div>
     );

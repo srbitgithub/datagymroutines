@@ -14,6 +14,7 @@ export class ProfileMapper {
             subscriptionTier: (raw.subscription_tier as 'free' | 'premium' | 'pro') || 'free',
             isSocialActive: raw.is_social_active ?? false,
             isSearchable: raw.is_searchable ?? true,
+            isNotificationsActive: raw.is_notifications_active ?? true,
             gender: raw.gender as 'male' | 'female' | 'other',
             updatedAt: raw.updated_at ? new Date(raw.updated_at) : new Date(),
         };
@@ -31,6 +32,7 @@ export class ProfileMapper {
             subscription_tier: profile.subscriptionTier,
             is_social_active: profile.isSocialActive,
             is_searchable: profile.isSearchable,
+            is_notifications_active: profile.isNotificationsActive,
             gender: profile.gender,
             updated_at: profile.updatedAt.toISOString(),
         };
@@ -47,6 +49,7 @@ export class ProfileMapper {
         if (profile.subscriptionTier !== undefined) persistence.subscription_tier = profile.subscriptionTier;
         if (profile.isSocialActive !== undefined) persistence.is_social_active = profile.isSocialActive;
         if (profile.isSearchable !== undefined) persistence.is_searchable = profile.isSearchable;
+        if (profile.isNotificationsActive !== undefined) persistence.is_notifications_active = profile.isNotificationsActive;
         if (profile.gender !== undefined) persistence.gender = profile.gender;
         if (profile.updatedAt !== undefined) persistence.updated_at = profile.updatedAt.toISOString();
         return persistence;

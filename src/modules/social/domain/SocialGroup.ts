@@ -18,6 +18,7 @@ export interface SocialGroupRepository {
     addMember(groupId: string, userId: string): Promise<void>;
     removeMember(groupId: string, userId: string): Promise<void>;
     isMember(groupId: string, userId: string): Promise<boolean>;
+    getGroupMembers(groupId: string): Promise<string[]>;
     getGroupMemberCount(userId: string): Promise<number>;
     searchUsers(query: string): Promise<Profile[]>;
 }

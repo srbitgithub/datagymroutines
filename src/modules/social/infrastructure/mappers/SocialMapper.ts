@@ -1,4 +1,5 @@
 import { SocialGroup } from "../../domain/SocialGroup";
+import { Notification } from "../../domain/Notification";
 import { ProfileMapper } from "../../../profiles/infrastructure/mappers/ProfileMapper";
 
 export class SocialMapper {
@@ -39,5 +40,31 @@ export class SocialMapper {
             session_id: post.sessionId,
             message: post.message
         };
+    }
+
+    static toNotificationDomain(raw: any): Notification {
+        return {
+            id: raw.id,
+            userId: raw.user_id,
+            actorId: raw.actor_id,
+            type: raw.type,
+            data: raw.data || {},
+            isRead: raw.is_read,
+            createdAt: new Date(raw.created_at),
+            actor: raw.actor ? {
+                username: raw.actor.username,
+                avatarUrl: raw.actor.avatar_url
+            } : undefined
+        };
+    }
+
+    static toNotificationPersistence(notification: Partial<Notification>): any {
+        const persistence: any = {};
+        if (notification.userId !== undefined) persistence.user_id = notification.userId;
+        if (notification.actorId !== undefined) persistence.actor_id = notification.actorId;
+        if (notification.type !== undefined) persistence.type = notification.type;
+        if (notification.data !== undefined) persistence.data = notification.data;
+        if (notification.isRead !== undefined) persistence.is_read = notification.isRead;
+        return persistence;
     }
 }

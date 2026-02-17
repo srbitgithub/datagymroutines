@@ -1,0 +1,192 @@
+'use client';
+
+import { useState, useEffect, useRef } from "react";
+import {
+    getUserNotificationsAction,
+    markNotificationAsReadAction,
+    markAllNotificationsAsReadAction,
+    getUnreadNotificationsCountAction
+} from "@/app/_actions/social";
+import { Notification } from "../../domain/Notification";
+import { Bell, BellOff, CheckCircle2, Loader2, MessageSquare, Trophy, User } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import Link from "next/link";
+
+export function NotificationCenter() {
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isOpen, setIsOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const panelRef = useRef<HTMLDivElement>(null);
+
+    const loadNotifications = async () => {
+        setLoading(true);
+        try {
+            const [list, count] = await Promise.all([
+                getUserNotificationsAction(),
+                getUnreadNotificationsCountAction()
+            ]);
+            setNotifications(list);
+            setUnreadCount(count);
+        } catch (error) {
+            console.error("Error loading notifications:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadNotifications();
+        // Polling every 1 minute (simplest way to catch new stuff for now)
+        const interval = setInterval(loadNotifications, 60000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await markNotificationAsReadAction(id);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (error) {
+            console.error("Error marking as read:", error);
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        try {
+            await markAllNotificationsAsReadAction();
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Error marking all as read:", error);
+        }
+    };
+
+    const getIcon = (type: string) => {
+        switch (type) {
+            case 'workout_completion': return <Trophy className="h-4 w-4 text-amber-500" />;
+            case 'reaction': return <MessageSquare className="h-4 w-4 text-brand-primary" />;
+            default: return <User className="h-4 w-4 text-muted-foreground" />;
+        }
+    };
+
+    const getMessage = (n: Notification) => {
+        switch (n.type) {
+            case 'workout_completion':
+                return (
+                    <p className="text-sm">
+                        <span className="font-bold">@{n.data.username || 'Un usuario'}</span> ha compartido un nuevo entrenamiento.
+                    </p>
+                );
+            case 'reaction':
+                return (
+                    <p className="text-sm">
+                        <span className="font-bold">@{n.data.username || 'Alguien'}</span> ha reaccionado con {n.data.emoji} a tu entrenamiento.
+                    </p>
+                );
+            default:
+                return <p className="text-sm">Nueva actividad social.</p>;
+        }
+    };
+
+    return (
+        <div className="relative" ref={panelRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`relative p-2 rounded-xl border transition-all hover:scale-105 active:scale-95 ${unreadCount > 0
+                        ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary animate-in zoom-in duration-300'
+                        : 'bg-muted/30 border-border text-muted-foreground'
+                    }`}
+            >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary text-[10px] font-black text-white shadow-lg shadow-brand-primary/30 ring-2 ring-background">
+                        {unreadCount > 9 ? '+9' : unreadCount}
+                    </span>
+                )}
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 mt-3 w-80 md:w-96 rounded-2xl border border-border bg-card shadow-2xl z-[60] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+                    <div className="flex items-center justify-between p-4 border-b bg-muted/10">
+                        <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                            <Bell className="h-4 w-4 text-brand-primary" />
+                            Notificaciones
+                        </h3>
+                        {unreadCount > 0 && (
+                            <button
+                                onClick={handleMarkAllAsRead}
+                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-brand-primary flex items-center gap-1 transition-colors"
+                            >
+                                <CheckCircle2 className="h-3 w-3" />
+                                Marcar todo
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="max-h-[70vh] overflow-y-auto scrollbar-thin">
+                        {loading && notifications.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 opacity-50">
+                                <Loader2 className="h-8 w-8 animate-spin text-brand-primary mb-2" />
+                                <p className="text-xs font-medium uppercase tracking-widest">Cargando...</p>
+                            </div>
+                        ) : notifications.length > 0 ? (
+                            <div className="divide-y divide-border">
+                                {notifications.map((n) => (
+                                    <div
+                                        key={n.id}
+                                        className={`relative p-4 transition-colors hover:bg-muted/30 flex gap-4 ${!n.isRead ? 'bg-brand-primary/5' : ''}`}
+                                        onClick={() => !n.isRead && handleMarkAsRead(n.id)}
+                                    >
+                                        {!n.isRead && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
+                                        )}
+                                        <div className="h-10 w-10 shrink-0 rounded-full border bg-background flex items-center justify-center relative shadow-sm">
+                                            {n.actor?.avatarUrl ? (
+                                                <img src={n.actor.avatarUrl} alt={n.actor.username} className="h-full w-full rounded-full object-cover" />
+                                            ) : (
+                                                <div className="h-full w-full rounded-full flex items-center justify-center text-xs font-bold bg-muted">
+                                                    {n.actor?.username?.[0]?.toUpperCase() || '?'}
+                                                </div>
+                                            )}
+                                            <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-background border shadow-sm">
+                                                {getIcon(n.type)}
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            {getMessage(n)}
+                                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                                                {formatDistanceToNow(n.createdAt, { addSuffix: true, locale: es })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-4 opacity-40">
+                                <div className="p-4 rounded-full bg-muted/50">
+                                    <BellOff className="h-10 w-10" />
+                                </div>
+                                <p className="text-sm font-bold uppercase tracking-widest">No hay notificaciones</p>
+                                <p className="text-[10px] font-medium leading-relaxed">
+                                    Aquí verás cuando tus amigos compartan entrenos o reaccionen a tus logros.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
