@@ -1,20 +1,28 @@
 'use client';
 
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks, Users2 } from "lucide-react";
-import { logoutAction } from "@/app/_actions/auth";
+import { logoutAction, getProfileAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
 import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
 import { useTheme } from "@/core/theme/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { NotificationCenter } from "@/modules/social/presentation/components/NotificationCenter";
+import { Profile } from "@/modules/profiles/domain/Profile";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { t } = useTranslation();
     const { theme, toggleTheme } = useTheme();
+    const [profile, setProfile] = useState<Profile | null>(null);
+
+    useEffect(() => {
+        getProfileAction().then(setProfile).catch(() => { });
+    }, []);
+
+    const isHeaderVisible = profile?.isSocialActive !== false && profile?.isNotificationsActive !== false;
 
     const navItems = [
         { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
@@ -84,10 +92,12 @@ function DashboardContent({ children }: { children: ReactNode }) {
             </aside>
 
             <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                <header className="flex items-center justify-end px-4 py-3 border-b bg-card/30 backdrop-blur-md md:px-6">
-                    <NotificationCenter />
-                </header>
-                <div className="flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto no-scrollbar">
+                {isHeaderVisible && (
+                    <header className="flex items-center justify-end px-4 py-3 border-b bg-card/30 backdrop-blur-md md:px-6">
+                        <NotificationCenter />
+                    </header>
+                )}
+                <div className={`flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto no-scrollbar ${!isHeaderVisible ? 'pt-6' : ''}`}>
                     {children}
                 </div>
             </main>
