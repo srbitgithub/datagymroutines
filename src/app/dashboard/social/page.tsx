@@ -67,7 +67,7 @@ export default function SocialPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Social</h1>
                     <p className="text-muted-foreground">Gestiona tus grupos y comparte tus logros.</p>
                 </div>
-                {(profile.tier !== 'rookie' || profile.tier === 'free4ever') && (
+                {profile.tier !== 'rookie' && (
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-brand-primary/90"
