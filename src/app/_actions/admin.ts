@@ -74,7 +74,7 @@ export async function getAdminStatsAction(months: number = 12) {
                 username: p?.username,
                 fullName: p?.fullName,
                 gender: p?.gender,
-                role: p?.role,
+                tier: p?.tier,
                 createdAt: u.created_at
             };
         });

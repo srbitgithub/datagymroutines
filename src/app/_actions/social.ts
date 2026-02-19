@@ -25,6 +25,7 @@ import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/ada
 import { SupabaseAuthRepository } from "@/modules/auth/infrastructure/adapters/SupabaseAuthRepository";
 import { revalidatePath } from "next/cache";
 import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
+import { canSharePost, canAddReaction, buildWeeklyCounterUpdate } from "@/core/utils/tierLimits";
 
 async function getRepos() {
     const authRepo = new SupabaseAuthRepository();
@@ -107,9 +108,24 @@ export async function shareWorkoutAction(sessionId: string, groupIds: string[], 
 
     if (!user) return { error: "No autenticado" };
 
+    const profile = await profileRepo.getById(user.id);
+    if (!profile) return { error: "Perfil no encontrado" };
+
+    const check = canSharePost(profile);
+    if (!check.allowed) return { error: check.reason };
+
     const useCase = new ShareWorkoutUseCase(postRepo, profileRepo, groupRepo, notificationRepo);
     try {
         await useCase.execute(user.id, sessionId, groupIds, timeStr);
+
+        // Increment weekly post counter
+        const update = buildWeeklyCounterUpdate(profile, 'posts');
+        await profileRepo.update(user.id, {
+            postsCount: update.posts_count,
+            reactionsCount: update.reactions_count,
+            ...(update.posts_count_reset ? { postsCountReset: new Date(update.posts_count_reset) } : {}),
+        });
+
         revalidatePath("/dashboard/social");
         return { success: true };
     } catch (error: any) {
@@ -127,18 +143,47 @@ export async function toggleReactionAction(postId: string, emoji: any, groupId?:
 
     if (!user) return { error: "No autenticado" };
 
-    const useCase = new ToggleReactionUseCase(reactionRepo, postRepo, profileRepo, notificationRepo);
-    try {
-        await useCase.execute(postId, user.id, emoji, groupId);
-        if (groupId) {
-            revalidatePath(`/dashboard/social/${groupId}`);
-        } else {
-            revalidatePath('/dashboard/social');
+    // Check if it's an add (not a remove) to apply the weekly limit
+    const existingReactions = await reactionRepo.getUserReactions(postId, user.id);
+    const isAdding = !existingReactions.includes(emoji);
+
+    if (isAdding) {
+        const profile = await profileRepo.getById(user.id);
+        if (!profile) return { error: "Perfil no encontrado" };
+
+        const check = canAddReaction(profile);
+        if (!check.allowed) return { error: check.reason };
+
+        const useCase = new ToggleReactionUseCase(reactionRepo, postRepo, profileRepo, notificationRepo);
+        try {
+            await useCase.execute(postId, user.id, emoji, groupId);
+
+            // Increment weekly reaction counter
+            const update = buildWeeklyCounterUpdate(profile, 'reactions');
+            await profileRepo.update(user.id, {
+                postsCount: update.posts_count,
+                reactionsCount: update.reactions_count,
+                ...(update.posts_count_reset ? { postsCountReset: new Date(update.posts_count_reset) } : {}),
+            });
+        } catch (error: any) {
+            return { error: error.message };
         }
-        return { success: true };
-    } catch (error: any) {
-        return { error: error.message };
+    } else {
+        // Removing reaction — no limit check needed
+        const useCase = new ToggleReactionUseCase(reactionRepo, postRepo, profileRepo, notificationRepo);
+        try {
+            await useCase.execute(postId, user.id, emoji, groupId);
+        } catch (error: any) {
+            return { error: error.message };
+        }
     }
+
+    if (groupId) {
+        revalidatePath(`/dashboard/social/${groupId}`);
+    } else {
+        revalidatePath('/dashboard/social');
+    }
+    return { success: true };
 }
 
 export async function getUserNotificationsAction() {

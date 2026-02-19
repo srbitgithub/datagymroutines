@@ -253,6 +253,7 @@ export const es = {
         role_label: "Plan Actual",
         plans: {
             elite: "Élite",
+            pro: "Pro",
             athlete: "Athlete",
             rookie: "Rookie",
             free4ever: "Free4Ever"

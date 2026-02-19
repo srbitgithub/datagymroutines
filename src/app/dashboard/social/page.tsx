@@ -67,7 +67,7 @@ export default function SocialPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Social</h1>
                     <p className="text-muted-foreground">Gestiona tus grupos y comparte tus logros.</p>
                 </div>
-                {(profile.subscriptionTier !== 'free' || profile.role === 'Free4Ever') && (
+                {(profile.tier !== 'rookie' || profile.tier === 'free4ever') && (
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-brand-primary/90"
@@ -78,11 +78,11 @@ export default function SocialPage() {
                 )}
             </header>
 
-            {profile.subscriptionTier === 'free' && profile.role !== 'Free4Ever' && (
+            {profile.tier === 'rookie' && (
                 <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 flex gap-3 text-amber-800 dark:text-amber-200">
                     <ShieldAlert className="h-5 w-5 shrink-0" />
                     <p className="text-sm">
-                        Como usuario <strong>Gratis</strong>, no puedes crear grupos, pero puedes ser invitado a grupos existentes por otros usuarios Premium.
+                        Como usuario <strong>Rookie</strong>, no puedes crear grupos, pero puedes ser invitado a grupos existentes por otros usuarios Pro o Elite.
                     </p>
                 </div>
             )}

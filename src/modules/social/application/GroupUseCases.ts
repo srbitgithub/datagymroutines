@@ -11,20 +11,16 @@ export class CreateGroupUseCase {
         const profile = await this.profileRepo.getById(userId);
         if (!profile) throw new Error("Perfil no encontrado");
 
-        // Check subscription limits
-        // free: 0 groups
-        // premium: 5 groups
-        // pro: unlimited
+        // Check subscription limits per SUBSCRIPTION_LIMITS config
         const currentCount = await this.groupRepo.getGroupMemberCount(userId);
-        const tier = profile.subscriptionTier || 'free';
-        const isFree4Ever = profile.role === 'Free4Ever';
+        const tier = profile.tier || 'rookie';
 
-        if (tier === 'free' && !isFree4Ever) {
-            throw new Error("Las cuentas gratuitas no pueden crear grupos. ¡Pásate a Premium!");
+        if (tier === 'rookie') {
+            throw new Error("Las cuentas gratuitas no pueden crear grupos. ¡Pásate a Pro!");
         }
 
-        if (tier === 'premium' && currentCount >= 5 && !isFree4Ever) {
-            throw new Error("Has alcanzado el límite de 5 grupos para tu cuenta Premium.");
+        if (tier === 'pro' && currentCount >= 1) {
+            throw new Error("Has alcanzado el límite de 1 grupo para tu cuenta Pro.");
         }
 
         return this.groupRepo.create({

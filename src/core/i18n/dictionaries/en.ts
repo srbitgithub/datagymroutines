@@ -253,6 +253,7 @@ export const en = {
         role_label: "Subscription Plan",
         plans: {
             elite: "Elite",
+            pro: "Pro",
             athlete: "Athlete",
             rookie: "Rookie",
             free4ever: "Free4Ever"

@@ -8,8 +8,10 @@ import { StartSessionUseCase, AddSetUseCase, EndSessionUseCase } from "@/modules
 import { ExerciseSet } from "@/modules/training/domain/Session";
 import { SupabaseRoutineRepository } from "@/modules/training/infrastructure/adapters/SupabaseRoutineRepository";
 import { SupabaseSessionRepository } from "@/modules/training/infrastructure/adapters/SupabaseSessionRepository";
+import { SupabaseProfileRepository } from "@/modules/profiles/infrastructure/adapters/SupabaseProfileRepository";
 import { revalidatePath } from "next/cache";
 import { subMonths, startOfMonth } from "date-fns";
+import { canCreateRoutine, canDeleteRoutine, getHistoryStartDate } from "@/core/utils/tierLimits";
 
 import { DEFAULT_EXERCISES_DATA } from "@/modules/training/domain/DefaultExercises";
 import { Exercise } from "@/modules/training/domain/Exercise";
@@ -209,7 +211,15 @@ export async function createRoutineAction(
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
 
+    const profileRepository = new SupabaseProfileRepository();
+    const profile = await profileRepository.getById(user.id);
+    if (!profile) return { error: "Perfil no encontrado" };
+
     const routineRepository = new SupabaseRoutineRepository();
+    const existingRoutines = await routineRepository.getAllByUserId(user.id);
+    const check = canCreateRoutine(profile, existingRoutines.length);
+    if (!check.allowed) return { error: check.reason };
+
     const createRoutineUseCase = new CreateRoutineUseCase(routineRepository);
 
     try {
@@ -336,6 +346,13 @@ export async function deleteRoutineAction(id: string) {
     const authRepository = new SupabaseAuthRepository();
     const user = await authRepository.getSession();
     if (!user) return { error: "No autenticado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const profile = await profileRepository.getById(user.id);
+    if (!profile) return { error: "Perfil no encontrado" };
+
+    const check = canDeleteRoutine(profile);
+    if (!check.allowed) return { error: check.reason };
 
     const routineRepository = new SupabaseRoutineRepository();
 
@@ -506,8 +523,16 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
         const user = await authRepository.getSession();
         if (!user) return { items: [] };
 
+        const profileRepository = new SupabaseProfileRepository();
+        const profile = await profileRepository.getById(user.id);
+        const historyStartDate = profile ? getHistoryStartDate(profile.tier) : null;
+
         const sessionRepository = new SupabaseSessionRepository();
-        const sessions = await sessionRepository.getAllByUserId(user.id);
+        let sessions = await sessionRepository.getAllByUserId(user.id);
+
+        if (historyStartDate) {
+            sessions = sessions.filter(s => s.startTime >= historyStartDate);
+        }
 
         if (!Array.isArray(sessions)) return { items: [] };
 
@@ -611,10 +636,19 @@ export async function getExercisesWithDataAction(timeRange: string = 'all') {
         const user = await authRepository.getSession();
         if (!user) return [];
 
+        const profileRepository = new SupabaseProfileRepository();
+        const profile = await profileRepository.getById(user.id);
+        const historyStartDate = profile ? getHistoryStartDate(profile.tier) : null;
+
         const sessionRepository = new SupabaseSessionRepository();
         const sessions = await sessionRepository.getAllByUserId(user.id);
 
         let filteredSessions = sessions.filter(s => s.endTime);
+
+        // Apply tier-based history limit first
+        if (historyStartDate) {
+            filteredSessions = filteredSessions.filter(s => s.startTime >= historyStartDate);
+        }
 
         if (timeRange !== 'all') {
             const now = new Date();

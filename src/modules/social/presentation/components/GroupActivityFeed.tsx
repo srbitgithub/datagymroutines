@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getGroupFeedAction, toggleReactionAction, getReactorsAction, markGroupNotificationsAsReadAction } from "@/app/_actions/social";
 import { SocialPost } from "@/modules/social/domain/SocialPost";
 import { EmojiReaction } from "@/modules/social/domain/SocialReaction";
-import { Loader2, Zap, MessageSquare, History, Trophy, Users, X } from "lucide-react";
+import { Loader2, Zap, Trophy, Users, X } from "lucide-react";
+import { UserBadge } from "@/components/ui/UserBadge";
 
 interface GroupActivityFeedProps {
     groupId: string;
@@ -118,7 +119,10 @@ export function GroupActivityFeed({ groupId, currentUserId }: GroupActivityFeedP
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm font-bold leading-none">{post.user?.username}</p>
+                                <div className="flex items-center gap-1.5 leading-none">
+                                    <p className="text-sm font-bold">{post.user?.username}</p>
+                                    {post.user?.tier && <UserBadge tier={post.user.tier} size="sm" />}
+                                </div>
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                     {post.createdAt.toLocaleDateString()} a las {post.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
-import { User, Mail, Weight, LogOut, Loader2, Shield, Sun, Moon, Palette } from "lucide-react";
+import { Mail, Weight, LogOut, Loader2, Shield, Sun, Moon, Palette, CreditCard } from "lucide-react";
 import { useTheme } from "@/core/theme/ThemeContext";
 import { GoalSettingsForm } from "@/modules/profiles/presentation/components/GoalSettingsForm";
 import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
@@ -11,6 +11,8 @@ import { useTranslation } from "@/core/i18n/TranslationContext";
 import { AvatarUpload } from "@/modules/profiles/presentation/components/AvatarUpload";
 import { SocialSettingsForm } from "@/modules/profiles/presentation/components/SocialSettingsForm";
 import { Globe } from "lucide-react";
+import { UserBadge } from "@/components/ui/UserBadge";
+import { PricingTable } from "@/modules/subscription/presentation/components/PricingTable";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -62,16 +64,7 @@ export default function SettingsPage() {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>
-                                {profile?.role === 'Elite' && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-brand-primary text-white rounded-full uppercase tracking-widest animate-pulse">
-                                        Elite
-                                    </span>
-                                )}
-                                {profile?.role === 'Free4Ever' && (
-                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                                        Free4Ever
-                                    </span>
-                                )}
+                                {profile?.tier && <UserBadge tier={profile.tier} size="md" />}
                             </div>
                             <p className="text-sm text-muted-foreground">{user?.email || t('common.loading')}</p>
                         </div>
@@ -110,7 +103,7 @@ export default function SettingsPage() {
                                         {t('settings.role_label')}
                                     </label>
                                     <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
-                                        {t(`settings.plans.${profile.role?.toLowerCase() || 'rookie'}`)}
+                                        {t(`settings.plans.${profile.tier || 'rookie'}`)}
                                     </div>
                                 </div>
 
@@ -137,6 +130,21 @@ export default function SettingsPage() {
                         )}
                     </div>
                 </section>
+
+                {profile && (
+                    <section className="rounded-xl border bg-card p-6 shadow-sm">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                                <CreditCard className="h-6 w-6 text-brand-primary" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-semibold">Suscripción</h2>
+                                <p className="text-sm text-muted-foreground">Elige el plan que mejor se adapte a ti</p>
+                            </div>
+                        </div>
+                        <PricingTable currentTier={profile.tier || 'rookie'} />
+                    </section>
+                )}
 
                 <section className="rounded-xl border bg-card p-6 shadow-sm">
                     <div className="flex items-center gap-4 mb-6">

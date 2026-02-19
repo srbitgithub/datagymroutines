@@ -293,7 +293,7 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                                     <td className="py-4 px-4 uppercase text-[10px] font-black tracking-widest">
                                         <span className="flex items-center gap-1.5 text-zinc-300">
                                             <UserCheck className="h-3 w-3 text-brand-primary" />
-                                            {user.role}
+                                            {user.tier}
                                         </span>
                                     </td>
                                     <td className="py-4 px-4 text-right text-zinc-500 font-mono text-xs">

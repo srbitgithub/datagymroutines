@@ -1,3 +1,5 @@
+import { SubscriptionTier } from '@/config/subscriptions';
+
 export interface Profile {
     id: string; // Linked to User ID
     username: string;
@@ -6,8 +8,13 @@ export interface Profile {
     weightUnit: 'kg' | 'lbs';
     monthlyGoal?: number;
     gender: 'male' | 'female' | 'other';
-    role: 'Rookie' | 'Athlete' | 'Elite' | 'Free4Ever';
-    subscriptionTier: 'free' | 'premium' | 'pro';
+    tier: SubscriptionTier;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    postsCount: number;
+    reactionsCount: number;
+    postsCountReset?: Date;
     isSocialActive: boolean;
     isSearchable: boolean;
     isNotificationsActive: boolean;
