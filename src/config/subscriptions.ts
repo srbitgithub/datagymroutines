@@ -19,8 +19,8 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
         canCreateRoutines: false,
     },
     pro: {
-        maxActiveRoutines: 3,
-        postsPerWeek: 3,
+        maxActiveRoutines: 5,
+        postsPerWeek: 5,
         reactionsPerWeek: 8,
         maxGroupsPerMonth: 1,
         historyDays: 30,
