@@ -5,59 +5,20 @@ import { ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 
 function AppMockup() {
-    const exercises = [
-        { name: 'Press banca', info: '4×8 · 80 kg', done: true },
-        { name: 'Press militar', info: '3×10 · 50 kg', done: true },
-        { name: 'Fondos', info: '3×12 · Peso', done: false },
-        { name: 'Cruces', info: '3×15 · 15 kg', done: false },
-    ];
-
     return (
-        <div className="relative mx-auto w-[260px] sm:w-[280px]">
+        <div className="relative mx-auto w-[220px] sm:w-[260px]">
             {/* Glow */}
             <div className="absolute -inset-6 bg-brand-primary/15 blur-3xl rounded-full -z-10" />
             {/* Phone frame */}
-            <div className="rounded-[2.5rem] border-2 border-foreground/15 bg-card shadow-2xl overflow-hidden">
-                {/* Status bar */}
-                <div className="bg-foreground/5 px-5 py-1.5 flex justify-between items-center">
-                    <span className="text-[10px] text-muted-foreground font-medium">9:41</span>
-                    <span className="text-[10px] text-muted-foreground font-medium">IronMetric</span>
-                </div>
-                {/* App header */}
-                <div className="bg-brand-primary px-4 py-3">
-                    <p className="text-white text-xs font-bold">Sesión de hoy</p>
-                    <p className="text-white/70 text-[10px] mt-0.5">Empujón · 4 ejercicios</p>
-                </div>
-                {/* Exercise rows */}
-                <div className="divide-y divide-border">
-                    {exercises.map((ex, i) => (
-                        <div key={i} className="px-4 py-2.5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-semibold leading-tight">{ex.name}</p>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">{ex.info}</p>
-                            </div>
-                            <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                                ex.done
-                                    ? 'bg-brand-primary border-brand-primary'
-                                    : 'border-muted-foreground/40'
-                            }`}>
-                                {ex.done && (
-                                    <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12" fill="none">
-                                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                {/* Progress + button */}
-                <div className="px-4 pb-5 pt-3">
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden mb-3">
-                        <div className="h-full bg-brand-primary rounded-full w-1/2 transition-all" />
-                    </div>
-                    <div className="bg-brand-primary rounded-xl px-4 py-2 text-center">
-                        <span className="text-white text-xs font-semibold">Finalizar sesión</span>
-                    </div>
+            <div className="overflow-hidden rounded-[2.5rem] border-2 border-foreground/15 shadow-2xl bg-black">
+                {/* Clip Android green status bar */}
+                <div style={{ marginTop: '-14px' }}>
+                    <img
+                        src="/screenshots/entrenando.jpeg"
+                        alt="IronMetric — sesión de entrenamiento en curso"
+                        className="w-full block"
+                        priority-fetch="high"
+                    />
                 </div>
             </div>
         </div>
