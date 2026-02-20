@@ -13,7 +13,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     rookie: {
         maxActiveRoutines: 1,
         postsPerWeek: 2,
-        reactionsPerWeek: 3,
+        reactionsPerWeek: 20,
         maxGroupsPerMonth: 0,
         historyDays: 7,
         canCreateRoutines: false,
@@ -21,7 +21,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     pro: {
         maxActiveRoutines: 5,
         postsPerWeek: 5,
-        reactionsPerWeek: 8,
+        reactionsPerWeek: 40,
         maxGroupsPerMonth: 1,
         historyDays: 30,
         canCreateRoutines: true,

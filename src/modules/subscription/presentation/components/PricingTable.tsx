@@ -36,7 +36,7 @@ const PLANS: PlanCard[] = [
         features: [
             '1 rutina activa (solo editar)',
             '2 publicaciones por semana',
-            '3 reacciones por semana',
+            '20 reacciones por semana',
             'Solo lectura en grupos',
             '7 días de historial',
         ],
@@ -55,7 +55,7 @@ const PLANS: PlanCard[] = [
         features: [
             '3 rutinas activas',
             '3 publicaciones por semana',
-            '8 reacciones por semana',
+            '40 reacciones por semana',
             '1 grupo social',
             '30 días de historial',
         ],
