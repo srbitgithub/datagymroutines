@@ -695,3 +695,103 @@ export async function getExercisesWithDataAction(timeRange: string = 'all') {
         return [];
     }
 }
+
+// ── Routine activation / deactivation ────────────────────────────────────────
+
+export async function getActiveRoutinesAction(): Promise<{ id: string; name: string }[]> {
+    noStore();
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return [];
+
+        const { createServerSideClient } = await import("@/modules/auth/infrastructure/adapters/SupabaseServerClient");
+        const client = await createServerSideClient();
+
+        const { data, error } = await client
+            .from('routines')
+            .select('id, name')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .order('order_index', { ascending: true });
+
+        if (error) return [];
+        return data ?? [];
+    } catch (error) {
+        console.error("Error en getActiveRoutinesAction:", error);
+        return [];
+    }
+}
+
+export async function getDeactivatedRoutinesAction(): Promise<{ id: string; name: string }[]> {
+    noStore();
+    try {
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return [];
+
+        const { createServerSideClient } = await import("@/modules/auth/infrastructure/adapters/SupabaseServerClient");
+        const client = await createServerSideClient();
+
+        const { data, error } = await client
+            .from('routines')
+            .select('id, name')
+            .eq('user_id', user.id)
+            .eq('is_active', false)
+            .order('order_index', { ascending: true });
+
+        if (error) return [];
+        return data ?? [];
+    } catch (error) {
+        console.error("Error en getDeactivatedRoutinesAction:", error);
+        return [];
+    }
+}
+
+export async function deactivateRoutinesAction(ids: string[]): Promise<{ success: boolean; error?: string }> {
+    try {
+        if (!ids.length) return { success: true };
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return { error: "No autenticado", success: false };
+
+        const { createServerSideClient } = await import("@/modules/auth/infrastructure/adapters/SupabaseServerClient");
+        const client = await createServerSideClient();
+
+        const { error } = await client
+            .from('routines')
+            .update({ is_active: false })
+            .in('id', ids)
+            .eq('user_id', user.id);
+
+        if (error) return { error: error.message, success: false };
+        revalidatePath('/dashboard/routines');
+        return { success: true };
+    } catch (error: any) {
+        return { error: error.message, success: false };
+    }
+}
+
+export async function reactivateRoutinesAction(ids: string[]): Promise<{ success: boolean; error?: string }> {
+    try {
+        if (!ids.length) return { success: true };
+        const authRepository = new SupabaseAuthRepository();
+        const user = await authRepository.getSession();
+        if (!user) return { error: "No autenticado", success: false };
+
+        const { createServerSideClient } = await import("@/modules/auth/infrastructure/adapters/SupabaseServerClient");
+        const client = await createServerSideClient();
+
+        const { error } = await client
+            .from('routines')
+            .update({ is_active: true })
+            .in('id', ids)
+            .eq('user_id', user.id);
+
+        if (error) return { error: error.message, success: false };
+        revalidatePath('/dashboard/routines');
+        return { success: true };
+    } catch (error: any) {
+        return { error: error.message, success: false };
+    }
+}

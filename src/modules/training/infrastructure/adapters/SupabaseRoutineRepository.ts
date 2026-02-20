@@ -22,6 +22,7 @@ export class SupabaseRoutineRepository extends SupabaseRepository implements Rou
             .from("routines")
             .select("*, routine_exercises(*, exercises(*))")
             .eq("user_id", userId)
+            .eq("is_active", true)
             .order("order_index", { ascending: true });
 
         if (error) {

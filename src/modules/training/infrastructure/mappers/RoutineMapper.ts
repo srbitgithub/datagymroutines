@@ -15,6 +15,7 @@ export class RoutineMapper {
                     .filter((e: RoutineExercise | null): e is RoutineExercise => e !== null), // Filter out failed exercises
                 createdAt: raw.created_at ? new Date(raw.created_at) : new Date(),
                 orderIndex: raw.order_index || 0,
+                isActive: raw.is_active !== false,
             };
         } catch (error) {
             console.error(`Error mapping routine ID ${raw.id}:`, error);

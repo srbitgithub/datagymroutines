@@ -11,14 +11,28 @@ import { useTheme } from "@/core/theme/ThemeContext";
 import { Sun, Moon } from "lucide-react";
 import { NotificationCenter } from "@/modules/social/presentation/components/NotificationCenter";
 import { ProfileProvider, useProfile } from "@/modules/profiles/presentation/contexts/ProfileContext";
+import { DowngradeResolutionModal } from "@/modules/training/presentation/components/DowngradeResolutionModal";
+import { SUBSCRIPTION_LIMITS } from "@/config/subscriptions";
+import { getActiveRoutinesAction } from "@/app/_actions/training";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { t } = useTranslation();
     const { theme, toggleTheme } = useTheme();
     const { profile } = useProfile();
+    const [showDowngradeModal, setShowDowngradeModal] = useState(false);
 
     const isHeaderVisible = profile?.isSocialActive !== false && profile?.isNotificationsActive !== false;
+
+    // Check for excess active routines after a downgrade
+    useEffect(() => {
+        if (!profile?.tier) return;
+        const limit = SUBSCRIPTION_LIMITS[profile.tier].maxActiveRoutines;
+        if (limit === -1) return; // unlimited — no check needed
+        getActiveRoutinesAction().then(active => {
+            if (active.length > limit) setShowDowngradeModal(true);
+        });
+    }, [profile?.tier]);
 
     const navItems = [
         { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
@@ -32,6 +46,13 @@ function DashboardContent({ children }: { children: ReactNode }) {
     ];
 
     return (
+        {showDowngradeModal && profile?.tier && (
+            <DowngradeResolutionModal
+                tier={profile.tier}
+                onResolved={() => setShowDowngradeModal(false)}
+            />
+        )}
+
         <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
             {/* Sidebar Mobile (bottom) / Desktop (left) */}
             <aside className="fixed bottom-0 inset-x-0 z-50 border-t bg-card md:static md:w-64 md:border-r md:border-t-0 border-border transition-colors duration-300">

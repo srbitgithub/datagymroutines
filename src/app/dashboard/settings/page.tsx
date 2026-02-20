@@ -15,6 +15,8 @@ import { SocialSettingsForm } from "@/modules/profiles/presentation/components/S
 import { Globe } from "lucide-react";
 import { UserBadge } from "@/components/ui/UserBadge";
 import { PricingTable } from "@/modules/subscription/presentation/components/PricingTable";
+import { ReactivateRoutinesModal } from "@/modules/training/presentation/components/ReactivateRoutinesModal";
+import { getDeactivatedRoutinesAction } from "@/app/_actions/training";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -24,11 +26,19 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
     const [paymentCanceled, setPaymentCanceled] = useState(false);
+    const [showReactivateModal, setShowReactivateModal] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        setPaymentSuccess(params.get('success') === 'true');
+        const success = params.get('success') === 'true';
+        setPaymentSuccess(success);
         setPaymentCanceled(params.get('canceled') === 'true');
+        // After a successful upgrade, check if there are deactivated routines to offer reactivation
+        if (success) {
+            getDeactivatedRoutinesAction().then(deactivated => {
+                if (deactivated.length > 0) setShowReactivateModal(true);
+            });
+        }
     }, []);
 
     useEffect(() => {
@@ -58,6 +68,13 @@ export default function SettingsPage() {
     }
 
     return (
+        <>
+        {showReactivateModal && profile?.tier && (
+            <ReactivateRoutinesModal
+                tier={profile.tier}
+                onClose={() => setShowReactivateModal(false)}
+            />
+        )}
         <div className="max-w-4xl mx-auto space-y-8">
             <header>
                 <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
@@ -220,5 +237,6 @@ export default function SettingsPage() {
                 </section>
             </div>
         </div>
+        </>
     );
 }

@@ -8,6 +8,7 @@ export interface Routine {
     exercises: RoutineExercise[];
     createdAt: Date;
     orderIndex: number;
+    isActive: boolean;
 }
 
 export interface RoutineExercise {
