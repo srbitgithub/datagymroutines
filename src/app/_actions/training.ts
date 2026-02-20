@@ -269,6 +269,7 @@ export async function createRoutineAction(
                 targetWeight: config.targetWeight,
             })),
             orderIndex: 0,
+            isActive: true,
         });
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/routines");
@@ -394,7 +395,8 @@ export async function duplicateRoutineAction(sourceId: string, newName: string, 
                 targetReps: re.targetReps,
                 targetWeight: re.targetWeight,
             })),
-            orderIndex: 0, // Duplicate at the beginning or follow source? Let's say 0
+            orderIndex: 0,
+            isActive: true,
         });
 
         revalidatePath("/dashboard");
