@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { getProfileAction, logoutAction, getUserSessionAction } from "@/app/_actions/auth";
 import { Mail, Weight, LogOut, Loader2, Shield, Sun, Moon, Palette, CreditCard } from "lucide-react";
 import { useTheme } from "@/core/theme/ThemeContext";
