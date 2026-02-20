@@ -51,6 +51,9 @@ export class SupabaseSocialPostRepository extends SupabaseRepository implements 
         const { data: { session } } = await client.auth.getSession();
         const userId = session?.user.id;
 
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
         const { data, error } = await client
             .from("social_posts")
             .select(`
@@ -60,6 +63,7 @@ export class SupabaseSocialPostRepository extends SupabaseRepository implements 
                 reactions:social_reactions(emoji, user_id)
             `)
             .eq("social_post_shares.group_id", groupId)
+            .gte('created_at', thirtyDaysAgo.toISOString())
             .order('created_at', { ascending: false });
 
         if (error || !data) return [];
