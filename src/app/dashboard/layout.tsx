@@ -46,6 +46,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
     ];
 
     return (
+        <>
         {showDowngradeModal && profile?.tier && (
             <DowngradeResolutionModal
                 tier={profile.tier}
@@ -118,6 +119,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 </div>
             </main>
         </div>
+        </>
     );
 }
 
