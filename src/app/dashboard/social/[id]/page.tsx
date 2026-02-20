@@ -1,11 +1,11 @@
 'use client';
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { getGroupByIdAction, exitGroupAction, markGroupNotificationsAsReadAction } from "@/app/_actions/social";
 import { getProfileAction } from "@/app/_actions/auth";
 import { SocialGroup } from "@/modules/social/domain/SocialGroup";
 import { Profile } from "@/modules/profiles/domain/Profile";
-import { Loader2, Users2, UserPlus2, LogOut, ChevronLeft, Crown, History } from "lucide-react";
+import { Loader2, Users2, UserPlus2, LogOut, ChevronLeft, ChevronDown, Crown, History } from "lucide-react";
 import Link from "next/link";
 import { AddMemberModal } from "@/modules/social/presentation/components/AddMemberModal";
 import { GroupActivityFeed } from "@/modules/social/presentation/components/GroupActivityFeed";
@@ -23,6 +23,8 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
     const [isExiting, setIsExiting] = useState(false);
     const [successorId, setSuccessorId] = useState<string>("");
     const [showSuccessorModal, setShowSuccessorModal] = useState(false);
+    const [showMembersPanel, setShowMembersPanel] = useState(false);
+    const membersPanelRef = useRef<HTMLDivElement>(null);
     const [dialogConfig, setDialogConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -58,6 +60,16 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
     useEffect(() => {
         loadData();
     }, [params.id]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (membersPanelRef.current && !membersPanelRef.current.contains(event.target as Node)) {
+                setShowMembersPanel(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleExit = async () => {
         if (!group || !profile) return;
@@ -178,9 +190,54 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
-                            <p className="text-sm text-muted-foreground">
-                                {group.members?.length || 0} miembros interactuando
-                            </p>
+                            <div className="relative" ref={membersPanelRef}>
+                                <button
+                                    onClick={() => setShowMembersPanel(prev => !prev)}
+                                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
+                                >
+                                    <Users2 className="h-3.5 w-3.5" />
+                                    {group.members?.length || 0} miembros
+                                    <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showMembersPanel ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {showMembersPanel && (
+                                    <div className="absolute left-0 mt-2 w-72 rounded-2xl border border-border bg-card shadow-2xl z-[60] overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+                                        <div className="flex items-center gap-2 p-4 border-b bg-muted/10">
+                                            <Users2 className="h-4 w-4 text-brand-primary" />
+                                            <h3 className="text-sm font-black uppercase tracking-widest">Miembros</h3>
+                                        </div>
+                                        <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                                            {group.members?.map((member) => (
+                                                <div key={member.id} className="flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors">
+                                                    <div className="h-9 w-9 rounded-full overflow-hidden border bg-background flex-shrink-0">
+                                                        {member.avatarUrl ? (
+                                                            <img src={member.avatarUrl} alt={member.username} className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <div className="h-full w-full flex items-center justify-center text-xs font-bold bg-muted text-muted-foreground">
+                                                                {member.username?.[0].toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-semibold flex items-center gap-1.5 truncate">
+                                                            {member.username}
+                                                            {member.id === group.creatorId && (
+                                                                <Crown className="h-3 w-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                                                            )}
+                                                            {member.id === profile?.id && (
+                                                                <span className="text-[10px] bg-brand-primary/10 text-brand-primary px-1.5 py-0.5 rounded-full flex-shrink-0">Tú</span>
+                                                            )}
+                                                        </p>
+                                                        {member.fullName && (
+                                                            <p className="text-[10px] text-muted-foreground truncate">{member.fullName}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -205,56 +262,13 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                 </div>
             </header>
 
-            <div className="grid gap-8 md:grid-cols-3">
-                <div className="md:col-span-2 space-y-8">
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <History className="h-4 w-4" />
-                            <h2 className="text-sm font-bold uppercase tracking-wider">Actividad Reciente</h2>
-                        </div>
-                        <GroupActivityFeed groupId={group.id} currentUserId={profile?.id} />
-                    </section>
+            <section className="space-y-4">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <History className="h-4 w-4" />
+                    <h2 className="text-sm font-bold uppercase tracking-wider">Actividad Reciente</h2>
                 </div>
-
-                <div className="space-y-6">
-                    <section className="rounded-2xl border bg-card p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold">Miembros</h2>
-                            <Users2 className="h-5 w-5 text-muted-foreground/50" />
-                        </div>
-                        <div className="divide-y divide-border">
-                            {group.members?.map((member) => (
-                                <div key={member.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-full overflow-hidden border bg-background relative">
-                                            {member.avatarUrl ? (
-                                                <img src={member.avatarUrl} alt={member.username} className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="h-full w-full flex items-center justify-center text-xs font-bold bg-muted text-muted-foreground">
-                                                    {member.username?.[0].toUpperCase()}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold flex items-center gap-2">
-                                                {member.username}
-                                                {member.id === group.creatorId && (
-                                                    <Crown className="h-3 w-3 text-amber-500 fill-amber-500" />
-                                                )}
-                                                {member.id === profile?.id && (
-                                                    <span className="text-[10px] bg-brand-primary/10 text-brand-primary px-1.5 py-0.5 rounded-full">Tú</span>
-                                                )}
-                                            </p>
-                                            <p className="text-[10px] text-muted-foreground">{member.fullName}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-
-            </div>
+                <GroupActivityFeed groupId={group.id} currentUserId={profile?.id} />
+            </section>
 
             {showSuccessorModal && (
                 <SelectSuccessorModal
