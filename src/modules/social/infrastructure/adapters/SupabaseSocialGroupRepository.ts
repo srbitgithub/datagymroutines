@@ -90,6 +90,17 @@ export class SupabaseSocialGroupRepository extends SupabaseRepository implements
         if (error) throw new Error(error.message);
     }
 
+    async transferOwnership(groupId: string, newCreatorId: string): Promise<void> {
+        const { createAdminClient } = await import("@/core/infrastructure/SupabaseAdminClient");
+        const admin = createAdminClient();
+        const { error } = await admin
+            .from("social_groups")
+            .update({ creator_id: newCreatorId, admin_id: newCreatorId })
+            .eq("id", groupId);
+
+        if (error) throw new Error(error.message);
+    }
+
     async delete(id: string): Promise<void> {
         const client = await this.getClient();
         const { error } = await client

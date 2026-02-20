@@ -14,6 +14,7 @@ export interface SocialGroupRepository {
     getByUser(userId: string): Promise<SocialGroup[]>;
     create(group: Omit<SocialGroup, 'id' | 'createdAt'>): Promise<SocialGroup>;
     update(id: string, group: Partial<SocialGroup>): Promise<void>;
+    transferOwnership(groupId: string, newCreatorId: string): Promise<void>;
     delete(id: string): Promise<void>;
     addMember(groupId: string, userId: string): Promise<void>;
     removeMember(groupId: string, userId: string): Promise<void>;

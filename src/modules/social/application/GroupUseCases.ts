@@ -68,7 +68,7 @@ export class ExitGroupUseCase {
             }
 
             if (nextAdminId) {
-                await this.groupRepo.update(groupId, { creatorId: nextAdminId, adminId: nextAdminId });
+                await this.groupRepo.transferOwnership(groupId, nextAdminId);
             }
         }
 
