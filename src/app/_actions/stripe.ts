@@ -31,6 +31,15 @@ export async function createCheckoutSessionAction(tier: 'pro' | 'elite') {
         await profileRepo.update(user.id, { stripeCustomerId: customerId });
     }
 
+    // If user already has an active subscription, redirect to portal to change plan instead
+    if (profile.stripeSubscriptionId) {
+        const portalSession = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: `${APP_URL}/dashboard/settings`,
+        });
+        redirect(portalSession.url);
+    }
+
     const session = await stripe.checkout.sessions.create({
         customer: customerId,
         mode: 'subscription',

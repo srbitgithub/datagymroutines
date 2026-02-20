@@ -45,7 +45,7 @@ const PLANS: PlanCard[] = [
     {
         tier: 'pro',
         name: 'Pro',
-        price: '4,99€',
+        price: '1,60€',
         period: '/mes',
         icon: <Zap className="h-5 w-5" />,
         color: 'text-blue-600 dark:text-blue-400',
@@ -64,7 +64,7 @@ const PLANS: PlanCard[] = [
     {
         tier: 'elite',
         name: 'Elite',
-        price: '9,99€',
+        price: '2,50€',
         period: '/mes',
         icon: <Trophy className="h-5 w-5" />,
         color: 'text-brand-primary',
