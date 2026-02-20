@@ -5,10 +5,11 @@ import { getGroupByIdAction, exitGroupAction, markGroupNotificationsAsReadAction
 import { getProfileAction } from "@/app/_actions/auth";
 import { SocialGroup } from "@/modules/social/domain/SocialGroup";
 import { Profile } from "@/modules/profiles/domain/Profile";
-import { Loader2, Users2, UserPlus2, LogOut, ChevronLeft, Crown, MoreVertical, History } from "lucide-react";
+import { Loader2, Users2, UserPlus2, LogOut, ChevronLeft, Crown, History } from "lucide-react";
 import Link from "next/link";
 import { AddMemberModal } from "@/modules/social/presentation/components/AddMemberModal";
 import { GroupActivityFeed } from "@/modules/social/presentation/components/GroupActivityFeed";
+import { SelectSuccessorModal } from "@/modules/social/presentation/components/SelectSuccessorModal";
 import { useRouter } from "next/navigation";
 import { CustomDialog } from "@/components/ui/CustomDialog";
 
@@ -21,6 +22,7 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
     const [showAddModal, setShowAddModal] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const [successorId, setSuccessorId] = useState<string>("");
+    const [showSuccessorModal, setShowSuccessorModal] = useState(false);
     const [dialogConfig, setDialogConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -60,32 +62,59 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
     const handleExit = async () => {
         if (!group || !profile) return;
 
-        // If creator and other members exist, must select successor
-        if (group.creatorId === profile.id && (group.members?.length || 0) > 1 && !successorId) {
-            setDialogConfig({
-                isOpen: true,
-                title: "Seleccionar Sucesor",
-                description: "Por favor, selecciona un sucesor antes de abandonar el grupo.",
-                type: "alert",
-                variant: "warning",
-                onConfirm: () => setDialogConfig(prev => ({ ...prev, isOpen: false }))
-            });
+        // If creator and other members exist, show successor selection modal
+        if (group.creatorId === profile.id && (group.members?.length || 0) > 1) {
+            setShowSuccessorModal(true);
             return;
         }
-
-        const selectedSuccessor = group.members?.find(m => m.id === successorId);
-        const description = successorId && selectedSuccessor
-            ? `¿Estás seguro de que quieres abandonar este grupo? El usuario "${selectedSuccessor.username}" pasará a ser el nuevo administrador.`
-            : "¿Estás seguro de que quieres abandonar este grupo?";
 
         setDialogConfig({
             isOpen: true,
             title: "¿Abandonar Grupo?",
-            description: description,
+            description: "¿Estás seguro de que quieres abandonar este grupo?",
             type: "confirm",
             variant: "danger",
             onConfirm: performExit
         });
+    };
+
+    const handleSuccessorConfirm = (selectedId: string) => {
+        const selectedSuccessor = group?.members?.find(m => m.id === selectedId);
+        setSuccessorId(selectedId);
+        setShowSuccessorModal(false);
+        setDialogConfig({
+            isOpen: true,
+            title: "¿Abandonar Grupo?",
+            description: `¿Estás seguro de que quieres abandonar este grupo? El usuario "${selectedSuccessor?.username}" pasará a ser el nuevo administrador.`,
+            type: "confirm",
+            variant: "danger",
+            onConfirm: () => performExitWithSuccessor(selectedId)
+        });
+    };
+
+    const performExitWithSuccessor = async (selectedId: string) => {
+        if (!group) return;
+        setDialogConfig(prev => ({ ...prev, isOpen: false }));
+        setIsExiting(true);
+        try {
+            const result = await exitGroupAction(group.id, selectedId);
+            if (result.success) {
+                router.push("/dashboard/social");
+            } else {
+                setDialogConfig({
+                    isOpen: true,
+                    title: "Error",
+                    description: result.error || "Ocurrió un error al intentar salir del grupo",
+                    type: "alert",
+                    variant: "danger",
+                    onConfirm: () => setDialogConfig(prev => ({ ...prev, isOpen: false }))
+                });
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsExiting(false);
+        }
     };
 
     const performExit = async () => {
@@ -154,15 +183,25 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                             </p>
                         </div>
                     </div>
-                    {isCreator && (
+                    <div className="flex items-center gap-2">
+                        {isCreator && (
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all hover:-translate-y-0.5"
+                            >
+                                <UserPlus2 className="h-4 w-4" />
+                                <span className="hidden sm:inline">Añadir Miembro</span>
+                            </button>
+                        )}
                         <button
-                            onClick={() => setShowAddModal(true)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow-lg shadow-brand-primary/20 hover:shadow-brand-primary/40 transition-all hover:-translate-y-0.5"
+                            onClick={handleExit}
+                            disabled={isExiting}
+                            className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-50"
                         >
-                            <UserPlus2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">Añadir Miembro</span>
+                            <LogOut className="h-4 w-4" />
+                            <span className="hidden sm:inline">Abandonar</span>
                         </button>
-                    )}
+                    </div>
                 </div>
             </header>
 
@@ -215,62 +254,16 @@ export default function GroupDetailPage({ params: paramsPromise }: { params: Pro
                     </section>
                 </div>
 
-                <div className="space-y-6">
-                    <section className="rounded-2xl border bg-card p-6 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full -mr-12 -mt-12" />
-                        <h2 className="text-lg font-bold mb-4">Acciones</h2>
-
-                        {isCreator && (group.members?.length || 0) > 1 && (
-                            <div className="mb-6 space-y-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Designar sucesor:</p>
-                                <select
-                                    className="w-full h-10 px-3 rounded-lg border bg-background text-xs focus:ring-2 focus:ring-brand-primary/20 outline-none"
-                                    value={successorId}
-                                    onChange={(e) => {
-                                        const newId = e.target.value;
-                                        if (newId) {
-                                            const member = group.members?.find(m => m.id === newId);
-                                            setDialogConfig({
-                                                isOpen: true,
-                                                title: "Confirmar Sucesor",
-                                                description: `¿Quieres designar a "${member?.username}" como el nuevo administrador cuando abandones el grupo?`,
-                                                type: "confirm",
-                                                variant: "info",
-                                                onConfirm: () => {
-                                                    setSuccessorId(newId);
-                                                    setDialogConfig(prev => ({ ...prev, isOpen: false }));
-                                                }
-                                            });
-                                        } else {
-                                            setSuccessorId("");
-                                        }
-                                    }}
-                                >
-                                    <option value="">Selecciona un nuevo admin...</option>
-                                    {otherMembers.map(m => (
-                                        <option key={m.id} value={m.id}>{m.username}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={handleExit}
-                            disabled={isExiting}
-                            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-red-500/10 text-red-500 text-sm font-semibold hover:bg-red-500 hover:text-white transition-all group"
-                        >
-                            {isExiting ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                                <>
-                                    <LogOut className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                                    Abandonar Grupo
-                                </>
-                            )}
-                        </button>
-                    </section>
-                </div>
             </div>
+
+            {showSuccessorModal && (
+                <SelectSuccessorModal
+                    members={otherMembers}
+                    onConfirm={handleSuccessorConfirm}
+                    onClose={() => setShowSuccessorModal(false)}
+                    isLoading={isExiting}
+                />
+            )}
 
             {showAddModal && (
                 <AddMemberModal
