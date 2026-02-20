@@ -9,7 +9,6 @@ import { GoalSettingsForm } from "@/modules/profiles/presentation/components/Goa
 import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
 import { UsernameSettingsForm } from "@/modules/profiles/presentation/components/UsernameSettingsForm";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { AvatarUpload } from "@/modules/profiles/presentation/components/AvatarUpload";
 import { SocialSettingsForm } from "@/modules/profiles/presentation/components/SocialSettingsForm";
@@ -23,9 +22,14 @@ export default function SettingsPage() {
     const [profile, setProfile] = useState<any>(null);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const searchParams = useSearchParams();
-    const paymentSuccess = searchParams.get('success') === 'true';
-    const paymentCanceled = searchParams.get('canceled') === 'true';
+    const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [paymentCanceled, setPaymentCanceled] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setPaymentSuccess(params.get('success') === 'true');
+        setPaymentCanceled(params.get('canceled') === 'true');
+    }, []);
 
     useEffect(() => {
         async function loadData() {
