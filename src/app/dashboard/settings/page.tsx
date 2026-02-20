@@ -7,6 +7,7 @@ import { GoalSettingsForm } from "@/modules/profiles/presentation/components/Goa
 import { GenderSettingsForm } from "@/modules/profiles/presentation/components/GenderSettingsForm";
 import { UsernameSettingsForm } from "@/modules/profiles/presentation/components/UsernameSettingsForm";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { AvatarUpload } from "@/modules/profiles/presentation/components/AvatarUpload";
 import { SocialSettingsForm } from "@/modules/profiles/presentation/components/SocialSettingsForm";
@@ -20,6 +21,9 @@ export default function SettingsPage() {
     const [profile, setProfile] = useState<any>(null);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
+    const paymentSuccess = searchParams.get('success') === 'true';
+    const paymentCanceled = searchParams.get('canceled') === 'true';
 
     useEffect(() => {
         async function loadData() {
@@ -53,6 +57,18 @@ export default function SettingsPage() {
                 <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
                 <p className="text-muted-foreground">{t('settings.subtitle')}</p>
             </header>
+
+            {paymentSuccess && (
+                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
+                    <p className="font-semibold">¡Suscripción activada! 🎉</p>
+                    <p className="text-sm mt-1">Tu plan se ha actualizado correctamente. Puede tardar unos segundos en reflejarse.</p>
+                </div>
+            )}
+            {paymentCanceled && (
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+                    <p className="text-sm">Pago cancelado. Puedes intentarlo de nuevo cuando quieras.</p>
+                </div>
+            )}
 
             <div className="grid gap-6">
                 <section className="rounded-xl border bg-card p-6 shadow-sm">

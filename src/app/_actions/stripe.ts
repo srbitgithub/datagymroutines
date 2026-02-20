@@ -5,7 +5,7 @@ import { stripe } from '@/lib/stripe';
 import { SupabaseAuthRepository } from '@/modules/auth/infrastructure/adapters/SupabaseAuthRepository';
 import { SupabaseProfileRepository } from '@/modules/profiles/infrastructure/adapters/SupabaseProfileRepository';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function createCheckoutSessionAction(tier: 'pro' | 'elite') {
     const authRepo = new SupabaseAuthRepository();

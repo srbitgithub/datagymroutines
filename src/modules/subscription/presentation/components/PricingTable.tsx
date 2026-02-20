@@ -83,23 +83,28 @@ const PLANS: PlanCard[] = [
 
 export function PricingTable({ currentTier }: PricingTableProps) {
     const [loading, setLoading] = useState<'pro' | 'elite' | 'portal' | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleUpgrade = async (tier: 'pro' | 'elite') => {
         setLoading(tier);
+        setError(null);
         try {
             await createCheckoutSessionAction(tier);
-        } catch (error) {
-            console.error('Error al iniciar checkout:', error);
+        } catch (err: any) {
+            console.error('Error al iniciar checkout:', err);
+            setError(err?.message || 'Error al iniciar el pago. Inténtalo de nuevo.');
             setLoading(null);
         }
     };
 
     const handleManage = async () => {
         setLoading('portal');
+        setError(null);
         try {
             await createCustomerPortalAction();
-        } catch (error) {
-            console.error('Error al abrir portal:', error);
+        } catch (err: any) {
+            console.error('Error al abrir portal:', err);
+            setError('No se pudo abrir el portal. Puede que tu suscripción no esté gestionada por Stripe (fue asignada manualmente).');
             setLoading(null);
         }
     };
@@ -132,6 +137,12 @@ export function PricingTable({ currentTier }: PricingTableProps) {
                         {loading === 'portal' ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                         Gestionar suscripción
                     </button>
+                </div>
+            )}
+
+            {error && (
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+                    {error}
                 </div>
             )}
 
