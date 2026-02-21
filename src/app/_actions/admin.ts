@@ -175,6 +175,59 @@ export async function getAdminStatsAction(months: number = 12) {
             return { name, count: t[1] };
         });
 
+        // 6. Métricas Sociales
+        const { data: socialPosts, error: postsError } = await supabase
+            .from("social_posts")
+            .select("user_id")
+            .not("session_id", "is", null)
+            .gte("created_at", startDate.toISOString());
+
+        const { data: socialReactions, error: reactionsError } = await supabase
+            .from("social_reactions")
+            .select("user_id")
+            .gte("created_at", startDate.toISOString());
+
+        if (postsError) throw postsError;
+        if (reactionsError) throw reactionsError;
+
+        const sharedWorkoutsGenderStats = { male: 0, female: 0, other: 0 };
+        const uniqueSharers = new Set<string>();
+        socialPosts?.forEach(p => {
+            uniqueSharers.add(p.user_id);
+            const profile = profilesMap.get(p.user_id);
+            const gender = profile?.gender || 'other';
+            if (gender === 'male') sharedWorkoutsGenderStats.male++;
+            else if (gender === 'female') sharedWorkoutsGenderStats.female++;
+            else sharedWorkoutsGenderStats.other++;
+        });
+
+        const uniqueSharersGenderStats = { male: 0, female: 0, other: 0 };
+        uniqueSharers.forEach(id => {
+            const profile = profilesMap.get(id);
+            const gender = profile?.gender || 'other';
+            if (gender === 'male') uniqueSharersGenderStats.male++;
+            else if (gender === 'female') uniqueSharersGenderStats.female++;
+            else uniqueSharersGenderStats.other++;
+        });
+
+        const reactionsGenderStats = { male: 0, female: 0, other: 0 };
+        socialReactions?.forEach(r => {
+            const profile = profilesMap.get(r.user_id);
+            const gender = profile?.gender || 'other';
+            if (gender === 'male') reactionsGenderStats.male++;
+            else if (gender === 'female') reactionsGenderStats.female++;
+            else reactionsGenderStats.other++;
+        });
+
+        const socialStats = {
+            sharedWorkoutsCount: socialPosts?.length || 0,
+            sharedWorkoutsGenderStats,
+            uniqueSharersCount: uniqueSharers.size,
+            uniqueSharersGenderStats,
+            reactionsCount: socialReactions?.length || 0,
+            reactionsGenderStats
+        };
+
         return {
             success: true,
             data: {
@@ -189,6 +242,7 @@ export async function getAdminStatsAction(months: number = 12) {
                 exercisesGenderStats,
                 totalTonnage: Math.round(totalTonnage),
                 topExercises,
+                socialStats,
                 usersList,
                 lastUpdate: new Date().toISOString()
             }

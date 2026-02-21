@@ -11,7 +11,10 @@ import {
     ChevronDown,
     Award,
     Search,
-    UserCheck
+    UserCheck,
+    Share2,
+    Heart,
+    MessageCircle
 } from "lucide-react";
 import {
     BarChart,
@@ -251,6 +254,36 @@ export function AdminDashboardUI({ initialData }: AdminDashboardUIProps) {
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
+                </div>
+            </div>
+
+            {/* Social Section */}
+            <div className="bg-card border border-border rounded-3xl p-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h3 className="text-xl font-black uppercase italic tracking-tight">Interacción Social</h3>
+                        <p className="text-sm text-muted-foreground font-medium">Estadísticas de comunidad y entrenamientos compartidos</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatRow
+                        label="Entrenos Compartidos"
+                        value={stats.socialStats?.sharedWorkoutsCount || 0}
+                        icon={<Share2 className="h-5 w-5 text-blue-400" />}
+                        breakdown={stats.socialStats?.sharedWorkoutsGenderStats}
+                    />
+                    <StatRow
+                        label="Usuarios Compartiendo"
+                        value={stats.socialStats?.uniqueSharersCount || 0}
+                        icon={<Users className="h-5 w-5 text-green-400" />}
+                        breakdown={stats.socialStats?.uniqueSharersGenderStats}
+                    />
+                    <StatRow
+                        label="Reacciones Totales"
+                        value={stats.socialStats?.reactionsCount || 0}
+                        icon={<Heart className="h-5 w-5 text-red-500" />}
+                        breakdown={stats.socialStats?.reactionsGenderStats}
+                    />
                 </div>
             </div>
 
