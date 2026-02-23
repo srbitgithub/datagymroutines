@@ -532,6 +532,9 @@ export async function getProgressionDataAction(exerciseId?: string, timezone: st
         const sessionRepository = new SupabaseSessionRepository();
         let sessions = await sessionRepository.getAllByUserId(user.id);
 
+        // Solo procesar sesiones terminadas y que tengan al menos una serie
+        sessions = sessions.filter(s => s.endTime != null && (s.sets || []).length > 0);
+
         if (historyStartDate) {
             sessions = sessions.filter(s => s.startTime >= historyStartDate);
         }
