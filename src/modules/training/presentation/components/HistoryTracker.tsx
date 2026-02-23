@@ -33,7 +33,13 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
     const now = new Date();
 
     const locale = language === 'es' ? es : enUS;
-    const trainingDates = useMemo(() => new Set(progressionItems.map(p => p.date)), [progressionItems]);
+    const trainingCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        progressionItems.forEach(p => {
+            counts.set(p.date, (counts.get(p.date) || 0) + 1);
+        });
+        return counts;
+    }, [progressionItems]);
 
     const { days, trainedCount } = useMemo(() => {
         let start: Date;
@@ -59,10 +65,10 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
         }
 
         const interval = eachDayOfInterval({ start, end });
-        const count = interval.filter(day => trainingDates.has(format(day, 'yyyy-MM-dd'))).length;
+        const count = interval.filter(day => (trainingCounts.get(format(day, 'yyyy-MM-dd')) || 0) > 0).length;
 
         return { days: interval, trainedCount: count };
-    }, [period, trainingDates]);
+    }, [period, trainingCounts]);
 
     return (
         <section className="space-y-6">
@@ -92,7 +98,8 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
                 <div className={`flex flex-wrap gap-2 sm:gap-3 ${period !== 'this_week' ? 'justify-start' : 'justify-between'}`}>
                     {days.map((day) => {
                         const dateStr = format(day, 'yyyy-MM-dd');
-                        const isTrained = trainingDates.has(dateStr);
+                        const trainCountForDay = trainingCounts.get(dateStr) || 0;
+                        const isTrained = trainCountForDay > 0;
                         const isPastDay = isPast(day) && !isToday(day);
                         const isFuture = isAfter(day, now);
                         const today = isToday(day);
@@ -112,11 +119,18 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
                                     {format(day, 'EEE', { locale })}
                                 </span>
                                 <div
-                                    className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all duration-500 border-2 ${statusStyles} ${today ? 'animate-pulse' : ''}`}
+                                    className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all duration-500 border-2 ${statusStyles} ${today ? 'animate-pulse' : ''}`}
                                     title={format(day, 'PPP', { locale })}
                                 >
                                     {isTrained ? (
-                                        <Check className="h-4 w-4 sm:h-5 sm:w-5 stroke-[4px]" />
+                                        <>
+                                            <Check className="h-4 w-4 sm:h-5 sm:w-5 stroke-[4px]" />
+                                            {trainCountForDay > 1 && (
+                                                <div className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-lg border border-zinc-900 border-opacity-70 z-10">
+                                                    {trainCountForDay}
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <span className={`text-[10px] font-black ${today ? 'text-brand-primary' : ''}`}>{format(day, 'd')}</span>
                                     )}
