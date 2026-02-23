@@ -51,8 +51,8 @@ export function ShareAppButtons() {
 
             {/* QR Code Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 py-8 overflow-y-auto animate-in fade-in duration-200">
+                    <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200 my-auto">
                         <button
                             onClick={() => setShowModal(false)}
                             className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white bg-zinc-800/50 rounded-full transition-colors"
@@ -60,12 +60,12 @@ export function ShareAppButtons() {
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h3 className="text-xl font-black uppercase tracking-tight text-white mb-2">IronMetric</h3>
-                        <p className="text-sm text-zinc-400 font-medium mb-8 text-center">
+                        <h3 className="text-xl font-black uppercase tracking-tight text-white mb-2 mt-4 sm:mt-0">IronMetric</h3>
+                        <p className="text-sm text-zinc-400 font-medium mb-6 text-center">
                             {t('common.scan_qr') || 'Escanea este código para acceder a la aplicación'}
                         </p>
 
-                        <div className="bg-white p-4 rounded-2xl w-full aspect-square flex items-center justify-center">
+                        <div className="bg-white p-4 rounded-2xl w-full max-w-[240px] aspect-square flex items-center justify-center shrink-0">
                             <img
                                 src="/qrcode_IronMetric.png"
                                 alt="IronMetric QR Code"
