@@ -16,7 +16,8 @@ import {
     isAfter,
     startOfMonth,
     endOfMonth,
-    subMonths
+    subMonths,
+    isSameMonth
 } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 
@@ -41,9 +42,10 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
         return counts;
     }, [progressionItems]);
 
-    const { days, trainedCount } = useMemo(() => {
+    const { days, trainedCount, monthRef } = useMemo(() => {
         let start: Date;
         let end: Date;
+        let ref: Date = now;
 
         switch (period) {
             case 'this_week':
@@ -51,13 +53,14 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
                 end = endOfWeek(now, { weekStartsOn: 1 });
                 break;
             case 'this_month':
-                start = startOfMonth(now);
-                end = endOfMonth(now);
+                ref = now;
+                start = startOfWeek(startOfMonth(now), { weekStartsOn: 1 });
+                end = endOfWeek(endOfMonth(now), { weekStartsOn: 1 });
                 break;
             case 'last_month':
-                const lastMonth = subMonths(now, 1);
-                start = startOfMonth(lastMonth);
-                end = endOfMonth(lastMonth);
+                ref = subMonths(now, 1);
+                start = startOfWeek(startOfMonth(ref), { weekStartsOn: 1 });
+                end = endOfWeek(endOfMonth(ref), { weekStartsOn: 1 });
                 break;
             default:
                 start = startOfWeek(now, { weekStartsOn: 1 });
@@ -65,9 +68,12 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
         }
 
         const interval = eachDayOfInterval({ start, end });
-        const count = interval.filter(day => (trainingCounts.get(format(day, 'yyyy-MM-dd')) || 0) > 0).length;
+        const count = interval.filter(day => {
+            if (period !== 'this_week' && !isSameMonth(day, ref)) return false;
+            return (trainingCounts.get(format(day, 'yyyy-MM-dd')) || 0) > 0;
+        }).length;
 
-        return { days: interval, trainedCount: count };
+        return { days: interval, trainedCount: count, monthRef: ref };
     }, [period, trainingCounts]);
 
     return (
@@ -95,9 +101,22 @@ export function HistoryTracker({ progressionItems, monthlyGoal }: HistoryTracker
             </div>
 
             <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-3xl p-6 sm:p-8 shadow-sm backdrop-blur-sm">
-                <div className={`flex flex-wrap gap-2 sm:gap-3 ${period !== 'this_week' ? 'justify-start' : 'justify-between'}`}>
+                <div className="grid grid-cols-7 gap-2 sm:gap-3 w-full justify-items-center">
                     {days.map((day) => {
                         const dateStr = format(day, 'yyyy-MM-dd');
+                        const isCurrentMonth = period === 'this_week' || isSameMonth(day, monthRef);
+
+                        if (!isCurrentMonth) {
+                            return (
+                                <div key={dateStr} className="flex flex-col items-center gap-2 flex-shrink-0 opacity-0 pointer-events-none">
+                                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-tighter opacity-70">
+                                        {format(day, 'EEE', { locale })}
+                                    </span>
+                                    <div className="w-9 h-9 sm:w-11 sm:h-11 border-2 border-transparent"></div>
+                                </div>
+                            );
+                        }
+
                         const trainCountForDay = trainingCounts.get(dateStr) || 0;
                         const isTrained = trainCountForDay > 0;
                         const isPastDay = isPast(day) && !isToday(day);
