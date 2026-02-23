@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { QrCode, Share2, X } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 
 export function ShareAppButtons() {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleWebShare = async () => {
         const shareData = {
@@ -49,8 +55,8 @@ export function ShareAppButtons() {
                 </button>
             </div>
 
-            {/* QR Code Modal */}
-            {showModal && (
+            {/* QR Code Modal (Rendered via Portal to break out of header rendering context) */}
+            {mounted && showModal && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 py-8 overflow-y-auto animate-in fade-in duration-200">
                     <div className="relative bg-zinc-900 border border-zinc-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col items-center animate-in zoom-in-95 duration-200 my-auto">
                         <button
@@ -73,7 +79,8 @@ export function ShareAppButtons() {
                             />
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
