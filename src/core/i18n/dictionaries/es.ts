@@ -38,6 +38,7 @@ export const es = {
         stats: "Estadísticas",
         settings: "Ajustes",
         logout: "Cerrar sesión",
+        library: "Biblioteca",
     },
     dashboard: {
         title: "IronMetric",

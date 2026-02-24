@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks, Users2 } from "lucide-react";
+import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks, Users2, Library } from "lucide-react";
 import { logoutAction, getProfileAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
 import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
@@ -14,7 +14,8 @@ import { ProfileProvider, useProfile } from "@/modules/profiles/presentation/con
 import { DowngradeResolutionModal } from "@/modules/training/presentation/components/DowngradeResolutionModal";
 import { SUBSCRIPTION_LIMITS } from "@/config/subscriptions";
 import { getActiveRoutinesAction } from "@/app/_actions/training";
-import { ShareAppButtons } from "@/modules/core/presentation/components/ShareAppButtons";
+import { DrawerMenu } from "@/modules/core/presentation/components/DrawerMenu";
+import { LibrarySwitcher } from "@/modules/core/presentation/components/LibrarySwitcher";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -35,15 +36,12 @@ function DashboardContent({ children }: { children: ReactNode }) {
         });
     }, [profile?.tier]);
 
-    const navItems = [
+    const navItems: Array<{ href: string; icon: any; label: string; matchPaths?: string[] }> = [
         { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
         { href: "/dashboard/session", icon: PlayCircle, label: t('nav.training') },
         { href: "/dashboard/social", icon: Users2, label: "Social" },
-        { href: "/dashboard/routines", icon: ListChecks, label: t('nav.routines') },
-        { href: "/dashboard/exercises", icon: Dumbbell, label: t('nav.exercises') },
-        { href: "/dashboard/stats", icon: BarChart2, label: t('nav.stats') },
-        { href: "/dashboard/tools", icon: Wrench, label: t('nav.tools') },
-        { href: "/dashboard/settings", icon: Settings, label: t('nav.settings') },
+        { href: "/dashboard/routines", matchPaths: ["/dashboard/routines", "/dashboard/exercises"], icon: Library, label: t('nav.library', { defaultValue: 'Biblioteca' }) },
+        { href: "/dashboard/stats", icon: BarChart2, label: t('nav.stats') }
     ];
 
     return (
@@ -66,7 +64,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
 
                         <nav className="flex w-full flex-row justify-around gap-2 md:flex-col md:justify-start overflow-x-auto no-scrollbar">
                             {navItems.map((item) => {
-                                const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                                const isActive = item.matchPaths
+                                    ? item.matchPaths.some(p => pathname.startsWith(p))
+                                    : pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                                 return (
                                     <Link
                                         key={item.href}
@@ -110,11 +110,14 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 </aside>
 
                 <main className="flex-1 flex flex-col h-screen overflow-hidden">
-                    <header className="flex items-center justify-end px-4 py-3 border-b bg-card/30 backdrop-blur-md md:px-6">
-                        <ShareAppButtons />
-                        {isHeaderVisible && <NotificationCenter />}
+                    <header className="flex items-center justify-between px-4 py-3 border-b bg-card/30 backdrop-blur-md md:px-6">
+                        <DrawerMenu />
+                        <div className="flex items-center gap-2">
+                            {isHeaderVisible && <NotificationCenter />}
+                        </div>
                     </header>
                     <div className={`flex-1 p-4 md:p-6 pb-24 md:pb-6 overflow-y-auto no-scrollbar`}>
+                        <LibrarySwitcher />
                         {children}
                     </div>
                 </main>
