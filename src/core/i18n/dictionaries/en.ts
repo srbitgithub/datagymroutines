@@ -39,6 +39,8 @@ export const en = {
         settings: "Settings",
         logout: "Logout",
         library: "Library",
+        share: "Share with..",
+        qr: "Share via QR",
     },
     dashboard: {
         title: "IronMetric",

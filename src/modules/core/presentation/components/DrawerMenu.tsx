@@ -69,21 +69,21 @@ export function DrawerMenu() {
 
                             <button onClick={handleWebShare} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium text-left">
                                 <Share2 className="w-5 h-5 text-muted-foreground" />
-                                {t('nav.share', { defaultValue: 'Compartir la app' })}
+                                {t('nav.share', { defaultValue: 'Compartir con..' })}
                             </button>
 
                             <button onClick={() => { setIsOpen(false); setShowQR(true); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium text-left">
                                 <QrCode className="w-5 h-5 text-muted-foreground" />
-                                {t('nav.qr', { defaultValue: 'Mostrar código QR' })}
+                                {t('nav.qr', { defaultValue: 'Compartir con QR' })}
                             </button>
 
                             <Link href="/dashboard/tools" onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium">
                                 <Wrench className="w-5 h-5 text-muted-foreground" />
                                 {t('nav.tools', { defaultValue: 'Herramientas' })}
                             </Link>
-                        </div>
 
-                        <div className="absolute top-auto bottom-0 w-full p-4 border-t border-border mt-auto">
+                            <div className="h-[1px] bg-border my-2"></div>
+
                             <form action={logoutAction}>
                                 <button type="submit" className="flex items-center gap-3 p-3 w-full rounded-xl hover:bg-red-500/10 text-red-500 transition-colors font-medium text-left">
                                     <LogOut className="w-5 h-5" />
