@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, Settings, Share2, QrCode, Wrench, LogOut, X } from 'lucide-react';
+import { Menu, Settings, Share2, QrCode, Wrench, LogOut, X, Sun, Moon } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
+import { useTheme } from '@/core/theme/ThemeContext';
 import { logoutAction } from '@/app/_actions/auth';
 import { createPortal } from 'react-dom';
 
 export function DrawerMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
     const [showQR, setShowQR] = useState(false);
     const [mounted, setMounted] = useState(false);
 
@@ -75,6 +77,11 @@ export function DrawerMenu() {
                             <button onClick={() => { setIsOpen(false); setShowQR(true); }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium text-left">
                                 <QrCode className="w-5 h-5 text-muted-foreground" />
                                 {t('nav.qr', { defaultValue: 'Compartir con QR' })}
+                            </button>
+
+                            <button onClick={toggleTheme} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium text-left">
+                                {theme === 'dark' ? <Sun className="w-5 h-5 text-muted-foreground" /> : <Moon className="w-5 h-5 text-muted-foreground" />}
+                                {theme === 'dark' ? t('settings.appearance.light', { defaultValue: 'Modo Día' }) : t('settings.appearance.dark', { defaultValue: 'Modo Noche' })}
                             </button>
 
                             <Link href="/dashboard/tools" onClick={() => setIsOpen(false)} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors font-medium">

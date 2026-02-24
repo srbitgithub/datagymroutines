@@ -8,7 +8,6 @@ import { logoutAction, getProfileAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
 import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
 import { useTheme } from "@/core/theme/ThemeContext";
-import { Sun, Moon } from "lucide-react";
 import { NotificationCenter } from "@/modules/social/presentation/components/NotificationCenter";
 import { ProfileProvider, useProfile } from "@/modules/profiles/presentation/contexts/ProfileContext";
 import { DowngradeResolutionModal } from "@/modules/training/presentation/components/DowngradeResolutionModal";
@@ -20,7 +19,6 @@ import { LibrarySwitcher } from "@/modules/core/presentation/components/LibraryS
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const { t } = useTranslation();
-    const { theme, toggleTheme } = useTheme();
     const { profile } = useProfile();
     const [showDowngradeModal, setShowDowngradeModal] = useState(false);
 
@@ -80,32 +78,6 @@ function DashboardContent({ children }: { children: ReactNode }) {
                                 );
                             })}
                         </nav>
-
-                        <div className="mt-auto hidden w-full md:flex flex-col gap-2">
-                            <button
-                                onClick={toggleTheme}
-                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted cursor-pointer"
-                            >
-                                {theme === 'dark' ? (
-                                    <>
-                                        <Sun className="h-4 w-4" />
-                                        <span>{t('settings.appearance.light')}</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Moon className="h-4 w-4" />
-                                        <span>{t('settings.appearance.dark')}</span>
-                                    </>
-                                )}
-                            </button>
-
-                            <form action={logoutAction}>
-                                <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 cursor-pointer">
-                                    <LogOut className="h-4 w-4" />
-                                    <span>{t('nav.logout')}</span>
-                                </button>
-                            </form>
-                        </div>
                     </div>
                 </aside>
 

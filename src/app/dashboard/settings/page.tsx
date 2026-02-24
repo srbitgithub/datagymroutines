@@ -69,174 +69,124 @@ export default function SettingsPage() {
 
     return (
         <>
-        {showReactivateModal && profile?.tier && (
-            <ReactivateRoutinesModal
-                tier={profile.tier}
-                onClose={() => setShowReactivateModal(false)}
-            />
-        )}
-        <div className="max-w-4xl mx-auto space-y-8">
-            <header>
-                <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
-                <p className="text-muted-foreground">{t('settings.subtitle')}</p>
-            </header>
-
-            {paymentSuccess && (
-                <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
-                    <p className="font-semibold">¡Suscripción activada! 🎉</p>
-                    <p className="text-sm mt-1">Tu plan se ha actualizado correctamente. Puede tardar unos segundos en reflejarse.</p>
-                </div>
+            {showReactivateModal && profile?.tier && (
+                <ReactivateRoutinesModal
+                    tier={profile.tier}
+                    onClose={() => setShowReactivateModal(false)}
+                />
             )}
-            {paymentCanceled && (
-                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
-                    <p className="text-sm">Pago cancelado. Puedes intentarlo de nuevo cuando quieras.</p>
-                </div>
-            )}
+            <div className="max-w-4xl mx-auto space-y-8">
+                <header>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
+                    <p className="text-muted-foreground">{t('settings.subtitle')}</p>
+                </header>
 
-            <div className="grid gap-6">
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-6 mb-8">
-                        <AvatarUpload
-                            currentAvatarUrl={profile?.avatarUrl}
-                            onSuccess={(newUrl) => setProfile({ ...profile, avatarUrl: newUrl })}
-                        />
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>
-                                {profile?.tier && <UserBadge tier={profile.tier} size="md" />}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{user?.email || t('common.loading')}</p>
-                        </div>
+                {paymentSuccess && (
+                    <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
+                        <p className="font-semibold">¡Suscripción activada! 🎉</p>
+                        <p className="text-sm mt-1">Tu plan se ha actualizado correctamente. Puede tardar unos segundos en reflejarse.</p>
                     </div>
-
-                    <div className="space-y-4 max-w-md">
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
-                                <Mail className="h-4 w-4" />
-                                {t('settings.email_label')}
-                            </label>
-                            <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                                {user?.email}
-                            </div>
-                        </div>
-
-                        {profile && (
-                            <>
-                                <div className="pt-4">
-                                    <UsernameSettingsForm initialUsername={profile.username || ''} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium flex items-center gap-2">
-                                        <Weight className="h-4 w-4" />
-                                        {t('settings.weight_unit_label')}
-                                    </label>
-                                    <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20 capitalize">
-                                        {t(`common.units.${profile.weightUnit}`)}
-                                    </div>
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <label className="text-sm font-medium flex items-center gap-2">
-                                        <Shield className="h-4 w-4" />
-                                        {t('settings.role_label')}
-                                    </label>
-                                    <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
-                                        {t(`settings.plans.${profile.tier || 'rookie'}`)}
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 border-t">
-                                    <GenderSettingsForm initialGender={profile.gender || 'male'} />
-                                </div>
-
-                                <div className="pt-4 border-t">
-                                    <GoalSettingsForm initialGoal={profile.monthlyGoal || 20} />
-                                </div>
-
-                                <div className="pt-6 border-t">
-                                    <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                                        <Globe className="h-4 w-4 text-brand-primary" />
-                                        Privacidad Social
-                                    </h3>
-                                    <SocialSettingsForm
-                                        initialSocialActive={profile.isSocialActive}
-                                        initialSearchable={profile.isSearchable}
-                                        initialNotificationsActive={profile.isNotificationsActive}
-                                    />
-                                </div>
-                            </>
-                        )}
+                )}
+                {paymentCanceled && (
+                    <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200">
+                        <p className="text-sm">Pago cancelado. Puedes intentarlo de nuevo cuando quieras.</p>
                     </div>
-                </section>
-
-                {profile && (
-                    <section className="rounded-xl border bg-card p-6 shadow-sm">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
-                                <CreditCard className="h-6 w-6 text-brand-primary" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-semibold">Suscripción</h2>
-                                <p className="text-sm text-muted-foreground">Elige el plan que mejor se adapte a ti</p>
-                            </div>
-                        </div>
-                        <PricingTable currentTier={profile.tier || 'rookie'} />
-                    </section>
                 )}
 
-                <section className="rounded-xl border bg-card p-6 shadow-sm">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
-                            <Palette className="h-6 w-6 text-brand-primary" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-semibold">{t('settings.appearance.title')}</h2>
-                            <p className="text-sm text-muted-foreground">{t('settings.appearance.subtitle')}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border">
-                        <div className="flex items-center gap-3">
-                            {theme === 'dark' ? (
-                                <Moon className="h-5 w-5 text-brand-primary" />
-                            ) : (
-                                <Sun className="h-5 w-5 text-brand-primary" />
-                            )}
+                <div className="grid gap-6">
+                    <section className="rounded-xl border bg-card p-6 shadow-sm">
+                        <div className="flex items-center gap-6 mb-8">
+                            <AvatarUpload
+                                currentAvatarUrl={profile?.avatarUrl}
+                                onSuccess={(newUrl) => setProfile({ ...profile, avatarUrl: newUrl })}
+                            />
                             <div>
-                                <p className="text-sm font-medium">
-                                    {theme === 'dark' ? t('settings.appearance.dark') : t('settings.appearance.light')}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-xl font-semibold">{t('settings.profile_section')}</h2>
+                                    {profile?.tier && <UserBadge tier={profile.tier} size="md" />}
+                                </div>
+                                <p className="text-sm text-muted-foreground">{user?.email || t('common.loading')}</p>
                             </div>
                         </div>
-                        <button
-                            onClick={toggleTheme}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-brand-primary text-white shadow hover:bg-brand-primary/90 h-9 px-4 py-2 cursor-pointer"
-                        >
-                            {t('common.edit')}
-                        </button>
-                    </div>
-                </section>
 
-                <section className="rounded-xl border border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900/50 p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-red-900 mb-4 flex items-center gap-2">
-                        <LogOut className="h-5 w-5" />
-                        {t('settings.danger_zone')}
-                    </h2>
-                    <p className="text-sm text-red-700 mb-6">
-                        {t('settings.danger_zone_desc')}
-                    </p>
-                    <form action={logoutAction}>
-                        <button
-                            type="submit"
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white shadow hover:bg-red-700 h-9 px-4 py-2 cursor-pointer"
-                        >
-                            {t('nav.logout')}
-                        </button>
-                    </form>
-                </section>
+                        <div className="space-y-4 max-w-md">
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                    <Mail className="h-4 w-4" />
+                                    {t('settings.email_label')}
+                                </label>
+                                <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                                    {user?.email}
+                                </div>
+                            </div>
+
+                            {profile && (
+                                <>
+                                    <div className="pt-4">
+                                        <UsernameSettingsForm initialUsername={profile.username || ''} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium flex items-center gap-2">
+                                            <Weight className="h-4 w-4" />
+                                            {t('settings.weight_unit_label')}
+                                        </label>
+                                        <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20 capitalize">
+                                            {t(`common.units.${profile.weightUnit}`)}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium flex items-center gap-2">
+                                            <Shield className="h-4 w-4" />
+                                            {t('settings.role_label')}
+                                        </label>
+                                        <div className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm bg-muted/20">
+                                            {t(`settings.plans.${profile.tier || 'rookie'}`)}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t">
+                                        <GenderSettingsForm initialGender={profile.gender || 'male'} />
+                                    </div>
+
+                                    <div className="pt-4 border-t">
+                                        <GoalSettingsForm initialGoal={profile.monthlyGoal || 20} />
+                                    </div>
+
+                                    <div className="pt-6 border-t">
+                                        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                                            <Globe className="h-4 w-4 text-brand-primary" />
+                                            Privacidad Social
+                                        </h3>
+                                        <SocialSettingsForm
+                                            initialSocialActive={profile.isSocialActive}
+                                            initialSearchable={profile.isSearchable}
+                                            initialNotificationsActive={profile.isNotificationsActive}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </section>
+
+                    {profile && (
+                        <section className="rounded-xl border bg-card p-6 shadow-sm">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="h-12 w-12 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                                    <CreditCard className="h-6 w-6 text-brand-primary" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-semibold">Suscripción</h2>
+                                    <p className="text-sm text-muted-foreground">Elige el plan que mejor se adapte a ti</p>
+                                </div>
+                            </div>
+                            <PricingTable currentTier={profile.tier || 'rookie'} />
+                        </section>
+                    )}
+
+                </div>
             </div>
-        </div>
         </>
     );
 }
