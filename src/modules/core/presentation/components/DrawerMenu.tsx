@@ -45,7 +45,7 @@ export function DrawerMenu() {
                 <Menu className="w-6 h-6" />
             </button>
 
-            {isOpen && (
+            {mounted && isOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex">
                     <div
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in"
@@ -92,7 +92,8 @@ export function DrawerMenu() {
                             </form>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {mounted && showQR && createPortal(
