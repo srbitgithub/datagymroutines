@@ -199,7 +199,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                         <div className="flex-1 min-w-0">
                                             <p className="font-bold truncate text-sm">{item.exercise.name}</p>
                                             <p className="text-[10px] text-muted-foreground uppercase">
-                                                {t(`exercises.muscle_groups.${item.exercise.muscleGroup}`) || item.exercise.muscleGroup}
+                                                {t(`exercises.muscle_groups.${item.exercise.muscleGroup || ''}`, { defaultValue: item.exercise.muscleGroup || '' }) || item.exercise.muscleGroup || ''}
                                             </p>
                                         </div>
                                         <button
@@ -301,8 +301,8 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                             className="flex h-10 w-full rounded-lg border border-border bg-muted/50 px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-primary text-foreground"
                         >
                             {categories.map(cat => (
-                                <option key={cat} value={cat}>
-                                    {cat === 'Todos' ? t('common.all') : (t(`exercises.muscle_groups.${cat}`) || cat)}
+                                <option key={cat || ''} value={cat || ''} className="bg-background text-foreground">
+                                    {cat === 'Todos' ? t('common.all') : (t(`exercises.muscle_groups.${cat || ''}`, { defaultValue: cat || '' }) || cat || '')}
                                 </option>
                             ))}
                         </select>
@@ -327,7 +327,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                             <div>
                                                 <p className="text-sm font-bold">{exercise.name}</p>
                                                 <p className="text-[10px] uppercase font-medium text-muted-foreground">
-                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup || ''}`, { defaultValue: exercise.muscleGroup || '' }) || exercise.muscleGroup || ''}
                                                 </p>
                                             </div>
                                             <div className="bg-brand-primary/10 p-2 rounded-lg">
@@ -353,7 +353,7 @@ export function RoutineBuilderForm({ exercises, initialRoutine }: RoutineBuilder
                                             <div>
                                                 <p className="text-sm font-bold">{exercise.name}</p>
                                                 <p className="text-[10px] uppercase font-medium text-muted-foreground">
-                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                                    {t(`exercises.muscle_groups.${exercise.muscleGroup || ''}`, { defaultValue: exercise.muscleGroup || '' }) || exercise.muscleGroup || ''}
                                                 </p>
                                             </div>
                                             <div className="bg-brand-primary/10 p-2 rounded-lg">
