@@ -44,8 +44,8 @@ export default function ExercisesPage() {
         <div className="max-w-4xl mx-auto space-y-8 pb-10">
             <ContextualTooltip
                 id="tooltip_exercises"
-                title="Tu arsenal"
-                message="Aquí tienes +100 ejercicios. ¿Falta alguno? Crea el tuyo propio arriba."
+                title={t('exercises.tooltip_title', { defaultValue: 'Tu arsenal' })}
+                message={t('exercises.tooltip_message', { defaultValue: 'Aquí tienes 50 ejercicios base. ¿Falta alguno? Crea el tuyo propio arriba.' })}
             />
             <header className="flex items-center justify-between">
                 <div>

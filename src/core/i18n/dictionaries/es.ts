@@ -94,7 +94,9 @@ export const es = {
             Core: "Core",
             Glúteos: "Glúteos",
             Otros: "Otros"
-        }
+        },
+        tooltip_title: "Tu arsenal",
+        tooltip_message: "Aquí tienes 50 ejercicios base. ¿Falta alguno? Crea el tuyo propio arriba."
     },
     routines: {
         title: "Mis Rutinas",

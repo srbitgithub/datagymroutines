@@ -83,6 +83,7 @@ export const en = {
         edit_title: "Edit name",
         delete_title: "Delete exercise",
         delete_confirm: "Are you sure you want to delete \"{{name}}\"?",
+        empty_state: "No custom exercises yet",
         muscle_groups: {
             Pecho: "Chest",
             Espalda: "Back",
@@ -94,7 +95,9 @@ export const en = {
             Core: "Core",
             Glúteos: "Glutes",
             Otros: "Others"
-        }
+        },
+        tooltip_title: "Your arsenal",
+        tooltip_message: "Here are 50 base exercises. Missing one? Create your own above."
     },
     routines: {
         title: "My Routines",
