@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { useProfile } from "@/modules/profiles/presentation/contexts/ProfileContext";
 import { Dumbbell, Users, Bell, ChevronRight, CheckCircle2 } from "lucide-react";
 import { updateProfileAction } from "@/app/_actions/auth";
+import { useTranslation } from "@/core/i18n/TranslationContext";
 
 export function InitialOnboardingModal() {
     const { profile, refreshProfile } = useProfile();
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
 
     // States for steps
@@ -53,10 +55,10 @@ export function InitialOnboardingModal() {
                 {/* Header */}
                 <div className="bg-brand-primary/10 p-6 text-center border-b border-brand-primary/10">
                     <h2 className="text-2xl font-black uppercase tracking-tight text-brand-primary">
-                        Bienvenido a IronMetric
+                        {t('onboarding_modal.welcome')}
                     </h2>
                     <p className="text-muted-foreground text-sm mt-2">
-                        Configura tu perfil en 3 sencillos pasos para empezar con buen pie.
+                        {t('onboarding_modal.subtitle')}
                     </p>
                 </div>
 
@@ -77,24 +79,24 @@ export function InitialOnboardingModal() {
                                 <div className="bg-brand-primary/20 p-2.5 rounded-xl">
                                     <Dumbbell className="h-6 w-6 text-brand-primary" />
                                 </div>
-                                <h3 className="text-lg font-bold">1. ¿Cuál es tu objetivo?</h3>
+                                <h3 className="text-lg font-bold">{t('onboarding_modal.step1_title')}</h3>
                             </div>
                             <p className="text-sm text-muted-foreground mb-4">
-                                ¿Cuántas veces quieres entrenar al mes? Esto ajustará las gráficas de tu vista principal.
+                                {t('onboarding_modal.step1_desc')}
                             </p>
 
                             <div className="grid gap-3">
                                 {[
-                                    { value: 4, label: "Una vez por semana", desc: "4 días/mes" },
-                                    { value: 12, label: "Constante", desc: "12 días/mes (3/semana)" },
-                                    { value: 20, label: "Modo Bestia 🦍", desc: "20 días/mes (5/semana)" }
+                                    { value: 4, label: t('onboarding_modal.step1_opt1_label'), desc: t('onboarding_modal.step1_opt1_desc') },
+                                    { value: 12, label: t('onboarding_modal.step1_opt2_label'), desc: t('onboarding_modal.step1_opt2_desc') },
+                                    { value: 20, label: t('onboarding_modal.step1_opt3_label'), desc: t('onboarding_modal.step1_opt3_desc') }
                                 ].map((opt) => (
                                     <button
                                         key={opt.value}
                                         onClick={() => setMonthlyGoal(opt.value)}
                                         className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${monthlyGoal === opt.value
-                                                ? 'border-brand-primary bg-brand-primary/10'
-                                                : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                                            ? 'border-brand-primary bg-brand-primary/10'
+                                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
                                             }`}
                                     >
                                         <div className="text-left">
@@ -115,36 +117,36 @@ export function InitialOnboardingModal() {
                                 <div className="bg-brand-primary/20 p-2.5 rounded-xl">
                                     <Users className="h-6 w-6 text-brand-primary" />
                                 </div>
-                                <h3 className="text-lg font-bold">2. Privacidad Social</h3>
+                                <h3 className="text-lg font-bold">{t('onboarding_modal.step2_title')}</h3>
                             </div>
                             <p className="text-sm text-muted-foreground mb-4">
-                                ¿Quieres ser visible para que tus amigos te encuentren y te inviten a grupos?
+                                {t('onboarding_modal.step2_desc')}
                             </p>
 
                             <div className="grid gap-3">
                                 <button
                                     onClick={() => setIsSearchable(true)}
                                     className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${isSearchable
-                                            ? 'border-brand-primary bg-brand-primary/10'
-                                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                                        ? 'border-brand-primary bg-brand-primary/10'
+                                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
                                         }`}
                                 >
                                     <div className="text-left">
-                                        <div className="font-bold text-white">Sí, mostrar mi perfil</div>
-                                        <div className="text-xs text-muted-foreground">Podrán encontrarte por tu nombre</div>
+                                        <div className="font-bold text-white">{t('onboarding_modal.step2_opt1_label')}</div>
+                                        <div className="text-xs text-muted-foreground">{t('onboarding_modal.step2_opt1_desc')}</div>
                                     </div>
                                     {isSearchable && <CheckCircle2 className="h-5 w-5 text-brand-primary" />}
                                 </button>
                                 <button
                                     onClick={() => setIsSearchable(false)}
                                     className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${!isSearchable
-                                            ? 'border-brand-primary bg-brand-primary/10'
-                                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                                        ? 'border-brand-primary bg-brand-primary/10'
+                                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
                                         }`}
                                 >
                                     <div className="text-left">
-                                        <div className="font-bold text-white">No, mantenerme oculto</div>
-                                        <div className="text-xs text-muted-foreground">Modo fantasma activado</div>
+                                        <div className="font-bold text-white">{t('onboarding_modal.step2_opt2_label')}</div>
+                                        <div className="text-xs text-muted-foreground">{t('onboarding_modal.step2_opt2_desc')}</div>
                                     </div>
                                     {!isSearchable && <CheckCircle2 className="h-5 w-5 text-brand-primary" />}
                                 </button>
@@ -159,36 +161,36 @@ export function InitialOnboardingModal() {
                                 <div className="bg-brand-primary/20 p-2.5 rounded-xl">
                                     <Bell className="h-6 w-6 text-brand-primary" />
                                 </div>
-                                <h3 className="text-lg font-bold">3. Notificaciones</h3>
+                                <h3 className="text-lg font-bold">{t('onboarding_modal.step3_title')}</h3>
                             </div>
                             <p className="text-sm text-muted-foreground mb-4">
-                                ¡No te pierdas de nada! ¿Quieres que te avisemos cuando alguien reaccione a tu entreno?
+                                {t('onboarding_modal.step3_desc')}
                             </p>
 
                             <div className="grid gap-3">
                                 <button
                                     onClick={() => setIsNotificationsActive(true)}
                                     className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${isNotificationsActive
-                                            ? 'border-brand-primary bg-brand-primary/10'
-                                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                                        ? 'border-brand-primary bg-brand-primary/10'
+                                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
                                         }`}
                                 >
                                     <div className="text-left">
-                                        <div className="font-bold text-white">¡Dame ese extra de motivación!</div>
-                                        <div className="text-xs text-muted-foreground">Recibe alertas sociales</div>
+                                        <div className="font-bold text-white">{t('onboarding_modal.step3_opt1_label')}</div>
+                                        <div className="text-xs text-muted-foreground">{t('onboarding_modal.step3_opt1_desc')}</div>
                                     </div>
                                     {isNotificationsActive && <CheckCircle2 className="h-5 w-5 text-brand-primary" />}
                                 </button>
                                 <button
                                     onClick={() => setIsNotificationsActive(false)}
                                     className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${!isNotificationsActive
-                                            ? 'border-brand-primary bg-brand-primary/10'
-                                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
+                                        ? 'border-brand-primary bg-brand-primary/10'
+                                        : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700'
                                         }`}
                                 >
                                     <div className="text-left">
-                                        <div className="font-bold text-white">No, prefiero entrenar en silencio</div>
-                                        <div className="text-xs text-muted-foreground">Sin notificaciones</div>
+                                        <div className="font-bold text-white">{t('onboarding_modal.step3_opt2_label')}</div>
+                                        <div className="text-xs text-muted-foreground">{t('onboarding_modal.step3_opt2_desc')}</div>
                                     </div>
                                     {!isNotificationsActive && <CheckCircle2 className="h-5 w-5 text-brand-primary" />}
                                 </button>
@@ -204,7 +206,7 @@ export function InitialOnboardingModal() {
                             onClick={() => setStep(step - 1)}
                             className="px-6 py-3 rounded-xl border border-zinc-700 text-sm font-bold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
                         >
-                            Atrás
+                            {t('common.cancel', { defaultValue: 'Atrás' })}
                         </button>
                     ) : (
                         <div></div> /* Placeholder for Flex alignment */
@@ -215,7 +217,7 @@ export function InitialOnboardingModal() {
                             onClick={() => setStep(step + 1)}
                             className="flex items-center gap-2 px-8 py-3 rounded-xl bg-brand-primary text-sm font-black uppercase tracking-widest text-white shadow-lg shadow-brand-primary/20 hover:bg-brand-primary/90 hover:scale-105 active:scale-95 transition-all"
                         >
-                            Siguiente <ChevronRight className="h-4 w-4" />
+                            {t('onboarding_modal.next_button')} <ChevronRight className="h-4 w-4" />
                         </button>
                     ) : (
                         <button
@@ -226,7 +228,7 @@ export function InitialOnboardingModal() {
                             {isSubmitting ? (
                                 <span className="block h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                "¡A entrenar!"
+                                t('onboarding_modal.finish_button')
                             )}
                         </button>
                     )}

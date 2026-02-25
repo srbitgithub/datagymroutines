@@ -99,10 +99,10 @@ export function PwaInstallPrompt() {
                     </div>
                     <div>
                         <h3 className="font-black text-sm uppercase tracking-tight mb-1">
-                            Lleva tu entrenamiento al gym
+                            {t('pwa_prompt.title')}
                         </h3>
                         <p className="text-xs text-muted-foreground leading-relaxed">
-                            Instala la App en 2 pasos para una experiencia 100% nativa.
+                            {t('pwa_prompt.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -110,10 +110,10 @@ export function PwaInstallPrompt() {
                 {isIOS ? (
                     <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 backdrop-blur-sm mt-1 space-y-3">
                         <p className="text-[11px] font-medium flex items-center gap-2">
-                            1. Pulsa <Share className="h-4 w-4 text-brand-secondary" /> en el menú de Safari
+                            {t('pwa_prompt.ios_step1')} <Share className="h-4 w-4 text-brand-secondary" /> {t('pwa_prompt.ios_step1_tail')}
                         </p>
                         <p className="text-[11px] font-medium flex items-center gap-2">
-                            2. Toca <PlusSquare className="h-4 w-4 text-brand-secondary" /> Añadir a pantalla de inicio
+                            {t('pwa_prompt.ios_step2')} <PlusSquare className="h-4 w-4 text-brand-secondary" /> {t('pwa_prompt.ios_step2_tail')}
                         </p>
                     </div>
                 ) : deferredPrompt ? (
@@ -121,15 +121,15 @@ export function PwaInstallPrompt() {
                         onClick={handleInstall}
                         className="w-full flex items-center justify-center gap-2 bg-brand-primary text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                     >
-                        <Download className="h-4 w-4" /> Instalar App
+                        <Download className="h-4 w-4" /> {t('pwa_prompt.install_button')}
                     </button>
                 ) : isAndroid ? (
                     <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 backdrop-blur-sm mt-1 space-y-3">
                         <p className="text-[11px] font-medium flex items-center gap-2">
-                            1. Toca los 3 puntos (⋮) en el menú de Chrome
+                            {t('pwa_prompt.android_step1')}
                         </p>
                         <p className="text-[11px] font-medium flex items-center gap-2">
-                            2. Selecciona <Download className="h-4 w-4 text-brand-secondary inline" /> Instalar App / Pantalla inicio
+                            {t('pwa_prompt.android_step2')} <Download className="h-4 w-4 text-brand-secondary inline" /> {t('pwa_prompt.android_step2_tail')}
                         </p>
                     </div>
                 ) : null}

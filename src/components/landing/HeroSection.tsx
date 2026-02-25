@@ -50,11 +50,11 @@ export function HeroSection() {
 
                         {/* Headline */}
                         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-foreground">
-                            Tu entreno,<br />
+                            {t('landing.hero_title_1')}<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-blue-500">
-                                tus datos,
+                                {t('landing.hero_title_2')}
                             </span><br />
-                            sin líos.
+                            {t('landing.hero_title_3')}
                         </h1>
 
                         {/* Subheadline */}
@@ -85,11 +85,11 @@ export function HeroSection() {
                         <div className="flex items-center justify-center lg:justify-start gap-4 text-sm font-medium text-muted-foreground pt-4">
                             <span className="flex items-center gap-1.5">
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10 text-green-500 text-xs text-opacity-80">✓</span>
-                                Sin tarjeta
+                                {t('landing.hero_social_no_card')}
                             </span>
                             <span className="flex items-center gap-1.5">
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10 text-green-500 text-xs">✓</span>
-                                Plan gratuito
+                                {t('landing.hero_social_free_plan')}
                             </span>
                         </div>
                     </div>
