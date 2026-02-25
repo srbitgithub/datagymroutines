@@ -44,7 +44,14 @@ export default function RootLayout({
                 document.documentElement.classList.add('light');
               }
             } catch (e) {}
-          })()`
+          })();
+          
+          window.__deferredPrompt = null;
+          window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            window.__deferredPrompt = e;
+          });
+          `
         }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>

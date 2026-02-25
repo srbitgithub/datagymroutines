@@ -6,6 +6,7 @@ import { useTranslation } from "@/core/i18n/TranslationContext";
 
 export function PwaInstallPrompt() {
     const [isIOS, setIsIOS] = useState(false);
+    const [isAndroid, setIsAndroid] = useState(false);
     const [isStandalone, setIsStandalone] = useState(true); // Default true to avoid flash
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [showPrompt, setShowPrompt] = useState(false);
@@ -21,25 +22,38 @@ export function PwaInstallPrompt() {
 
         if (isAppMode) return;
 
-        // Detect iOS
+        // Detect iOS and Android
         const userAgent = window.navigator.userAgent.toLowerCase();
         const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+        const isAndroidDevice = /android/.test(userAgent);
         setIsIOS(isIOSDevice);
+        setIsAndroid(isAndroidDevice);
+
+        // Check if event was captured globally before hydration
+        if ((window as any).__deferredPrompt) {
+            setDeferredPrompt((window as any).__deferredPrompt);
+            setShowPrompt(true);
+        }
 
         // Handle Android install prompt
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
+            (window as any).__deferredPrompt = e;
             setDeferredPrompt(e);
             setShowPrompt(true);
         };
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-        // Show prompt for iOS after a slight delay if it's not installed
-        if (isIOSDevice) {
+        // Show prompt for iOS or Android after a slight delay if it's not installed
+        if (isIOSDevice || isAndroidDevice) {
             const hasSeenPrompt = localStorage.getItem('hasSeenPwaPrompt');
             if (!hasSeenPrompt) {
-                setTimeout(() => setShowPrompt(true), 3000);
+                setTimeout(() => {
+                    if (!(window as any).__deferredPrompt) {
+                        setShowPrompt(true);
+                    }
+                }, 3000);
             }
         }
 
@@ -59,7 +73,7 @@ export function PwaInstallPrompt() {
 
     const handleClose = () => {
         setShowPrompt(false);
-        if (isIOS) {
+        if (isIOS || isAndroid) {
             localStorage.setItem('hasSeenPwaPrompt', 'true');
         }
     };
@@ -109,6 +123,15 @@ export function PwaInstallPrompt() {
                     >
                         <Download className="h-4 w-4" /> Instalar App
                     </button>
+                ) : isAndroid ? (
+                    <div className="bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 backdrop-blur-sm mt-1 space-y-3">
+                        <p className="text-[11px] font-medium flex items-center gap-2">
+                            1. Toca los 3 puntos (⋮) en el menú de Chrome
+                        </p>
+                        <p className="text-[11px] font-medium flex items-center gap-2">
+                            2. Selecciona <Download className="h-4 w-4 text-brand-secondary inline" /> Instalar App / Pantalla inicio
+                        </p>
+                    </div>
                 ) : null}
             </div>
         </div>
