@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { Routine } from "@/modules/training/domain/Routine";
 import { HistoryTracker } from "@/modules/training/presentation/components/HistoryTracker";
+import { ContextualTooltip } from "@/modules/core/presentation/components/ContextualTooltip";
 
 export default function DashboardPage({ searchParams: searchParamsPromise }: { searchParams: Promise<{ error?: string }> }) {
     const [routines, setRoutines] = useState<Routine[]>([]);
@@ -80,6 +81,7 @@ export default function DashboardPage({ searchParams: searchParamsPromise }: { s
                 </div>
             )}
 
+            <ContextualTooltip id="tooltip_dashboard" title="Centro de mando" message="Aquí verás rápidamente si estás cumpliendo tus objetivos del mes." />
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black tracking-tight uppercase">{t('dashboard.title')}</h1>
@@ -149,6 +151,17 @@ export default function DashboardPage({ searchParams: searchParamsPromise }: { s
                                     </p>
                                 </Link>
                             ))}
+                            {routines.length === 0 && (
+                                <div className="sm:col-span-1 lg:col-span-3 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-brand-primary/20 bg-brand-primary/5 p-6 text-center min-h-[160px]">
+                                    <div className="bg-brand-primary/10 p-3 rounded-full mb-3">
+                                        <ListChecks className="h-6 w-6 text-brand-primary" />
+                                    </div>
+                                    <h3 className="font-black text-sm uppercase tracking-tight mb-1">Tu centro de mando está vacío</h3>
+                                    <p className="text-xs text-muted-foreground max-w-[250px]">
+                                        Crea una rutina para empezar a registrar.
+                                    </p>
+                                </div>
+                            )}
                             <Link
                                 href="/dashboard/routines/new"
                                 className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/10 p-6 text-zinc-500 hover:text-brand-primary hover:border-brand-primary transition-all hover:bg-brand-primary/5 group animate-in zoom-in-95 duration-300"

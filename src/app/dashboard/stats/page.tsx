@@ -7,6 +7,7 @@ import { ExerciseProgressChart } from '@/modules/training/infrastructure/compone
 import { BarChart2, Search, Dumbbell, Loader2, ChevronRight, Activity, ChevronLeft, Calendar } from 'lucide-react';
 import { useTranslation } from '@/core/i18n/TranslationContext';
 import { subMonths, startOfMonth, isAfter, parseISO } from 'date-fns';
+import { ContextualTooltip } from "@/modules/core/presentation/components/ContextualTooltip";
 
 export default function StatsPage() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -85,6 +86,7 @@ export default function StatsPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <ContextualTooltip id="tooltip_stats" title="Tu progreso" message="Aquí es donde verás cómo te conviertes en una bestia. Revisa tus gráficas y RM." />
             <header className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
                     <div className="bg-brand-primary/10 p-2 rounded-xl">
@@ -125,28 +127,50 @@ export default function StatsPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {filteredExercises.map(exercise => (
-                            <button
-                                key={exercise.id}
-                                onClick={() => handleSelectExercise(exercise)}
-                                className="flex items-center justify-between p-4 rounded-2xl border bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-brand-primary/50 transition-all group text-left"
+                    {exercises.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-brand-primary/20 bg-brand-primary/5 py-16 text-center px-4 mt-8">
+                            <div className="bg-brand-primary/10 p-5 rounded-full mb-4">
+                                <Activity className="h-10 w-10 text-brand-primary" />
+                            </div>
+                            <h2 className="text-xl font-black uppercase tracking-tight mb-2">¡Aún no has levantado hierro!</h2>
+                            <p className="text-muted-foreground mb-6 max-w-sm text-sm">
+                                Completa tu primera rutina para empezar a ver tu evolución y estadísticas aquí.
+                            </p>
+                            <a
+                                href="/dashboard/routines"
+                                className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-black text-white uppercase tracking-widest shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center group-hover:bg-brand-primary/10 transition-colors">
-                                        <Dumbbell className="h-6 w-6 text-zinc-500 group-hover:text-brand-primary" />
+                                Ir a mis rutinas
+                            </a>
+                        </div>
+                    ) : filteredExercises.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground">
+                            {t('stats.no_results')}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {filteredExercises.map(exercise => (
+                                <button
+                                    key={exercise.id}
+                                    onClick={() => handleSelectExercise(exercise)}
+                                    className="flex items-center justify-between p-4 rounded-2xl border bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-brand-primary/50 transition-all group text-left"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center group-hover:bg-brand-primary/10 transition-colors">
+                                            <Dumbbell className="h-6 w-6 text-zinc-500 group-hover:text-brand-primary" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-white leading-tight">{exercise.name}</h3>
+                                            <span className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">
+                                                {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-white leading-tight">{exercise.name}</h3>
-                                        <span className="text-[10px] font-black uppercase text-zinc-500 tracking-wider">
-                                            {t(`exercises.muscle_groups.${exercise.muscleGroup}`) || exercise.muscleGroup}
-                                        </span>
-                                    </div>
-                                </div>
-                                <ChevronRight className="h-5 w-5 text-zinc-700 group-hover:text-white transition-colors" />
-                            </button>
-                        ))}
-                    </div>
+                                    <ChevronRight className="h-5 w-5 text-zinc-700 group-hover:text-white transition-colors" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="space-y-8 animate-in zoom-in-95 duration-300">

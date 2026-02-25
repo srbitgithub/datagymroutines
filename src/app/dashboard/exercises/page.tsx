@@ -7,6 +7,7 @@ import { ExerciseListItem } from "@/modules/training/infrastructure/components/E
 import { Dumbbell, Plus, Loader2 } from "lucide-react";
 import { useTranslation } from "@/core/i18n/TranslationContext";
 import { Exercise } from "@/modules/training/domain/Exercise";
+import { ContextualTooltip } from "@/modules/core/presentation/components/ContextualTooltip";
 
 export default function ExercisesPage() {
     const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -41,6 +42,11 @@ export default function ExercisesPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-10">
+            <ContextualTooltip
+                id="tooltip_exercises"
+                title="Tu arsenal"
+                message="Aquí tienes +100 ejercicios. ¿Falta alguno? Crea el tuyo propio arriba."
+            />
             <header className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black uppercase tracking-tight">{t('exercises.title')}</h1>
@@ -60,27 +66,39 @@ export default function ExercisesPage() {
                 <ExerciseForm onSuccess={refreshExercises} />
             </div>
 
-            <div className="space-y-12">
-                {Object.entries(groups).sort().map(([group, groupExercises]) => (
-                    <section key={group} className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500">
-                                {t(`exercises.muscle_groups.${group}`) || group}
-                            </h3>
-                            <div className="h-px bg-zinc-800 flex-1" />
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {groupExercises.map((exercise) => (
-                                <ExerciseListItem
-                                    key={exercise.id}
-                                    exercise={exercise}
-                                    onRefresh={refreshExercises}
-                                />
-                            ))}
-                        </div>
-                    </section>
-                ))}
-            </div>
+            {exercises.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-brand-primary/20 bg-brand-primary/5 py-16 text-center px-4 mt-8">
+                    <div className="bg-brand-primary/10 p-5 rounded-full mb-4 relative overflow-hidden group">
+                        <Dumbbell className="h-10 w-10 text-brand-primary group-hover:scale-110 transition-transform" />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-tight mb-2">Construye tu arsenal</h2>
+                    <p className="text-muted-foreground mb-6 max-w-sm text-sm">
+                        Aún no tienes ejercicios guardados. Utiliza el formulario de arriba para crear tu primer ejercicio y empezar tu librería.
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-12">
+                    {Object.entries(groups).sort().map(([group, groupExercises]) => (
+                        <section key={group} className="space-y-6">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500">
+                                    {t(`exercises.muscle_groups.${group}`) || group}
+                                </h3>
+                                <div className="h-px bg-zinc-800 flex-1" />
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {groupExercises.map((exercise) => (
+                                    <ExerciseListItem
+                                        key={exercise.id}
+                                        exercise={exercise}
+                                        onRefresh={refreshExercises}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

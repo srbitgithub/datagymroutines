@@ -187,6 +187,27 @@ export async function updateSocialSettingsAction(settings: { isSocialActive?: bo
     }
 }
 
+export async function updateProfileAction(userId: string, data: any) {
+    const authRepository = new SupabaseAuthRepository();
+    const user = await authRepository.getSession();
+    if (!user || user.id !== userId) return { error: "No autenticado o permiso denegado" };
+
+    const profileRepository = new SupabaseProfileRepository();
+    const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
+
+    try {
+        await updateProfileUseCase.execute(user.id, {
+            ...data,
+            updatedAt: new Date()
+        });
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error al actualizar el perfil completo:", error);
+        return { error: `Error: ${error.message}` };
+    }
+}
+
 export async function getUserSessionAction() {
     const authRepository = new SupabaseAuthRepository();
     return authRepository.getSession();

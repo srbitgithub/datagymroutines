@@ -15,6 +15,7 @@ import { SUBSCRIPTION_LIMITS } from "@/config/subscriptions";
 import { getActiveRoutinesAction } from "@/app/_actions/training";
 import { DrawerMenu } from "@/modules/core/presentation/components/DrawerMenu";
 import { LibrarySwitcher } from "@/modules/core/presentation/components/LibrarySwitcher";
+import { InitialOnboardingModal } from "@/modules/profiles/presentation/components/InitialOnboardingModal";
 
 function DashboardContent({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -50,6 +51,8 @@ function DashboardContent({ children }: { children: ReactNode }) {
                     onResolved={() => setShowDowngradeModal(false)}
                 />
             )}
+
+            <InitialOnboardingModal />
 
             <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
                 {/* Sidebar Mobile (bottom) / Desktop (left) */}

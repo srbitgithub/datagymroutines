@@ -4,6 +4,7 @@ import "./globals.css";
 import { TranslationProvider } from "@/core/i18n/TranslationContext";
 import { ThemeProvider } from "@/core/theme/ThemeContext";
 import { PWAUpdateToast } from "@/components/pwa/PWAUpdateToast";
+import { PwaInstallPrompt } from "@/modules/core/presentation/components/PwaInstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,6 +52,7 @@ export default function RootLayout({
           <TranslationProvider>
             {children}
             <PWAUpdateToast />
+            <PwaInstallPrompt />
           </TranslationProvider>
         </ThemeProvider>
       </body>

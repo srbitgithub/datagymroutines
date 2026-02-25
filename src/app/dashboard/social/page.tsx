@@ -8,6 +8,7 @@ import { Profile } from "@/modules/profiles/domain/Profile";
 import { Users2, Plus, Loader2, Lock, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { CreateGroupModal } from "@/modules/social/presentation/components/CreateGroupModal";
+import { ContextualTooltip } from "@/modules/core/presentation/components/ContextualTooltip";
 
 export default function SocialPage() {
     const [groups, setGroups] = useState<SocialGroup[]>([]);
@@ -62,6 +63,7 @@ export default function SocialPage() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
+            <ContextualTooltip id="tooltip_social" title="Motivación extra" message="Entrenar solo es aburrido. Crea un grupo o únete a uno para no rendirte." />
             <header className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Social</h1>
@@ -110,9 +112,26 @@ export default function SocialPage() {
                         </Link>
                     ))
                 ) : (
-                    <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl">
-                        <Users2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                        <p className="mt-4 text-muted-foreground">Aún no perteneces a ningún grupo.</p>
+                    <div className="col-span-full py-16 text-center border-2 border-dashed border-brand-primary/20 bg-brand-primary/5 rounded-2xl px-4">
+                        <div className="bg-brand-primary/10 p-5 rounded-full inline-flex mb-4">
+                            <Users2 className="h-10 w-10 text-brand-primary" />
+                        </div>
+                        <h2 className="text-xl font-black uppercase tracking-tight mb-2">Entrenar solo es aburrido</h2>
+                        <p className="mt-2 text-muted-foreground max-w-sm mx-auto mb-6 text-sm">
+                            Crea un grupo para picarte con tus amigos o únete a uno para no perder la motivación.
+                        </p>
+                        {profile.tier !== 'rookie' ? (
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-black text-white uppercase tracking-widest shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95"
+                            >
+                                Crear mi primer grupo
+                            </button>
+                        ) : (
+                            <p className="text-xs font-bold text-amber-500 uppercase tracking-widest bg-amber-500/10 py-2 px-4 rounded-lg inline-block border border-amber-500/20">
+                                Pide a un amigo Pro que te invite a su grupo
+                            </p>
+                        )}
                     </div>
                 )}
             </div>
