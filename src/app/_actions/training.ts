@@ -425,9 +425,25 @@ export async function startSessionAction(routineId?: string, clientStartTime?: s
             startTime: clientStartTime ? new Date(clientStartTime) : new Date(),
             sets: [],
         });
+
+        // Pre-fetch last exercise data for prefilling
+        const pastSessions = await sessionRepository.getAllByUserId(user.id);
+        const finishedSessions = pastSessions
+            .filter(s => s.endTime)
+            .sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+
+        const lastExerciseData: Record<string, { weight: number, reps: number }> = {};
+        for (const session of finishedSessions) {
+            for (const set of session.sets || []) {
+                if (!lastExerciseData[set.exerciseId] && Number(set.weight) > 0) {
+                    lastExerciseData[set.exerciseId] = { weight: set.weight, reps: set.reps };
+                }
+            }
+        }
+
         revalidatePath("/dashboard/session");
         revalidatePath("/dashboard");
-        return { success: true, sessionId };
+        return { success: true, sessionId, lastExerciseData };
     } catch (error: any) {
         console.error("Error crítico en startSessionAction:", error);
         return { error: error.message || "Error desconocido al iniciar sesión" };

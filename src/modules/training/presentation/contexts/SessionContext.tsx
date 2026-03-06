@@ -118,15 +118,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
                 sets: []
             };
 
+            const lastData = result.lastExerciseData || {};
+
             const prefilledSets: ExerciseSet[] = [];
             selectedRoutine.exercises.forEach((re) => {
                 for (let i = 0; i < re.series; i++) {
+                    const prev = lastData[re.exerciseId];
                     prefilledSets.push({
                         id: crypto.randomUUID(),
                         sessionId: result.sessionId!,
                         exerciseId: re.exerciseId,
-                        weight: re.targetWeight || 0,
-                        reps: re.targetReps || 0,
+                        weight: prev?.weight ?? (re.targetWeight || 0),
+                        reps: prev?.reps ?? (re.targetReps || 0),
                         type: 'normal',
                         orderIndex: i,
                         createdAt: new Date()
