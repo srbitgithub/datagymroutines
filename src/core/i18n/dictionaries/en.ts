@@ -30,7 +30,7 @@ export const en = {
         connection_error: "Connection error",
     },
     nav: {
-        dashboard: "Dashboard",
+        dashboard: "Home",
         training: "Training",
         routines: "Routines",
         exercises: "Exercises",
@@ -83,7 +83,9 @@ export const en = {
         edit_title: "Edit name",
         delete_title: "Delete exercise",
         delete_confirm: "Are you sure you want to delete \"{{name}}\"?",
+        empty_title: "Build your arsenal",
         empty_state: "No custom exercises yet",
+        empty_desc: "You have no saved exercises yet. Use the form above to create your first exercise and start your library.",
         muscle_groups: {
             Pecho: "Chest",
             Espalda: "Back",
@@ -98,6 +100,24 @@ export const en = {
         },
         tooltip_title: "Your arsenal",
         tooltip_message: "Here are 50 base exercises. Missing one? Create your own above."
+    },
+    social: {
+        title: "Social",
+        subtitle: "Manage your groups and share your achievements.",
+        create_group: "Create Group",
+        tooltip_title: "Extra motivation",
+        tooltip_message: "Training alone is boring. Create or join a group to keep going.",
+        inactive_title: "Social Mode Disabled",
+        inactive_desc: "To participate in groups and share your workouts, you must enable social mode in your settings.",
+        go_to_settings: "Go to Settings",
+        rookie_warning: "As a <strong>Rookie</strong> user, you cannot create groups, but you can be invited to existing ones by Pro or Elite users.",
+        members: "members",
+        created_by_you: "Created by you",
+        created_by_other: "Created by a user",
+        empty_title: "Training alone is boring",
+        empty_desc: "Create a group to compete with friends or join one to keep your motivation high.",
+        create_first_group: "Create my first group",
+        ask_pro_friend: "Ask a Pro friend to invite you to a group",
     },
     routines: {
         title: "My Routines",

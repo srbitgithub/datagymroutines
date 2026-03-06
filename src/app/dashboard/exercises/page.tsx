@@ -71,9 +71,9 @@ export default function ExercisesPage() {
                     <div className="bg-brand-primary/10 p-5 rounded-full mb-4 relative overflow-hidden group">
                         <Dumbbell className="h-10 w-10 text-brand-primary group-hover:scale-110 transition-transform" />
                     </div>
-                    <h2 className="text-xl font-black uppercase tracking-tight mb-2">Construye tu arsenal</h2>
+                    <h2 className="text-xl font-black uppercase tracking-tight mb-2">{t('exercises.empty_title', { defaultValue: 'Construye tu arsenal' })}</h2>
                     <p className="text-muted-foreground mb-6 max-w-sm text-sm">
-                        Aún no tienes ejercicios guardados. Utiliza el formulario de arriba para crear tu primer ejercicio y empezar tu librería.
+                        {t('exercises.empty_desc', { defaultValue: 'Aún no tienes ejercicios guardados. Utiliza el formulario de arriba para crear tu primer ejercicio y empezar tu librería.' })}
                     </p>
                 </div>
             ) : (

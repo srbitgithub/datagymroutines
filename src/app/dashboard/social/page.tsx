@@ -9,8 +9,10 @@ import { Users2, Plus, Loader2, Lock, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { CreateGroupModal } from "@/modules/social/presentation/components/CreateGroupModal";
 import { ContextualTooltip } from "@/modules/core/presentation/components/ContextualTooltip";
+import { useTranslation } from "@/core/i18n/TranslationContext";
 
 export default function SocialPage() {
+    const { t } = useTranslation();
     const [groups, setGroups] = useState<SocialGroup[]>([]);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
@@ -46,16 +48,16 @@ export default function SocialPage() {
                     <Lock className="h-10 w-10 text-brand-primary" />
                 </div>
                 <div className="space-y-2">
-                    <h1 className="text-2xl font-bold">Modo Social Desactivado</h1>
+                    <h1 className="text-2xl font-bold">{t('social.inactive_title', { defaultValue: 'Modo Social Desactivado' })}</h1>
                     <p className="text-muted-foreground">
-                        Para participar en grupos y compartir tus entrenamientos, debes activar el modo social en tus ajustes.
+                        {t('social.inactive_desc', { defaultValue: 'Para participar en grupos y compartir tus entrenamientos, debes activar el modo social en tus ajustes.' })}
                     </p>
                 </div>
                 <Link
                     href="/dashboard/settings"
                     className="inline-flex items-center justify-center rounded-md bg-brand-primary px-6 py-3 text-sm font-medium text-white shadow transition-colors hover:bg-brand-primary/90"
                 >
-                    Ir a Ajustes
+                    {t('social.go_to_settings', { defaultValue: 'Ir a Ajustes' })}
                 </Link>
             </div>
         );
@@ -63,11 +65,11 @@ export default function SocialPage() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
-            <ContextualTooltip id="tooltip_social" title="Motivación extra" message="Entrenar solo es aburrido. Crea un grupo o únete a uno para no rendirte." />
+            <ContextualTooltip id="tooltip_social" title={t('social.tooltip_title', { defaultValue: 'Motivación extra' })} message={t('social.tooltip_message', { defaultValue: 'Entrenar solo es aburrido. Crea un grupo o únete a uno para no rendirte.' })} />
             <header className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Social</h1>
-                    <p className="text-muted-foreground">Gestiona tus grupos y comparte tus logros.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('social.title', { defaultValue: 'Social' })}</h1>
+                    <p className="text-muted-foreground">{t('social.subtitle', { defaultValue: 'Gestiona tus grupos y comparte tus logros.' })}</p>
                 </div>
                 {profile.tier !== 'rookie' && (
                     <button
@@ -75,7 +77,7 @@ export default function SocialPage() {
                         className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-brand-primary/90"
                     >
                         <Plus className="h-4 w-4" />
-                        Crear Grupo
+                        {t('social.create_group', { defaultValue: 'Crear Grupo' })}
                     </button>
                 )}
             </header>
@@ -83,9 +85,7 @@ export default function SocialPage() {
             {profile.tier === 'rookie' && (
                 <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 flex gap-3 text-amber-800 dark:text-amber-200">
                     <ShieldAlert className="h-5 w-5 shrink-0" />
-                    <p className="text-sm">
-                        Como usuario <strong>Rookie</strong>, no puedes crear grupos, pero puedes ser invitado a grupos existentes por otros usuarios Pro o Elite.
-                    </p>
+                    <p className="text-sm" dangerouslySetInnerHTML={{ __html: t('social.rookie_warning', { defaultValue: 'Como usuario <strong>Rookie</strong>, no puedes crear grupos, pero puedes ser invitado a grupos existentes por otros usuarios Pro o Elite.' }) }} />
                 </div>
             )}
 
@@ -102,12 +102,12 @@ export default function SocialPage() {
                                     <Users2 className="h-6 w-6" />
                                 </div>
                                 <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted">
-                                    {group.members?.length || 0} miembros
+                                    {group.members?.length || 0} {t('social.members', { defaultValue: 'miembros' })}
                                 </span>
                             </div>
                             <h3 className="text-lg font-bold mt-2">{group.name}</h3>
                             <p className="text-xs text-muted-foreground">
-                                Creado por {group.creatorId === profile.id ? 'ti' : 'un usuario'}
+                                {group.creatorId === profile.id ? t('social.created_by_you', { defaultValue: 'Creado por ti' }) : t('social.created_by_other', { defaultValue: 'Creado por un usuario' })}
                             </p>
                         </Link>
                     ))
@@ -116,20 +116,20 @@ export default function SocialPage() {
                         <div className="bg-brand-primary/10 p-5 rounded-full inline-flex mb-4">
                             <Users2 className="h-10 w-10 text-brand-primary" />
                         </div>
-                        <h2 className="text-xl font-black uppercase tracking-tight mb-2">Entrenar solo es aburrido</h2>
+                        <h2 className="text-xl font-black uppercase tracking-tight mb-2">{t('social.empty_title', { defaultValue: 'Entrenar solo es aburrido' })}</h2>
                         <p className="mt-2 text-muted-foreground max-w-sm mx-auto mb-6 text-sm">
-                            Crea un grupo para picarte con tus amigos o únete a uno para no perder la motivación.
+                            {t('social.empty_desc', { defaultValue: 'Crea un grupo para picarte con tus amigos o únete a uno para no perder la motivación.' })}
                         </p>
                         {profile.tier !== 'rookie' ? (
                             <button
                                 onClick={() => setShowCreateModal(true)}
                                 className="inline-flex h-10 items-center justify-center rounded-xl bg-brand-primary px-6 text-sm font-black text-white uppercase tracking-widest shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95"
                             >
-                                Crear mi primer grupo
+                                {t('social.create_first_group', { defaultValue: 'Crear mi primer grupo' })}
                             </button>
                         ) : (
                             <p className="text-xs font-bold text-amber-500 uppercase tracking-widest bg-amber-500/10 py-2 px-4 rounded-lg inline-block border border-amber-500/20">
-                                Pide a un amigo Pro que te invite a su grupo
+                                {t('social.ask_pro_friend', { defaultValue: 'Pide a un amigo Pro que te invite a su grupo' })}
                             </p>
                         )}
                     </div>

@@ -30,7 +30,7 @@ export const es = {
         connection_error: "Error de conexión",
     },
     nav: {
-        dashboard: "Panel",
+        dashboard: "Inicio",
         training: "Entrenamiento",
         routines: "Rutinas",
         exercises: "Ejercicios",
@@ -83,6 +83,9 @@ export const es = {
         edit_title: "Editar nombre",
         delete_title: "Borrar ejercicio",
         delete_confirm: "¿Estás seguro de que quieres borrar \"{{name}}\"?",
+        empty_title: "Construye tu arsenal",
+        empty_state: "Aún no tienes ejercicios personalizados",
+        empty_desc: "Aún no tienes ejercicios guardados. Utiliza el formulario de arriba para crear tu primer ejercicio y empezar tu librería.",
         muscle_groups: {
             Pecho: "Pecho",
             Espalda: "Espalda",
@@ -97,6 +100,24 @@ export const es = {
         },
         tooltip_title: "Tu arsenal",
         tooltip_message: "Aquí tienes 50 ejercicios base. ¿Falta alguno? Crea el tuyo propio arriba."
+    },
+    social: {
+        title: "Social",
+        subtitle: "Gestiona tus grupos y comparte tus logros.",
+        create_group: "Crear Grupo",
+        tooltip_title: "Motivación extra",
+        tooltip_message: "Entrenar solo es aburrido. Crea un grupo o únete a uno para no rendirte.",
+        inactive_title: "Modo Social Desactivado",
+        inactive_desc: "Para participar en grupos y compartir tus entrenamientos, debes activar el modo social en tus ajustes.",
+        go_to_settings: "Ir a Ajustes",
+        rookie_warning: "Como usuario <strong>Rookie</strong>, no puedes crear grupos, pero puedes ser invitado a grupos existentes por otros usuarios Pro o Elite.",
+        members: "miembros",
+        created_by_you: "Creado por ti",
+        created_by_other: "Creado por un usuario",
+        empty_title: "Entrenar solo es aburrido",
+        empty_desc: "Crea un grupo para picarte con tus amigos o únete a uno para no perder la motivación.",
+        create_first_group: "Crear mi primer grupo",
+        ask_pro_friend: "Pide a un amigo Pro que te invite a su grupo",
     },
     routines: {
         title: "Mis Rutinas",

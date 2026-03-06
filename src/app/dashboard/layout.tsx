@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, LayoutDashboard, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks, Users2, Library } from "lucide-react";
+import { Dumbbell, Home, Settings, LogOut, BarChart2, Wrench, PlayCircle, ListChecks, Users2, Library } from "lucide-react";
 import { logoutAction, getProfileAction } from "@/app/_actions/auth";
 import { SessionProvider } from "@/modules/training/presentation/contexts/SessionContext";
 import { TranslationProvider, useTranslation } from "@/core/i18n/TranslationContext";
@@ -36,7 +36,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
     }, [profile?.tier]);
 
     const navItems: Array<{ href: string; icon: any; label: string; matchPaths?: string[] }> = [
-        { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
+        { href: "/dashboard", icon: Home, label: t('nav.dashboard') },
         { href: "/dashboard/session", icon: PlayCircle, label: t('nav.training') },
         { href: "/dashboard/social", icon: Users2, label: "Social" },
         { href: "/dashboard/routines", matchPaths: ["/dashboard/routines", "/dashboard/exercises"], icon: Library, label: t('nav.library', { defaultValue: 'Biblioteca' }) },
