@@ -603,11 +603,13 @@ export function SessionLogger() {
                                 </div>
 
                                 <div className="p-0">
-                                    <div className="grid grid-cols-[30px_1fr_1fr_80px_40px] text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2 items-center">
+                                    <div className={`grid ${exercise?.loggingType === 'time' ? 'grid-cols-[30px_1fr_80px_40px]' : 'grid-cols-[30px_1fr_1fr_80px_40px]'} text-[10px] font-bold uppercase text-muted-foreground border-b bg-muted/30 p-2 items-center`}>
                                         <div className="text-center">#</div>
-                                        <div className="text-center">
-                                            {exercise?.loggingType === 'bodyweight' ? 'Lastre' : t('training.weight')}
-                                        </div>
+                                        {exercise?.loggingType !== 'time' && (
+                                            <div className="text-center">
+                                                {exercise?.loggingType === 'bodyweight' ? 'Lastre' : t('training.weight')}
+                                            </div>
+                                        )}
                                         <div className="text-center">
                                             {exercise?.loggingType === 'time' ? t('training.time') : t('training.reps')}
                                         </div>
@@ -622,27 +624,29 @@ export function SessionLogger() {
                                             <div
                                                 key={set.id}
                                                 data-next-set={isNextActive ? "true" : "false"}
-                                                className={`grid grid-cols-[30px_1fr_1fr_80px_40px] items-center border-b last:border-0 transition-colors p-3 gap-2 ${isNextActive ? 'bg-brand-primary/5 ring-1 ring-inset ring-brand-primary/20' : 'hover:bg-accent/5'}`}
+                                                className={`grid ${exercise?.loggingType === 'time' ? 'grid-cols-[30px_1fr_80px_40px]' : 'grid-cols-[30px_1fr_1fr_80px_40px]'} items-center border-b last:border-0 transition-colors p-3 gap-2 ${isNextActive ? 'bg-brand-primary/5 ring-1 ring-inset ring-brand-primary/20' : 'hover:bg-accent/5'}`}
                                             >
                                                 <div className="text-center font-bold text-muted-foreground text-xs">{idx + 1}</div>
-                                                <div className="flex justify-center">
-                                                    <div className="flex items-center gap-1">
-                                                        <button onClick={() => handleUpdateSet(set.id, 'weight', Math.max(0, set.weight - 1))} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
-                                                            <Minus className="h-3 w-3" />
-                                                        </button>
-                                                        <input
-                                                            type="number"
-                                                            step="0.5"
-                                                            value={set.weight}
-                                                            onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
-                                                            className="w-12 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                            disabled={isCompleted}
-                                                        />
-                                                        <button onClick={() => handleUpdateSet(set.id, 'weight', set.weight + 1)} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
-                                                            <Plus className="h-3 w-3" />
-                                                        </button>
+                                                {exercise?.loggingType !== 'time' && (
+                                                    <div className="flex justify-center">
+                                                        <div className="flex items-center gap-1">
+                                                            <button onClick={() => handleUpdateSet(set.id, 'weight', Math.max(0, set.weight - 1))} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                                <Minus className="h-3 w-3" />
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                step="0.5"
+                                                                value={set.weight}
+                                                                onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
+                                                                className="w-12 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                disabled={isCompleted}
+                                                            />
+                                                            <button onClick={() => handleUpdateSet(set.id, 'weight', set.weight + 1)} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                                <Plus className="h-3 w-3" />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                )}
                                                 <div className="flex justify-center">
                                                     {exercise?.loggingType === 'time' ? (
                                                         <div className="flex items-center gap-0.5 h-9 px-1 bg-accent/20 rounded-lg justify-center transition-all focus-within:ring-2 focus-within:ring-brand-primary">
