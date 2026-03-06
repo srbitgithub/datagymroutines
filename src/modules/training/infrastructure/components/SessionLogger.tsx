@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExerciseSet } from '../../domain/Session';
 import { Exercise } from '../../domain/Exercise';
-import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy, Plus, Trash2 } from 'lucide-react';
+import { Dumbbell, Clock, X, Save, Settings, Bell, BellOff, Loader2, Check, Info, Trophy, Plus, Trash2, Minus } from 'lucide-react';
 import { CustomDialog } from '@/components/ui/CustomDialog';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/modules/training/presentation/contexts/SessionContext';
@@ -626,13 +626,22 @@ export function SessionLogger() {
                                             >
                                                 <div className="text-center font-bold text-muted-foreground text-xs">{idx + 1}</div>
                                                 <div className="flex justify-center">
-                                                    <input
-                                                        type="number"
-                                                        step="0.5"
-                                                        value={set.weight}
-                                                        onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
-                                                        className="w-14 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm"
-                                                    />
+                                                    <div className="flex items-center gap-1">
+                                                        <button onClick={() => handleUpdateSet(set.id, 'weight', Math.max(0, set.weight - 1))} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                            <Minus className="h-3 w-3" />
+                                                        </button>
+                                                        <input
+                                                            type="number"
+                                                            step="0.5"
+                                                            value={set.weight}
+                                                            onChange={(e) => handleUpdateSet(set.id, 'weight', e.target.value)}
+                                                            className="w-12 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            disabled={isCompleted}
+                                                        />
+                                                        <button onClick={() => handleUpdateSet(set.id, 'weight', set.weight + 1)} className="h-9 w-6 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                            <Plus className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <div className="flex justify-center">
                                                     {exercise?.loggingType === 'time' ? (
@@ -663,12 +672,21 @@ export function SessionLogger() {
                                                             />
                                                         </div>
                                                     ) : (
-                                                        <input
-                                                            type="number"
-                                                            value={set.reps}
-                                                            onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
-                                                            className="w-14 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm"
-                                                        />
+                                                        <div className="flex items-center gap-1">
+                                                            <button onClick={() => handleUpdateSet(set.id, 'reps', Math.max(0, set.reps - 1))} className="h-9 w-5 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                                <Minus className="h-3 w-3" />
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                value={set.reps}
+                                                                onChange={(e) => handleUpdateSet(set.id, 'reps', e.target.value)}
+                                                                className="w-10 h-9 bg-accent/20 rounded-lg text-center font-bold focus:ring-2 focus:ring-brand-primary outline-none transition-all text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                disabled={isCompleted}
+                                                            />
+                                                            <button onClick={() => handleUpdateSet(set.id, 'reps', set.reps + 1)} className="h-9 w-5 flex shrink-0 items-center justify-center rounded-lg bg-accent/10 hover:bg-accent/30 text-muted-foreground active:scale-90 transition-all focus:outline-none" tabIndex={-1} disabled={isCompleted}>
+                                                                <Plus className="h-3 w-3" />
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <div className="flex justify-center">
